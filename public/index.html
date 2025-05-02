@@ -1,0 +1,64 @@
+
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>GATO3D Prototype</title>
+  <style>
+    body { margin: 0; overflow: hidden; background: #000; }
+    #overlay {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 10; flex-direction: column; color: #0f0; font-family: monospace;
+    }
+    #overlay button {
+      margin: 8px; padding: 12px 24px; font-size: 18px; cursor: pointer;
+      background: #022; border: 1px solid #0f0; color: #0f0;
+    }
+    #gameCanvas { display: block; width: 100vw; height: 100vh; }
+    #hud {
+      position: absolute; top: 10px; left: 10px; color: #0f0;
+      font-family: monospace; z-index: 5;
+    }
+  </style>
+  <script>
+    console.log('index.html inline script runs');
+  </script>
+</head>
+<body>
+  <div id="overlay">
+    <button id="btn-create">Créer</button>
+    <button id="btn-join">Rejoindre</button>
+  </div>
+  <canvas id="gameCanvas"></canvas>
+  <div id="hud"></div>
+  <input id="time-slider" type="range" min="0" max="24" step="0.1" value="12"
+    style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); z-index:11; width:300px;" />
+  <div id="time-label" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%); color:#0f0; z-index:11; font-family:monospace;">12:00</div>
+  <!-- Sun light intensity slider -->
+  <input id="light-slider" type="range" min="0" max="2" step="0.01" value="1"
+    style="position:absolute; bottom:20px; right:20px; width:200px; z-index:11;" />
+  <div id="light-label"
+    style="position:absolute; bottom:40px; right:20px; color:#0f0; font-family:monospace; z-index:11;">
+    Light: 1.00
+  </div>
+  <!-- Visibility controls -->
+  <div id="visibility-controls" style="position:absolute; top:20px; right:20px; background:#111; color:#0f0; padding:10px; font-family:monospace; z-index:11;">
+    <label><input type="checkbox" id="toggle-water" checked> Eau</label><br>
+    <label><input type="checkbox" id="toggle-sun" checked> Soleil</label><br>
+    <label><input type="checkbox" id="toggle-sub" checked> Sous-marin</label>
+  </div>
+</script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module" src="/js/main.js"></script>
+</body>
+</html>
