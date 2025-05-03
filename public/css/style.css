@@ -1,0 +1,122 @@
+/* Clock Styles */
+#ui-bottom-bar {
+    
+    
+    overflow: visible !important;
+    
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    width: 100%;
+    margin: 0;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 0px 0px 10px 0px;
+    pointer-events: none;
+    z-index: 30;
+    box-sizing: border-box;
+}
+     /* fond noir semi-transparent debug */
+    
+    overflow: visible !important; /* debug, voir débordements */
+     /* debug flex */
+    position: fixed;
+    left: 0; right: 0; bottom: 0;
+    width: calc(100% - 64px) !important;
+    margin: 0 32px !important;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 10px;
+    padding: 0px 0px 10px 0px;
+    pointer-events: none;
+    z-index: 30;
+    box-sizing: border-box;
+}
+#ui-minimap-area {
+    
+    
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+}
+    
+     /* debug flex */
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+#clock-canvas {
+    
+    
+    border: 1px solid #0f0;
+    pointer-events: auto;
+    margin: 0 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+     /* vert clock */
+     /* debug flex */
+    border: 1px solid #0f0;
+    pointer-events: auto;
+    margin: 0 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#ui-depth-indicator {
+    
+    
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    margin-right: 0;
+    min-width: 0;
+    max-width: 70px;
+}
+     /* bleu profondeur */
+     /* debug flex */
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    margin-right: 0;
+    min-width: 0;
+    max-width: 70px;
+}
+#ui-depth-indicator input[type="range"] {
+    width: 28px;
+    height: 150px;
+    box-sizing: border-box;
+    writing-mode: bt-lr;
+    -webkit-appearance: slider-vertical;
+    background: #223;
+    border-radius: 8px;
+    border: 2px solid #0ff;
+    display: block;
+    margin: 0 auto;
+}
+#ui-depth-indicator span {
+    text-align: center;
+    width: 100%;
+    display: block;
+}

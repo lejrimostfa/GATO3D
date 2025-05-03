@@ -47,7 +47,7 @@ wss.on('connection', ws => {
   });
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 3000;
 httpServer.listen(PORT, () => {
   console.log(`Serveur HTTP & WS signaling lancé sur http://0.0.0.0:${PORT}`);
 });

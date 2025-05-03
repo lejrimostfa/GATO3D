@@ -12,23 +12,17 @@ export function setupSkyAndWater(scene, renderer, camera) {
 
   // Configure sky atmosphere
   const skyUniforms = sky.material.uniforms;
-  skyUniforms['turbidity'].value = 2;
-  skyUniforms['rayleigh'].value = 6.0;
-  skyUniforms['mieCoefficient'].value = 0.001;
-  skyUniforms['mieDirectionalG'].value = 0.6;
+  skyUniforms['turbidity'].value = 8;
+skyUniforms['rayleigh'].value = 2.5;
+skyUniforms['mieCoefficient'].value = 0.005;
+skyUniforms['mieDirectionalG'].value = 0.85;
 
   const sun = new THREE.Vector3();
   const phi = THREE.MathUtils.degToRad(90 - 45); // élévation plus haute
   const theta = THREE.MathUtils.degToRad(180);   // azimuth
   sun.setFromSphericalCoords(1, phi, theta);
   sky.material.uniforms['sunPosition'].value.copy(sun);
-  // Add a visible sun sphere
-  const sunSphere = new THREE.Mesh(
-    new THREE.SphereGeometry(50, 16, 8),
-    new THREE.MeshBasicMaterial({ color: 0xffee88, transparent: true, opacity: 0.3 })
-  );
-  sunSphere.position.copy(sun.clone().multiplyScalar(5000));
-  scene.add(sunSphere);
+
 
   const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
   const water = new Water(waterGeometry, {
@@ -53,11 +47,17 @@ export function setupSkyAndWater(scene, renderer, camera) {
   water.rotation.x = -Math.PI / 2;
   scene.add(water);
   water.position.y = 20;
-  // Return handles for dynamic update
-  return { water, sky, sun, sunSphere, renderer };
+  // Add mild fog for atmosphere
+  if (!scene.fog) {
+    scene.fog = new THREE.FogExp2(0xbfd1e5, 0.00015);
+  }
+  // Retourne uniquement les éléments principaux (sans soleil)
+  return { water, sky, sun, renderer };
 }
 
 export function updateSun(sceneHandles, hour) {
+  // Décalage horaire de -3h cyclique
+  hour = (hour - 3 + 24) % 24;
   const { sky, water, sun, sunSphere } = sceneHandles;
   // Compute polar angle phi from hour [0..24]
   let phi;
@@ -77,7 +77,7 @@ export function updateSun(sceneHandles, hour) {
   let sunColor, sunOpacity;
   if (elevNorm > 0.5) {
     sunColor = new THREE.Color(0xffffff);
-    sunOpacity = 0.3;
+    sunOpacity = 0.8;
   } else if (elevNorm > 0) {
     const t = elevNorm * 2;
     sunColor = new THREE.Color().lerpColors(new THREE.Color(0xff4400), new THREE.Color(0xffffff), t);
@@ -86,10 +86,7 @@ export function updateSun(sceneHandles, hour) {
     sunColor = new THREE.Color(0x000022);
     sunOpacity = 0.1;
   }
-  // Update sun sphere
-  sunSphere.material.color.copy(sunColor);
-  sunSphere.material.opacity = sunOpacity;
-  sunSphere.position.copy(sun.clone().multiplyScalar(5000));
+  // Plus de mise à jour de sunSphere (aucun soleil visible)
   // Night sky: change clear color if sun below horizon
   if (elevNorm <= 0) {
     let renderer = sceneHandles.renderer;

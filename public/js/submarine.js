@@ -11,9 +11,20 @@ export function loadSubmarine(scene, onLoaded) {
     gltf => {
       const submarine = gltf.scene;
       submarine.scale.set(0.1, .1, .1);
-      submarine.position.set(0, 10, 0);
-      scene.add(submarine);
-      if (onLoaded) onLoaded(submarine);
+      // Créer un pivot à 1/3 de la longueur à partir de l'arrière
+      const pivot = new THREE.Object3D();
+      // Calculer la bounding box du sous-marin
+      const bbox = new THREE.Box3().setFromObject(submarine);
+      const size = new THREE.Vector3();
+      bbox.getSize(size);
+      // Calcul du point 2/3 depuis l'arrière
+      const pivotZ = -size.z / 2 + size.z * (2 / 3);
+      pivot.position.set(0, 10, 0);
+      // Décale le mesh pour que ce point soit le centre de rotation
+      submarine.position.set(0, 0, -pivotZ);
+      pivot.add(submarine);
+      scene.add(pivot);
+      if (onLoaded) onLoaded(pivot);
     },
     undefined,
     error => {
