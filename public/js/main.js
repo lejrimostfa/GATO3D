@@ -1,5 +1,5 @@
 import { setupSkyAndWater, updateSun } from './water-setup.js';
-import { loadSubmarine } from './submarine.js';
+import { loadSubmarine } from './submarine/model.js';
 console.log('main.js loaded');
 
 // public/js/main.js
@@ -101,54 +101,12 @@ function onWindowResize() {
 }
 
 // --- Clock Drawing Functions ---
-function drawClockFace(ctx, radius) {
-    ctx.beginPath();
-    ctx.arc(radius, radius, radius * 0.95, 0, 2 * Math.PI);
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.6)'; // Semi-transparent black background
-    ctx.fill();
-    ctx.strokeStyle = '#0f0'; // Green border
-    ctx.lineWidth = radius * 0.05;
-    ctx.stroke();
+// --- Clock Drawing Functions ---
+import { drawClockFace, drawTime } from './ui/clock.js';
 
-    // Draw hour numbers (1 to 12, 12 at top)
-    ctx.font = `${radius * 0.32}px monospace`;
-    ctx.fillStyle = '#0f0';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let n = 1; n <= 12; n++) {
-        const angle = (n - 3) * (Math.PI / 6); // -3 to put 12 at top
-        const numRadius = radius * 0.75;
-        const x = radius + numRadius * Math.cos(angle);
-        const y = radius + numRadius * Math.sin(angle);
-        ctx.fillText(n.toString(), x, y);
-    }
-}
+// (Les fonctions drawClockFace et drawTime sont maintenant importées du module ui/clock.js)
 
-function drawHand(ctx, radius, pos, length, width, color) { 
-    ctx.beginPath();
-    ctx.lineWidth = width;
-    ctx.lineCap = "round";
-    ctx.strokeStyle = color;
-    ctx.moveTo(radius, radius); 
-    ctx.save(); 
-    ctx.translate(radius, radius); 
-    ctx.rotate(pos - Math.PI / 2); 
-    ctx.lineTo(0, -length); 
-    ctx.stroke();
-    ctx.restore(); 
-}
 
-function drawTime(ctx, radius, hour) {
-    // Map 24h: 0h/24h = haut (12), 6h = droite, 12h = bas (6), 18h = gauche
-    // 2 tours pour 24h : angle = (hour/12)*2PI - PI/2
-    const hourAngle = ((hour + 3) / 12) * 2 * Math.PI - Math.PI / 2;
-    const hourHandLength = radius * 0.6;
-    const hourHandWidth = radius * 0.07;
-    drawHand(ctx, radius, hourAngle, hourHandLength, hourHandWidth, '#0f0');
-
-    // Optionnel : aiguille des minutes
-    // For now, only hour hand representing the 0-24 cycle.
-}
 
 // Start game after overlay
 function startGame() {
@@ -711,6 +669,12 @@ function animate() {
     if (minimapRotating && playerSubmarine) {
       // Vue qui tourne autour du sub : la caméra pivote selon -rotation.y
       const angle = -playerSubmarine.rotation.y;
+      // --- Synchronisation boussole ---
+      const compass = document.getElementById('compass');
+      if (compass) {
+        compass.style.transform = `rotate(${playerSubmarine.rotation.y}rad)`;
+      }
+
       const radius = MINIMAP_CAM_HEIGHT;
       const cx = center.x + Math.sin(angle) * 0;
       const cz = center.z + Math.cos(angle) * 0;
