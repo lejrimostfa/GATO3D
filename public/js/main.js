@@ -396,7 +396,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('keydown', e => {
     keys[e.key.toLowerCase()] = true;
-    console.log('[KEYDOWN]', e.key.toLowerCase(), keys);
+
     if (e.key.toLowerCase() === 'p') {
       if (!isTimePaused) {
         // On passe en pause : capture l'heure courante
@@ -416,7 +416,7 @@ window.addEventListener('DOMContentLoaded', () => {
   });
   window.addEventListener('keyup', e => {
     keys[e.key.toLowerCase()] = false;
-    console.log('[KEYUP]', e.key.toLowerCase(), keys);
+
 });
 
   // Masquer les menus initiaux avant le démarrage
@@ -444,9 +444,7 @@ let pausedAt = 0;
 function animate() {
   requestAnimationFrame(animate);
   updatePlayerSubmarine(playerSubmarine, keys);
-  if (playerSubmarine) {
-    console.log('[ANIMATE] Sub position', playerSubmarine.position, playerSubmarine.children?.[0]?.position);
-  }
+
   updateDepthHud(playerSubmarine);
 
   // --- FPS counter ---

@@ -13,7 +13,7 @@ export function setupSkyAndWater(scene, renderer, camera) {
   // Ajoute un mesh sphérique pour le soleil visible
   const sunSphere = new THREE.Mesh(
     new THREE.SphereGeometry(3500, 16, 8),
-    new THREE.MeshBasicMaterial({ color: 0xffffee, emissive: 0xffeeaa })
+    new THREE.MeshStandardMaterial({ color: 0xffffee, emissive: 0xffeeaa, emissiveIntensity: 1 })
   );
   sunSphere.position.copy(sun.clone().multiplyScalar(1000));
   scene.add(sunSphere);
