@@ -105,7 +105,7 @@ export function initLightSliders(sceneHandles) {
       phaseSlider.min = '0';
       phaseSlider.max = '24';
       phaseSlider.step = '0.1';
-      phaseSlider.value = '16.0';
+      phaseSlider.value = '12.0';
       phaseSlider.style.width = '120px';
       phaseSlider.style.marginLeft = '8px';
       phaseLabel = document.createElement('span');

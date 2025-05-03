@@ -62,8 +62,8 @@ skyUniforms['mieDirectionalG'].value = 0.85;
 }
 
 export function updateSun(sceneHandles, hour) {
-  // Décalage horaire de -3h cyclique
-  hour = (hour - 3 + 24) % 24;
+  // Lever du soleil à 6h (aucun décalage)
+  // hour = hour;
   const { sky, water, sun, sunSphere } = sceneHandles;
   // Compute polar angle phi from hour [0..24]
   let phi;
