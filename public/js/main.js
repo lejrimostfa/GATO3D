@@ -151,8 +151,11 @@ function startGame() {
       camLabel.textContent = `Camera: 130`;
     }
     if (dampingSlider && dampingLabel) {
-      dampingSlider.value = 0.03;
-      dampingLabel.textContent = `Damping: 0.03`;
+      dampingSlider.value = 0.005;
+      dampingLabel.textContent = `Damping: ${parseFloat(dampingSlider.value).toFixed(3)}`;
+      dampingSlider.addEventListener('input', () => {
+        dampingLabel.textContent = `Damping: ${parseFloat(dampingSlider.value).toFixed(3)}`;
+      });
     }
     if (altitudeSlider && altitudeLabel) {
       altitudeSlider.value = 40;
@@ -161,44 +164,33 @@ function startGame() {
       console.warn('Slider, sunLight, or renderer not found.');
     }
     // --- Ajout : gestion sliders menu rétractable ---
-    const sliderToggle = document.getElementById('slider-toggle');
-    const sliderPanel = document.getElementById('slider-panel');
-    if (sliderToggle && sliderPanel) {
-      sliderToggle.addEventListener('click', () => {
-        sliderPanel.style.display = sliderPanel.style.display === 'none' ? 'flex' : 'none';
-      });
-    }
-    // --- Ajout : gestion visibilité menu rétractable ---
-    const visToggle = document.getElementById('visibility-toggle');
-    const visPanel = document.getElementById('visibility-panel');
-    if (visToggle && visPanel) {
-      visToggle.addEventListener('click', () => {
-        visPanel.style.display = visPanel.style.display === 'none' ? 'flex' : 'none';
-      });
-    }
     // --- Ajout : injection dynamique des checkboxes dans visibility-panel ---
-    if (visPanel) visPanel.innerHTML = '';
-    const visibilityControls = visPanel;
-    // Liste des objets principaux à contrôler
-    const objects = [
-      { id: 'water', label: 'Eau', ref: () => sceneHandles.water },
-      { id: 'sub', label: 'Sous-marin', ref: () => playerSubmarine }
-    ];
-    objects.forEach(obj => {
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.id = 'toggle-' + obj.id;
-      checkbox.checked = true;
-      checkbox.addEventListener('change', e => {
-        const target = obj.ref();
-        if (target) target.visible = e.target.checked;
+    const visPanel = document.getElementById('visibility-panel');
+    if (!visPanel) {
+      console.warn('[UI] Panel menu manquant: #visibility-panel');
+    } else {
+      visPanel.innerHTML = '';
+      // Liste des objets principaux à contrôler
+      const objects = [
+        { id: 'water', label: 'Eau', ref: () => sceneHandles.water },
+        { id: 'sub', label: 'Sous-marin', ref: () => playerSubmarine }
+      ];
+      objects.forEach(obj => {
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'toggle-' + obj.id;
+        checkbox.checked = true;
+        checkbox.addEventListener('change', e => {
+          const target = obj.ref();
+          if (target) target.visible = e.target.checked;
+        });
+        const label = document.createElement('label');
+        label.appendChild(checkbox);
+        label.appendChild(document.createTextNode(' ' + obj.label));
+        visPanel.appendChild(label);
+        visPanel.appendChild(document.createElement('br'));
       });
-      const label = document.createElement('label');
-      label.appendChild(checkbox);
-      label.appendChild(document.createTextNode(' ' + obj.label));
-      visibilityControls.appendChild(label);
-      visibilityControls.appendChild(document.createElement('br'));
-    });
+    }
     // --- Ajout : gestion boutons zoom mini-map ---
     const btnZoomIn = document.getElementById('minimap-zoom-in');
     const btnZoomOut = document.getElementById('minimap-zoom-out');
@@ -290,20 +282,49 @@ btnJoin.addEventListener('click', () => {
 const keys = {};
 
 window.addEventListener('DOMContentLoaded', () => {
-  const btnGameSettings = document.getElementById('game-settings-toggle');
-  // ... (rest of the code remains the same)
-  const panelGameSettings = document.getElementById('game-settings-panel');
-  if (btnGameSettings && panelGameSettings) {
-    btnGameSettings.addEventListener('click', () => {
-      if (panelGameSettings.style.display === 'none' || panelGameSettings.style.display === '') {
-        panelGameSettings.style.display = 'flex';
-      } else {
-        panelGameSettings.style.display = 'none';
-      }
-    });
-    // Par défaut, fermé
-    panelGameSettings.style.display = 'none';
-  }
+  const menuConfig = [
+  {btnId: 'game-settings-toggle', panelId: 'game-settings-panel'},
+  {btnId: 'slider-toggle', panelId: 'slider-panel'},
+  {btnId: 'visibility-toggle', panelId: 'visibility-panel'}
+];
+
+let menuTimeout = null;
+
+const menuButtons = menuConfig.map(({btnId, panelId}) => {
+  const btn = document.getElementById(btnId);
+  const panel = document.getElementById(panelId);
+  if (!btn) console.warn(`[UI] Bouton menu manquant: #${btnId}`);
+  if (!panel) console.warn(`[UI] Panel menu manquant: #${panelId}`);
+  return {btn, panel};
+});
+
+menuButtons.forEach(({btn, panel}) => {
+  if (!btn || !panel) return;
+  // Par défaut, fermé
+  panel.style.display = 'none';
+  btn.addEventListener('click', e => {
+    // Ferme tous les autres panels
+    menuButtons.forEach(({panel: p}) => { if (p && p !== panel) p.style.display = 'none'; });
+    // Toggle ce panel
+    if (panel.style.display === 'none' || panel.style.display === '') {
+      panel.style.display = 'flex';
+      // Timer auto-close
+      clearTimeout(menuTimeout);
+      menuTimeout = setTimeout(() => { panel.style.display = 'none'; }, 10000);
+    } else {
+      panel.style.display = 'none';
+      clearTimeout(menuTimeout);
+    }
+    e.stopPropagation();
+  });
+  // Empêche la fermeture si clic dans le panel
+  panel.addEventListener('click', e => { e.stopPropagation(); });
+});
+// Ferme tout menu si clic ailleurs
+window.addEventListener('click', () => {
+  menuButtons.forEach(({panel}) => { if(panel) panel.style.display = 'none'; });
+  clearTimeout(menuTimeout);
+});
 
   // Observer pour afficher le layout flex dès que l'overlay disparaît
   
