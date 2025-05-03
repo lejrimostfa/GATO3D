@@ -4,7 +4,7 @@ import { updatePlayerSubmarine } from './submarine/controls.js';
 import { initMenus } from './ui/menus.js';
 import { initSettings } from './ui/settings.js';
 import { initLighting } from './lighting.js';
-// console.log('main.js loaded');
+console.log('main.js loaded');
 
 // public/js/main.js
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
@@ -59,7 +59,7 @@ function initGame() {
     loadSubmarine(scene, sub => {
       // Reconnexion explicite : la caméra suit toujours ce pivot parent du sous-marin
       playerSubmarine = sub;
-      // console.log('[CAMERA] Caméra reconnectée au sous-marin', playerSubmarine);
+      console.log('[CAMERA] Caméra reconnectée au sous-marin', playerSubmarine);
       // Initialisation de la minimap après chargement du sous-marin
       initMinimap();
       // Correction bug : force la minimap à s'initialiser à la bonne taille dès le lancement
@@ -179,7 +179,7 @@ window.addEventListener('resize', () => {
 
 // Start game after overlay
 function startGame() {
-  // console.log('startGame called');
+  console.log('startGame called');
   overlay.style.display = 'none';
   const uiMenus = document.getElementById('ui-menus');
   if (uiMenus) uiMenus.style.display = 'block';
@@ -242,11 +242,11 @@ function startGame() {
     if (btnZoomIn && btnZoomOut) {
       btnZoomIn.onclick = () => {
         setMinimapZoom(Math.max(MINIMAP_ZOOM_MIN, minimapZoom - MINIMAP_ZOOM_STEP));
-        // console.log('[MiniMap +] minimapZoom =', minimapZoom);
+        console.log('[MiniMap +] minimapZoom =', minimapZoom);
       };
       btnZoomOut.onclick = () => {
         setMinimapZoom(Math.min(MINIMAP_ZOOM_MAX, minimapZoom + MINIMAP_ZOOM_STEP));
-        // console.log('[MiniMap -] minimapZoom =', minimapZoom);
+        console.log('[MiniMap -] minimapZoom =', minimapZoom);
       };
     }
     // Toggle rotation mini-map
@@ -374,11 +374,11 @@ window.addEventListener('DOMContentLoaded', () => {
     const observer = new MutationObserver(() => {
       if (overlay.style.display === 'none') {
         uiBottomBar.style.display = 'flex';
-        // console.log('[DEBUG] ui-bottom-bar affiché');
+        console.log('[DEBUG] ui-bottom-bar affiché');
       }
       if (overlay.style.display === 'none' && uiBottomBar.style.display !== 'flex') {
         uiBottomBar.style.display = 'flex';
-        // console.log('[DEBUG] ui-bottom-bar forcé visible (timeout)');
+        console.log('[DEBUG] ui-bottom-bar forcé visible (timeout)');
       }
     });
     observer.observe(overlay, { attributes: true, attributeFilter: ['style'] });
@@ -396,28 +396,27 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('keydown', e => {
     keys[e.key.toLowerCase()] = true;
-    // console.log('[KEYDOWN]', e.key.toLowerCase(), keys);
+
     if (e.key.toLowerCase() === 'p') {
       if (!isTimePaused) {
         // On passe en pause : capture l'heure courante
         pausedHour = currentGameHour;
-        // console.log('[DEBUG] pausedHour capturé à', pausedHour);
+        console.log('[DEBUG] pausedHour capturé à', pausedHour);
         pausedAt = performance.now();
         isTimePaused = true;
-        // console.log('[PAUSE] Temps du jeu en pause (P)');
+        console.log('[PAUSE] Temps du jeu en pause (P)');
       } else {
         // On quitte la pause
         isTimePaused = false;
         // Décale timeStart pour que le temps ne saute pas
         timeStart += performance.now() - pausedAt;
-        // console.log('[RESUME] Temps du jeu repris (P)');
+        console.log('[RESUME] Temps du jeu repris (P)');
       }
     }
   });
   window.addEventListener('keyup', e => {
     keys[e.key.toLowerCase()] = false;
-    // console.log('[KEYUP]', e.key.toLowerCase(), keys);
-});
+  });
 
   // Masquer les menus initiaux avant le démarrage
   const uiMenus = document.getElementById('ui-menus');
@@ -445,7 +444,7 @@ function animate() {
   requestAnimationFrame(animate);
   updatePlayerSubmarine(playerSubmarine, keys);
   if (playerSubmarine) {
-    // console.log('[ANIMATE] Sub position', playerSubmarine.position, playerSubmarine.children?.[0]?.position);
+
   }
   updateDepthHud(playerSubmarine);
 

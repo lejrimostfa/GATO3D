@@ -22,7 +22,7 @@ export function loadSubmarine(scene, onLoaded) {
             sub.position.set(0, 0, 0);
             sub.scale.set(0.1, 0.1, 0.1); // Divise la taille par 10
             pivot.add(sub);
-            // console.log('[SUBMARINE] GLTF chargé et ajouté au pivot', sub, pivot.children);
+            console.log('[SUBMARINE] GLTF chargé et ajouté au pivot', sub, pivot.children);
             if (typeof onLoaded === 'function') {
                 onLoaded(pivot);
             }
