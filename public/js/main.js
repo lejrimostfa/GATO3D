@@ -4,14 +4,16 @@ import { updatePlayerSubmarine } from './submarine/controls.js';
 import { initMenus } from './ui/menus.js';
 import { initSettings } from './ui/settings.js';
 import { initLighting } from './lighting.js';
+import { loadLevel } from './levels/levelManager.js';
+import { drawClockFace, drawTime } from './ui/clock.js';
+import { initSpeedometer, updateSpeedometer } from './ui/speedometer.js';
+import * as settingsUI from './ui/settings.js'; // Importer tout le module sous l'alias settingsUI
 console.log('main.js loaded');
 
 // public/js/main.js
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
 
 // Global variables
-import { loadLevel } from './levels/levelManager.js';
-import { drawClockFace, drawTime } from './ui/clock.js';
 let scene, camera, renderer;
 let sceneHandles = null;
 let pausedHour = 0;
@@ -26,12 +28,24 @@ let fogDefault = { color: 0xbfd1e5, density: 0.00015 };
 let fogUnderwater = { color: 0x226688, density: 0.003 };
 let underwaterMode = false;
 
-import { initMinimap, updateMinimap, minimapZoom, minimapRotating, setMinimapRotating, setMinimapZoom, MINIMAP_ZOOM_MIN, MINIMAP_ZOOM_MAX, MINIMAP_ZOOM_STEP } from './ui/minimap.js';
-
+import { initMinimap, updateMinimap, minimapZoom, minimapRotating, setMinimapZoom, setMinimapSubmarine, MINIMAP_ZOOM_MIN, MINIMAP_ZOOM_MAX, MINIMAP_ZOOM_STEP } from './ui/minimap.js';
+// Import new functions for grid management (will be created in minimap.js)
+import { setMinimapGrid, removeMinimapGrid } from './ui/minimap.js'; 
+ 
+// Import new function for grid visibility (will be created in minimap.js)
+import { setMinimapGridVisibility } from './ui/minimap.js'; 
+ 
 // Durée d'une journée (en secondes, modifiable par slider)
 let dayDurationSeconds = 120;
-import { initDayDurationSlider, updateDayDurationLabel } from './ui/time-slider.js';
-import { updateDepthHud, updateHudVisibility } from './ui/hud.js';
+let maxSpeed = 300; // Vitesse max initiale (unités/seconde)
+
+// --- Grid Helper Reference (accessible globally) ---
+let gridHelper = null;
+const GRID_SIZE = 100000; // Keep size constant
+const GRID_INITIAL_Y = 100;
+
+import { initDayDurationSlider } from './ui/time-slider.js';
+import { updateHudVisibility } from './ui/hud.js';
 
 // UI elements
 
@@ -52,6 +66,15 @@ function initGame() {
   loadLevel('level1', renderer, ({scene: loadedScene, camera: loadedCamera, objects}) => {
     scene = loadedScene;
     camera = loadedCamera;
+    camera.layers.set(0); // Assure que la caméra principale ne voit que la couche 0
+
+    // --- Vérification et ajustement du Frustum Caméra Principale ---
+    console.log(`[Camera Frustum] Initial - Near: ${camera.near}, Far: ${camera.far}`);
+    camera.far = 150000; // Augmente pour voir la grille large
+    camera.updateProjectionMatrix(); // Important après changement de frustum
+    console.log(`[Camera Frustum] Ajusté - Near: ${camera.near}, Far: ${camera.far}`);
+    // --- Fin ajustement Frustum ---
+
     sceneHandles = objects.sceneHandles;
     // Utilise les lumières déjà créées par setupSkyAndWater
     ambientLight = sceneHandles.ambientLight;
@@ -60,16 +83,90 @@ function initGame() {
       // Reconnexion explicite : la caméra suit toujours ce pivot parent du sous-marin
       playerSubmarine = sub;
       console.log('[CAMERA] Caméra reconnectée au sous-marin', playerSubmarine);
-      // Initialisation de la minimap après chargement du sous-marin
-      initMinimap();
+      // --- Initial Grid Creation ---
+      const initialResolution = 10;
+      gridHelper = new THREE.GridHelper(GRID_SIZE, initialResolution, 0x00ff00, 0x004400); // Assign to global reference
+      gridHelper.position.y = GRID_INITIAL_Y; // Nettement au-dessus de Y=0
+      gridHelper.layers.set(0); // Couche par défaut
+      scene.add(gridHelper);
+      // Initialise la minimap and pass the INITIAL grid CLONE
+      initMinimap(sceneHandles.renderer, gridHelper.clone()); 
+ 
       // Correction bug : force la minimap à s'initialiser à la bonne taille dès le lancement
       window.dispatchEvent(new Event('resize'));
 
+      // --- Initialize Grid Resolution Slider ---
+      const gridResolutionSlider = document.getElementById('grid-resolution-slider');
+      const gridResolutionLabel = document.getElementById('grid-resolution-label');
+
+      if (gridResolutionSlider && gridResolutionLabel) {
+        gridResolutionSlider.addEventListener('input', (event) => {
+          const newResolution = parseInt(event.target.value, 10);
+          gridResolutionLabel.textContent = `Résolution Grille: ${newResolution}`;
+
+          // 1. Remove old grids
+          if (gridHelper) {
+            scene.remove(gridHelper); // Remove from main scene
+            removeMinimapGrid();     // Remove clone from minimap (function to be added in minimap.js)
+          }
+
+          // 2. Create new grid
+          gridHelper = new THREE.GridHelper(GRID_SIZE, newResolution, 0x00ff00, 0x004400);
+          gridHelper.position.y = GRID_INITIAL_Y; 
+          gridHelper.layers.set(0); 
+
+          // 3. Add new grids
+          scene.add(gridHelper);                 // Add to main scene
+          setMinimapGrid(gridHelper.clone());   // Add new clone to minimap (function to be added in minimap.js)
+
+          console.log(`[GRID] Resolution changed to: ${newResolution}`);
+        });
+      } else {
+        console.warn('Grid resolution slider elements not found.');
+      }
+
+      // --- Initialize Grid Visibility Checkbox ---
+      const gridVisibilityCheckbox = document.getElementById('grid-visibility-checkbox');
+
+      if (gridVisibilityCheckbox) {
+          // Set initial visibility based on default checked state (which is true)
+          if (gridHelper) gridHelper.visible = gridVisibilityCheckbox.checked;
+          setMinimapGridVisibility(gridVisibilityCheckbox.checked); // Toggle minimap clone too
+
+          gridVisibilityCheckbox.addEventListener('change', (event) => {
+              const isVisible = event.target.checked;
+              if (gridHelper) {
+                  gridHelper.visible = isVisible;
+              }
+              setMinimapGridVisibility(isVisible); // Toggle minimap clone too
+              console.log(`[GRID] Visibility set to: ${isVisible}`);
+          });
+      } else {
+          console.warn('Grid visibility checkbox not found.');
+      }
+
+      // --- End Grid Visibility Checkbox Init ---
+
+      // --- Ajoute le sous-marin à la minimap --- 
+      if (playerSubmarine) {
+        setMinimapSubmarine(playerSubmarine); // Transmet le pivot contenant le modèle
+      }
+
       // Initialisation des sliders et paramètres UI
-      initSettings(sceneHandles, playerSubmarine, val => { dayDurationSeconds = val; });
+      initSettings(
+          sceneHandles, 
+          playerSubmarine, 
+          val => { dayDurationSeconds = val; }, // Callback for day duration
+          newSpeed => { 
+            maxSpeed = newSpeed; 
+            console.log(`[SETTINGS] Max Speed updated to: ${maxSpeed}`); // Add log here
+          }     
+       );
       // Active les sliders avancés de lumière (nouveau menu)
       import('./ui/settings.js').then(mod => { mod.initLightSliders(sceneHandles); });
-      // ...autres initialisations dépendantes du sous-marin
+
+      // Démarre la boucle d'animation principale une fois tout chargé
+      animate();
     });
     // ...
   });
@@ -129,9 +226,8 @@ window.addEventListener('resize', () => {
   // --- Responsive boutons minimap ---
   const minimapZoomIn = document.getElementById('minimap-zoom-in');
   const minimapZoomOut = document.getElementById('minimap-zoom-out');
-  const minimapRotationToggle = document.getElementById('minimap-rotation-toggle');
   const minimapCanvas = document.getElementById('minimap');
-  if (minimapZoomIn && minimapZoomOut && minimapRotationToggle && minimapCanvas) {
+  if (minimapZoomIn && minimapZoomOut && minimapCanvas) {
     // Utilise la taille réelle du canvas minimap pour le scaling
     const miniSize = minimapCanvas.offsetWidth || minimapCanvas.width || Math.min(w, h) * 0.22;
     const btnMini = Math.max(24, miniSize * 0.18);
@@ -150,14 +246,6 @@ window.addEventListener('resize', () => {
       btnsGroup.style.justifyContent = 'center';
       btnsGroup.style.height = miniSize + 'px';
     }
-
-    // Bouton X/O en haut-droit
-    minimapRotationToggle.style.width = minimapRotationToggle.style.height = (btnMini * 0.85) + 'px';
-    minimapRotationToggle.style.fontSize = (btnMini * 0.48) + 'px';
-    minimapRotationToggle.style.borderRadius = (btnMini * 0.28) + 'px';
-    minimapRotationToggle.style.position = 'absolute';
-    minimapRotationToggle.style.top = (miniSize * 0.04) + 'px';
-    minimapRotationToggle.style.right = (miniSize * 0.04) + 'px';
 
     // Boussole responsive en haut-gauche
     const compass = document.getElementById('compass');
@@ -235,7 +323,15 @@ function startGame() {
     }
     // --- Ajout : gestion sliders menu rétractable ---
     // --- Initialisation des sliders et contrôles (centralisée) ---
-    initSettings(sceneHandles, playerSubmarine, val => { dayDurationSeconds = val; });
+    initSettings(
+        sceneHandles, 
+        playerSubmarine, 
+        val => { dayDurationSeconds = val; }, // Callback for day duration
+        newSpeed => { 
+          maxSpeed = newSpeed; 
+          console.log(`[SETTINGS] Max Speed updated to: ${maxSpeed}`); // Add log here
+        }
+    );
     // --- Ajout : gestion boutons zoom mini-map ---
     const btnZoomIn = document.getElementById('minimap-zoom-in');
     const btnZoomOut = document.getElementById('minimap-zoom-out');
@@ -248,23 +344,6 @@ function startGame() {
         setMinimapZoom(Math.min(MINIMAP_ZOOM_MAX, minimapZoom + MINIMAP_ZOOM_STEP));
         console.log('[MiniMap -] minimapZoom =', minimapZoom);
       };
-    }
-    // Toggle rotation mini-map
-    const btnToggle = document.getElementById('minimap-rotation-toggle');
-    if (btnToggle) {
-      btnToggle.onclick = () => {
-        setMinimapRotating(!minimapRotating, playerSubmarine);
-        if (minimapRotating) {
-          btnToggle.style.background = '#0ff';
-          btnToggle.style.color = '#111';
-          btnToggle.textContent = 'O';
-        } else {
-          btnToggle.style.background = '#111c';
-          btnToggle.style.color = '#0ff';
-          btnToggle.textContent = 'X';
-        }
-      };
-      btnToggle.textContent = 'X';
     }
   }, 100);
   sceneHandles = setupSkyAndWater(scene, renderer, camera);
@@ -362,11 +441,9 @@ window.addEventListener('DOMContentLoaded', () => {
   initMenus([
     {btnId: 'game-settings-toggle', panelId: 'game-settings-panel'},
     {btnId: 'slider-toggle', panelId: 'slider-panel'},
-    {btnId: 'visibility-toggle', panelId: 'visibility-panel'},
     {btnId: 'light-settings-toggle', panelId: 'light-settings-panel'}
   ]);
-
-
+  initSpeedometer();
   // Observer pour afficher le layout flex dès que l'overlay disparaît
   
   var uiBottomBar = document.getElementById('ui-bottom-bar');
@@ -441,18 +518,24 @@ let lastTimeValue = 0;
 let isTimePaused = false;
 let pausedAt = 0;
 
+let lastFrameTime = performance.now();
+
 function animate() {
   requestAnimationFrame(animate);
-  updatePlayerSubmarine(playerSubmarine, keys);
+  const now = performance.now();
+  const deltaTime = Math.min((now - lastFrameTime) / 1000, 0.1); // clamp à 0.1s
+  lastFrameTime = now;
 
-  updateDepthHud(playerSubmarine);
+  const currentSubSpeed = updatePlayerSubmarine(playerSubmarine, keys, deltaTime, maxSpeed);
+
+  updateSpeedometer(currentSubSpeed, maxSpeed);
 
   // --- FPS counter ---
   frameCount++;
-  const now = performance.now();
-  if (now - lastFpsUpdate > 500) {
-    fps = Math.round(frameCount * 1000 / (now - lastFpsUpdate));
-    lastFpsUpdate = now;
+  const nowFps = performance.now();
+  if (nowFps - lastFpsUpdate > 500) {
+    fps = Math.round(frameCount * 1000 / (nowFps - lastFpsUpdate));
+    lastFpsUpdate = nowFps;
     frameCount = 0;
     const fpsCounter = document.getElementById('fps-counter');
     if (fpsCounter) fpsCounter.textContent = `FPS: ${fps}`;
@@ -506,15 +589,7 @@ function animate() {
     }
     sceneHandles.sky.material.uniforms.rayleigh.value = rayleigh;
     // Met à jour le slider Rayleigh si la fonction est dispo
-    if (window.updateRayleighSlider) window.updateRayleighSlider(rayleigh);
-    // (Import dynamique pour éviter les cycles)
-    else if (!window._rayleighSliderInjected) {
-      window._rayleighSliderInjected = true;
-      import('./ui/settings.js').then(mod => {
-        window.updateRayleighSlider = mod.updateRayleighSlider;
-        mod.updateRayleighSlider(rayleigh);
-      });
-    }
+    settingsUI.updateRayleighSlider(rayleigh); // Appel via le namespace
   }
 
   // Update sun position based on time
@@ -666,62 +741,15 @@ function animate() {
   if (sceneHandles && sceneHandles.water) {
     sceneHandles.water.material.uniforms['time'].value += 1 / 60;
   }
-  // --- Ambiance sous-marine dynamique ---
-  if (camera) {
-    const surfaceY = 20;
-    if (camera.position.y < surfaceY) {
-      // Sous l'eau : fog bleu-vert + lumière faible
-      if (!underwaterMode) {
-        scene.fog = new THREE.FogExp2(fogUnderwater.color, fogUnderwater.density);
-        if (ambientLight) {
-          ambientLight.intensity = 0.18;
-          ambientLight.color.set(0x226688);
-        }
-        underwaterMode = true;
-      }
-    } else {
-      // Au-dessus : fog normal + lumière normale
-      if (underwaterMode) {
-        scene.fog = new THREE.FogExp2(fogDefault.color, fogDefault.density);
-        if (ambientLight) {
-          ambientLight.intensity = 0.5;
-          ambientLight.color.set(0xffffff);
-        }
-        underwaterMode = false;
-      }
-    }
+  // --- Mise à jour brouillard --- 
+  const targetFog = underwaterMode ? fogUnderwater : fogDefault;
+  if (scene.fog) {
+      scene.fog.color.lerp(new THREE.Color(targetFog.color), 0.05);
+      scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, targetFog.density, 0.05);
+  } else {
+      // S'il n'y a pas de brouillard, en créer un directement avec les bonnes valeurs
+      scene.fog = new THREE.FogExp2(targetFog.color, targetFog.density);
   }
-  // --- Ambiance sous-marine dynamique ---
-  if (camera) {
-    const surfaceY = 20;
-    if (camera.position.y < surfaceY) {
-      // Sous l'eau : fog bleu-vert + lumière faible
-      if (!underwaterMode) {
-        scene.fog = new THREE.FogExp2(fogUnderwater.color, fogUnderwater.density);
-        if (ambientLight) {
-          ambientLight.intensity = 0.18;
-          ambientLight.color.set(0x226688);
-        }
-        underwaterMode = true;
-      }
-    } else {
-      // Au-dessus : fog normal + lumière normale
-      if (underwaterMode) {
-        scene.fog = new THREE.FogExp2(fogDefault.color, fogDefault.density);
-        if (ambientLight) {
-          ambientLight.intensity = 0.5;
-          ambientLight.color.set(0xffffff);
-        }
-        underwaterMode = false;
-      }
-    }
-  }
-  // --- Frustum helper : visible uniquement dans la mini-map ---
-  if (cameraFrustumHelper) cameraFrustumHelper.visible = false;
+  // --- Rendu --- 
   renderer.render(scene, camera);
-
-  // --- Mini-map ---
-  // --- Mini-map rendering (modularisé) ---
-  updateMinimap(scene, playerSubmarine, cameraFrustumHelper);
-
 }

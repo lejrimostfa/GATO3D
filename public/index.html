@@ -39,7 +39,7 @@
   <div id="ui-layer" style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:10;">
 
     <!-- == Time Controls == -->
-    
+
 
     <!-- == Menus (Top Right) == -->
     <div id="ui-menus" style="display:none; pointer-events:auto;">
@@ -91,6 +91,25 @@
           <input id="day-duration-slider" type="range" min="30" max="600" step="10" value="120" style="width:180px; margin-top:4px;" />
           <div id="day-duration-label" style="color:#0f0; font-family:monospace;">Jour: 2.00 min</div>
         </label>
+
+        <!-- Ajout du slider Vitesse Max -->
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Vitesse Max Sous-marin
+          <input id="max-speed-slider" type="range" min="5" max="300" step="1" value="300" style="width:180px; margin-top:4px;" />
+          <div id="max-speed-label" style="color:#0f0; font-family:monospace;">Vitesse Max: 300 u/s</div>
+        </label>
+        <!-- Slider Résolution Grille -->
+        <div class="slider-container">
+          <label for="grid-resolution-slider" id="grid-resolution-label">Résolution Grille: 10</label>
+          <input type="range" id="grid-resolution-slider" name="grid-resolution" min="2" max="1000" value="10" step="1">
+        </div>
+        <!-- Checkbox Visibilité Grille -->
+        <div class="checkbox-container" style="margin-top: 10px;">
+          <input type="checkbox" id="grid-visibility-checkbox" name="grid-visibility" checked>
+          <label for="grid-visibility-checkbox">Afficher la Grille</label>
+        </div>
+        <!-- Slider Avancés (initiallement cachés) -->
+        <div id="advanced-light-settings" style="display: none; margin-top: 15px; border-top: 1px solid #ccc; padding-top: 10px;">
+        </div>
       </div>
       <div id="light-settings-panel" class="menu-panel" style="top:194px; right:210px;">
         <label style="color:#0f0; font-family:monospace;">Soleil (DirectionalLight)
@@ -124,34 +143,43 @@
     </div>
 
     <!-- == Minimap Area (Bottom Left) == -->
-    <div id="ui-bottom-bar" style="position:fixed; left:0; right:0; bottom:0; width:100vw; display:none; flex-direction:row; justify-content:space-between; align-items:flex-end; pointer-events:none; z-index:30;">
-  <div id="ui-minimap-area" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:8px;">
-    <div class="minimap-group" style="display:flex; align-items:center; justify-content:center; width:100%; gap:18px;">
-      <div class="minimap-container" style="position:relative; display:flex; align-items:center; justify-content:center;">
-        <canvas id="minimap" width="200" height="200" style="border-radius:10px; background:#111a; box-shadow:0 2px 12px #000b;"></canvas>
-        <svg id="compass" style="position:absolute;" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="19" cy="19" r="17" fill="#111c" stroke="#0ff" stroke-width="2"/>
-          <polygon points="19,5 15,19 23,19" fill="#f00"/>
-          <text x="19" y="35" text-anchor="middle" fill="#0ff" font-size="13" font-family="monospace">N</text>
-        </svg>
-        <button id="minimap-rotation-toggle" class="minimap-btn" style="position:absolute;">X</button>
+    <div id="ui-bottom-bar" style="position:fixed; left:0; right:0; bottom:0; width:100vw; display:none; flex-direction:row; justify-content:space-between; align-items:flex-end; pointer-events:none; z-index:30; padding-bottom: 20px; padding-left: 10%; padding-right: 10%; box-sizing: border-box;">
+      <div id="ui-minimap-area" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:8px;">
+        <div class="minimap-group" style="display:flex; align-items:center; justify-content:center; width:100%; gap:18px;">
+          <div id="minimap-container-id" class="minimap-container" style="position: relative; width: 200px; height: 200px;">
+            <canvas id="minimap" width="200" height="200" style="border-radius:10px; background:#111a; box-shadow:0 2px 12px #000b; position: absolute; top: 0; left: 0; z-index: 1;"></canvas>
+            <canvas id="minimap-overlay" width="200" height="200" style="position: absolute; top: 0; left: 0; z-index: 2; pointer-events: none;"></canvas>
+            <svg id="compass" style="position:absolute; top: 5px; left: 5px; width: 38px; height: 38px; z-index: 3;" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="19" cy="19" r="17" fill="#111c" stroke="#0ff" stroke-width="2"/>
+              <polygon points="19,5 15,19 23,19" fill="#f00"/>
+              <text x="19" y="33" fill="#0ff" font-size="12" text-anchor="middle" font-family="monospace">N</text>
+            </svg>
+          </div>
+          <div class="minimap-btns-group" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+            <button id="minimap-zoom-in" class="minimap-btn">+</button>
+            <button id="minimap-zoom-out" class="minimap-btn">-</button>
+          </div>
+        </div>
+        <div id="fps-counter" style="font-family:monospace; color:#0f0; background:#111c; border-radius:6px; padding:5px 12px; min-width:60px; text-align:center; margin-top:6px;">FPS: 0</div>
       </div>
-      <div class="minimap-btns-group" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
-        <button id="minimap-zoom-in" class="minimap-btn">+</button>
-        <button id="minimap-zoom-out" class="minimap-btn">-</button>
+      <!-- Center Clock -->
+      <div style="position:relative; display:inline-block; pointer-events:auto;">
+        <canvas id="clock-canvas" width="140" height="140"></canvas>
+        <!-- Optional: time text overlay -->
+      </div>
+      <!-- Right Side Indicators (Depth Slider + Text/Speedometer) -->
+      <div style="display: flex; align-items: flex-end; gap: 15px; pointer-events:auto;">
+        <!-- Depth Slider -->
+        <div id="ui-depth-indicator" style="display:flex; flex-direction:column; align-items:center; gap:6px;">
+          <span id="depth-value" style="color:#0ff; font-family:monospace; min-width:44px; margin-bottom:8px;">0 m</span>
+          <input id="depth-slider" type="range" min="0" max="200" step="1" value="0" disabled style="height:150px; width:28px; writing-mode: vertical-lr; direction: rtl; background:#223; border-radius:8px;">
+        </div>
+        <!-- Speedometer and Depth Text -->
+        <div id="ui-right-hud" style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+          <canvas id="speedometer" width="120" height="120" style="border: 1px solid #0f0; background-color: rgba(0,0,0,0.4); border-radius: 50%; order: 1;"></canvas>
+        </div>
       </div>
     </div>
-    <div id="fps-counter" style="font-family:monospace; color:#0f0; background:#111c; border-radius:6px; padding:5px 12px; min-width:60px; text-align:center; margin-top:6px;">FPS: 0</div>
-  </div>
-  <div style="position:relative; display:inline-block;">
-  <canvas id="clock-canvas" width="140" height="140" style="pointer-events:auto;"></canvas>
-  <div style="position:absolute;top:40px;left:0;width:100px;text-align:center;pointer-events:none;"></div>
-</div>
-  <div id="ui-depth-indicator" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:200px;">
-    <span id="depth-value" style="color:#0ff; font-family:monospace; min-width:44px; margin-bottom:8px;">0 m</span>
-    <input id="depth-slider" type="range" min="0" max="200" step="1" value="0" disabled style="height:150px; width:28px; writing-mode: vertical-lr; direction: rtl; background:#223; border-radius:8px;">
-  </div>
-</div>
 
   </div>
   <!-- ==== End UI Layer ==== -->
