@@ -1,5 +1,6 @@
 import { setupSkyAndWater, updateSun } from './water-setup.js';
 import { loadSubmarine } from './submarine/model.js';
+import { updatePlayerSubmarine } from './submarine/controls.js';
 console.log('main.js loaded');
 
 // public/js/main.js
@@ -8,8 +9,6 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 // Global variables
 let scene, camera, renderer;
 let sceneHandles = null;
-let minimapRenderer = null;
-let minimapCamera = null;
 let cameraFrustumHelper = null;
 let playerSubmarine; // C'est maintenant le pivot (l'objet parent du sous-marin)
 let cameraTarget = new THREE.Vector3(); // Pour le lag caméra
@@ -20,17 +19,12 @@ let fogDefault = { color: 0xbfd1e5, density: 0.00015 };
 let fogUnderwater = { color: 0x226688, density: 0.003 };
 let underwaterMode = false;
 
-// Mini-map zoom state
-let minimapZoom = 2000; // taille du frustum visible sur la mini-map
-const MINIMAP_ZOOM_MIN = 200;
-const MINIMAP_ZOOM_MAX = 5000;
-const MINIMAP_ZOOM_STEP = 200;
-const MINIMAP_CAM_HEIGHT = 2000; // hauteur constante de la caméra minimap
-// Mini-map rotation toggle
-let minimapRotating = false;
+import { initMinimap, updateMinimap, minimapZoom, minimapRotating, setMinimapRotating, setMinimapZoom, MINIMAP_ZOOM_MIN, MINIMAP_ZOOM_MAX, MINIMAP_ZOOM_STEP } from './ui/minimap.js';
 
 // Durée d'une journée (en secondes, modifiable par slider)
 let dayDurationSeconds = 120;
+import { initDayDurationSlider, updateDayDurationLabel } from './ui/time-slider.js';
+import { updateDepthHud, updateHudVisibility } from './ui/hud.js';
 
 // UI elements
 
@@ -49,15 +43,7 @@ function initScene() {
   renderer.setSize(window.innerWidth, window.innerHeight);
 
   // --- Mini-map renderer ---
-  const minimapCanvas = document.getElementById('minimap');
-  minimapRenderer = new THREE.WebGLRenderer({ canvas: minimapCanvas, antialias: true, alpha: true });
-  minimapRenderer.setSize(200, 200);
-  minimapRenderer.setClearColor(0x111122, 1);
-  // Caméra orthographique vue de dessus
-  minimapCamera = new THREE.OrthographicCamera(-100, 100, 100, -100, 1, 10000);
-  minimapCamera.up.set(0,0,-1); // Z vers le bas sur la mini-map
-  minimapCamera.lookAt(new THREE.Vector3(0,-1,0));
-  minimapCamera.position.set(0, 200, 0);
+  initMinimap();
 
 
   // Set tone mapping for more cinematic rendering
@@ -149,15 +135,8 @@ function startGame() {
       };
       lightSlider.addEventListener('input', updateLight);
     }
-    // Slider durée de la journée
-    if (daySlider && dayLabel) {
-      daySlider.value = dayDurationSeconds;
-      dayLabel.textContent = `Jour: ${(dayDurationSeconds/60).toFixed(2)} min`;
-      daySlider.addEventListener('input', () => {
-        dayDurationSeconds = parseInt(daySlider.value);
-        dayLabel.textContent = `Jour: ${(dayDurationSeconds/60).toFixed(2)} min`;
-      });
-    }
+    // Initialisation du slider de durée de journée via module
+    initDayDurationSlider(val => { dayDurationSeconds = val; });
     // Synchronise les valeurs par défaut sliders et labels
     const camSlider = document.getElementById('camera-slider');
     const camLabel = document.getElementById('camera-label');
@@ -223,11 +202,11 @@ function startGame() {
     const btnZoomOut = document.getElementById('minimap-zoom-out');
     if (btnZoomIn && btnZoomOut) {
       btnZoomIn.onclick = () => {
-        minimapZoom = Math.max(MINIMAP_ZOOM_MIN, minimapZoom - MINIMAP_ZOOM_STEP);
+        setMinimapZoom(Math.max(MINIMAP_ZOOM_MIN, minimapZoom - MINIMAP_ZOOM_STEP));
         console.log('[MiniMap +] minimapZoom =', minimapZoom);
       };
       btnZoomOut.onclick = () => {
-        minimapZoom = Math.min(MINIMAP_ZOOM_MAX, minimapZoom + MINIMAP_ZOOM_STEP);
+        setMinimapZoom(Math.min(MINIMAP_ZOOM_MAX, minimapZoom + MINIMAP_ZOOM_STEP));
         console.log('[MiniMap -] minimapZoom =', minimapZoom);
       };
     }
@@ -235,7 +214,7 @@ function startGame() {
     const btnToggle = document.getElementById('minimap-rotation-toggle');
     if (btnToggle) {
       btnToggle.onclick = () => {
-        minimapRotating = !minimapRotating;
+        setMinimapRotating(!minimapRotating, playerSubmarine);
         if (minimapRotating) {
           btnToggle.style.background = '#0ff';
           btnToggle.style.color = '#111';
@@ -306,46 +285,11 @@ btnJoin.addEventListener('click', () => {
 });
 
 // --- Submarine movement controls ---
-
-// --- Depth slider sync ---
-const depthSlider = document.getElementById('depth-slider');
-const depthValue = document.getElementById('depth-value');
-if (depthSlider) depthSlider.disabled = false;
-
-function updateDepthSlider() {
-  if (!playerSubmarine || !depthSlider || !depthValue) return;
-  // Calcul de la profondeur réelle (axe Y négatif)
-  let y = playerSubmarine.position.y;
-  if (playerSubmarine.children && playerSubmarine.children[0]) {
-    y += playerSubmarine.children[0].position.y;
-  }
-  const depth = Math.round(y);
-  depthSlider.value = depth;
-  depthValue.textContent = depth + ' m';
-}
-
 const keys = {};
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Fonction pour masquer/afficher les HUD selon overlay
-  function updateHudVisibility() {
-    
-    const hudIds = [
-      'minimap', 'minimap-zoom-in', 'minimap-zoom-out', 'minimap-rotation-toggle', 'compass',
-      'time-slider', 'time-label',
-      'visibility-toggle', 'visibility-panel', 'fps-counter',
-      'slider-toggle', 'slider-panel', 'depth-slider-container',
-      'game-settings-toggle', 'game-settings-panel'
-    ];
-    const hidden = overlay && overlay.style.display !== 'none';
-    for (const id of hudIds) {
-      const el = document.getElementById(id);
-      if (el) el.style.display = hidden ? 'none' : '';
-    }
-  }
-
-  // Menu rétractable "Paramètres de jeu"
   const btnGameSettings = document.getElementById('game-settings-toggle');
+  // ... (rest of the code remains the same)
   const panelGameSettings = document.getElementById('game-settings-panel');
   if (btnGameSettings && panelGameSettings) {
     btnGameSettings.addEventListener('click', () => {
@@ -390,51 +334,8 @@ window.addEventListener('DOMContentLoaded', () => {
 window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
 window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
-function updatePlayerSubmarine() {
-  if (!playerSubmarine) return;
+// Contrôles du sous-marin déplacés dans submarine/controls.js
 
-  const speed = 0.5;
-  const rotSpeed = 0.02 / 3; // 3x plus lent
-  const verticalSpeed = 0.4;
-  const surfaceY = 20;
-  const maxDepth = 200;
-
-  // Forward/backward (pivot)
-  if (keys['z'] || keys['arrowup']) {
-    playerSubmarine.translateZ(-speed);
-  }
-  if (keys['s'] || keys['arrowdown']) {
-    playerSubmarine.translateZ(speed);
-  }
-
-  // Rotation : si on avance, rotation normale. Sinon, rotation + petite poussée avant
-  const isForward = keys['z'] || keys['arrowup'];
-  const isLeft = keys['q'] || keys['arrowleft'];
-  const isRight = keys['d'] || keys['arrowright'];
-  if (isForward) {
-    if (isLeft) playerSubmarine.rotation.y += rotSpeed;
-    if (isRight) playerSubmarine.rotation.y -= rotSpeed;
-  } else {
-    if (isLeft) {
-      playerSubmarine.rotation.y += rotSpeed;
-      playerSubmarine.translateZ(-speed * 0.2);
-    }
-    if (isRight) {
-      playerSubmarine.rotation.y -= rotSpeed;
-      playerSubmarine.translateZ(-speed * 0.2);
-    }
-  }
-
-  // Contrôle vertical (A = monter, W = descendre) sur le sous-marin enfant
-  if (playerSubmarine.children && playerSubmarine.children[0]) {
-    const sub = playerSubmarine.children[0];
-    if (keys['a']) sub.position.y += verticalSpeed;
-    if (keys['w']) sub.position.y -= verticalSpeed;
-    // Clamp la profondeur
-    if (sub.position.y + playerSubmarine.position.y > surfaceY) sub.position.y = surfaceY - playerSubmarine.position.y;
-    if (sub.position.y + playerSubmarine.position.y < surfaceY - maxDepth) sub.position.y = (surfaceY - maxDepth) - playerSubmarine.position.y;
-  }
-}
 
 // Patch animate to update player submarine before rendering
 const _orig_animate = animate;
@@ -450,8 +351,8 @@ let lastTimeValue = 0;
 
 function animate() {
   requestAnimationFrame(animate);
-  updatePlayerSubmarine();
-  updateDepthSlider();
+  updatePlayerSubmarine(playerSubmarine, keys);
+  updateDepthHud(playerSubmarine);
 
   // --- FPS counter ---
   frameCount++;
@@ -657,49 +558,7 @@ function animate() {
   renderer.render(scene, camera);
 
   // --- Mini-map ---
-  if (minimapRenderer && minimapCamera && playerSubmarine) {
-    // Centrer la caméra mini-map sur le pivot du sous-marin (pas de rotation)
-    // Centre géométrique du sous-marin pour la mini-map
-    let center = playerSubmarine.localToWorld(new THREE.Vector3(0, 0, 0));
-    // Position Y constante, zoom via le frustum
-    minimapCamera.top = minimapZoom / 2;
-    minimapCamera.bottom = -minimapZoom / 2;
-    minimapCamera.left = -minimapZoom / 2;
-    minimapCamera.right = minimapZoom / 2;
-    if (minimapRotating && playerSubmarine) {
-      // Vue qui tourne autour du sub : la caméra pivote selon -rotation.y
-      const angle = -playerSubmarine.rotation.y;
-      // --- Synchronisation boussole ---
-      const compass = document.getElementById('compass');
-      if (compass) {
-        compass.style.transform = `rotate(${playerSubmarine.rotation.y}rad)`;
-      }
+  // --- Mini-map rendering (modularisé) ---
+  updateMinimap(scene, playerSubmarine, cameraFrustumHelper);
 
-      const radius = MINIMAP_CAM_HEIGHT;
-      const cx = center.x + Math.sin(angle) * 0;
-      const cz = center.z + Math.cos(angle) * 0;
-      minimapCamera.position.set(
-        cx + Math.sin(angle) * 0,
-        radius,
-        cz + Math.cos(angle) * 0
-      );
-      // On regarde le sub, mais on tourne la caméra autour de Y
-      minimapCamera.up.set(Math.sin(angle), 0, -Math.cos(angle));
-      minimapCamera.lookAt(center.x, center.y, center.z);
-    } else {
-      // Nord en haut
-      minimapCamera.position.set(center.x, MINIMAP_CAM_HEIGHT, center.z);
-      minimapCamera.up.set(0, 0, -1);
-      minimapCamera.lookAt(center.x, center.y, center.z);
-    }
-    minimapCamera.updateProjectionMatrix();
-    // Frustum helper visible uniquement pour la mini-map
-    if (cameraFrustumHelper) {
-      cameraFrustumHelper.visible = true;
-      cameraFrustumHelper.update();
-    }
-    minimapRenderer.clear();
-    minimapRenderer.render(scene, minimapCamera);
-    if (cameraFrustumHelper) cameraFrustumHelper.visible = false;
-  }
 }

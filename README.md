@@ -4,6 +4,53 @@
 
 *Aperçu vidéo du projet (cliquez sur l'image pour voir sur YouTube)*
 
+---
+
+## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
+
+### [2025-05] Refactoring & Modularisation
+- **Modularisation complète du code JS** :
+  - Création de modules dédiés :
+    - `submarine/model.js` (chargement du modèle)
+    - `submarine/controls.js` (contrôles du sous-marin)
+    - `ui/minimap.js` (mini-map, zoom, rotation, recentrage nord)
+    - `ui/time-slider.js` (slider durée de journée)
+    - `ui/hud.js` (HUD profondeur, visibilité)
+  - Suppression de la logique inline du main, usage d’imports modulaires.
+- **Mini-map** :
+  - Modularisation complète (init, update, zoom, rotation)
+  - Correction : passage nord en haut lors du retour en mode fixe (X)
+  - Correction : boutons zoom et rotation sans erreur d’assignation
+- **Horloge** :
+  - Correction : 2 tours pour 24h de jeu, minuit en haut
+- **HUD** :
+  - Synchronisation profondeur via module dédié
+  - Fonction de gestion de visibilité centralisée
+- **Boussole** :
+  - Correction : indique toujours le nord réel, revient à 0° en mode nord fixe
+- **Robustesse** :
+  - Correction de plusieurs ReferenceError (btnGameSettings, keys)
+  - Sécurisation des accès DOM et synchronisation UI
+- **Qualité** :
+  - Code plus clair, modulaire, maintenable, compatible ES6 modules
+
+---
+
+## 🚀 PLAN DE CONTINUATION / NEXT DEVELOPMENT PLAN
+
+- **Poursuite de la modularisation** :
+  - Extraction des sliders restants (caméra, damping, altitude, lumière…)
+  - Modularisation de la gestion de l’environnement (eau, ciel, lumière, soleil)
+  - Séparation de la gestion des entrées clavier/souris dans un module dédié
+  - Modularisation du panneau de paramètres et autres éléments UI
+- **Tests et validation** à chaque étape pour garantir la stabilité
+- **Améliorations UI/UX** :
+  - Responsive, accessibilité, feedback visuel
+- **Préparation à l’intégration multijoueur** (plus tard)
+- **Documentation et nettoyage**
+
+---
+
 GATO3D est un prototype de jeu 3D sous-marin interactif en JavaScript (Three.js).
 
 GATO3D is an interactive 3D submarine game prototype written in JavaScript (Three.js).

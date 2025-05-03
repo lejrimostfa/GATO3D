@@ -36,8 +36,8 @@ export function drawClockFace(ctx, radius) {
  * @param {number} hour (0-24)
  */
 export function drawTime(ctx, radius, hour) {
-    // 2 tours pour 24h : angle = (hour/12)*2PI - PI/2
-    const hourAngle = ((hour + 3) / 12) * 2 * Math.PI - Math.PI / 2;
+    // 2 tours pour 24h : angle = (hour-6)/12*2PI (minuit en haut)
+    const hourAngle = ((hour - 6) / 12) * 2 * Math.PI;
     const hourHandLength = radius * 0.6;
     const hourHandWidth = radius * 0.07;
     drawHand(ctx, radius, hourAngle, hourHandLength, hourHandWidth, '#0f0');
