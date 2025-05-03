@@ -13,6 +13,8 @@ import { loadLevel } from './levels/levelManager.js';
 import { drawClockFace, drawTime } from './ui/clock.js';
 let scene, camera, renderer;
 let sceneHandles = null;
+let pausedHour = 0;
+let currentGameHour = 0;
 let cameraFrustumHelper = null;
 let playerSubmarine; // C'est maintenant le pivot (l'objet parent du sous-marin)
 let cameraTarget = new THREE.Vector3(); // Pour le lag caméra
@@ -260,11 +262,16 @@ window.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('keydown', e => {
     keys[e.key.toLowerCase()] = true;
     if (e.key.toLowerCase() === 'p') {
-      isTimePaused = !isTimePaused;
-      if (isTimePaused) {
+      if (!isTimePaused) {
+        // On passe en pause : capture l'heure courante
+        pausedHour = currentGameHour;
+        console.log('[DEBUG] pausedHour capturé à', pausedHour);
         pausedAt = performance.now();
+        isTimePaused = true;
         console.log('[PAUSE] Temps du jeu en pause (P)');
       } else {
+        // On quitte la pause
+        isTimePaused = false;
         // Décale timeStart pour que le temps ne saute pas
         timeStart += performance.now() - pausedAt;
         console.log('[RESUME] Temps du jeu repris (P)');
@@ -313,11 +320,22 @@ function animate() {
 
   // --- Défilement automatique du temps (0 à 24h en 300s = 5min) ---
   let elapsedTime = performance.now() - timeStart;
+  currentGameHour = ((elapsedTime / (dayDurationSeconds * 1000)) * 24) % 24;
   if (isTimePaused) {
-    elapsedTime = pausedAt - timeStart;
+    currentGameHour = pausedHour;
+    if (typeof window.setRayleighGraphHour === 'function') {
+      window.setRayleighGraphHour(pausedHour);
+      // DEBUG: log la valeur envoyée pendant la pause
+      // console.log('[SYNC PAUSE] minigraph <-', pausedHour);
+    }
+  } else {
+    if (typeof window.setRayleighGraphHour === 'function') {
+      window.setRayleighGraphHour(currentGameHour);
+      // DEBUG: log la valeur envoyée en temps réel
+      // console.log('[SYNC RUN] minigraph <-', currentGameHour);
+    }
   }
   const timeOfDay = (elapsedTime / (dayDurationSeconds * 1000)) % 1; // Fraction of day (0-1)
-  const currentGameHour = timeOfDay * 24; // Hour (0-24)
 
   // --- Rayleigh dynamique (ciel rouge matin/soir, bleu pâle midi/minuit) ---
   if (sceneHandles && sceneHandles.sky && sceneHandles.sky.material && sceneHandles.sky.material.uniforms.rayleigh) {

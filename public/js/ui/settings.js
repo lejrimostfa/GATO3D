@@ -190,14 +190,14 @@ export function initLightSliders(sceneHandles) {
       }
       // Normalise y: 0.5-6 → canvas.height (bas=0.5, haut=6)
       const yNorm = canvas.height - ((y-0.5)/(6-0.5)) * (canvas.height-4) - 2;
-      const x = ((h-3)/24)*canvas.width;
+      const x = (h/24)*canvas.width;
       if (h === 0) ctx.moveTo(x, yNorm);
       else ctx.lineTo(x, yNorm);
     }
     ctx.stroke();
     // Ligne blanche verticale = temps courant
     let gameHour = (typeof window._rayleighGraphHour === 'number') ? window._rayleighGraphHour : 0;
-    const xNow = ((gameHour-3)/24)*canvas.width;
+    const xNow = (gameHour/24)*canvas.width;
     ctx.save();
     ctx.strokeStyle = '#fff';
     ctx.lineWidth = 2;
