@@ -98,6 +98,8 @@ import { drawClockFace, drawTime } from './ui/clock.js';
 function startGame() {
   console.log('startGame called');
   overlay.style.display = 'none';
+  const uiMenus = document.getElementById('ui-menus');
+  if (uiMenus) uiMenus.style.display = 'block';
   initScene();
 
   // Get clock canvas context
@@ -329,10 +331,14 @@ window.addEventListener('DOMContentLoaded', () => {
     const observer = new MutationObserver(updateHudVisibility);
     observer.observe(overlay, { attributes: true, attributeFilter: ['style'] });
   }
-});
 
-window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+  window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+  window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+
+  // Masquer les menus initiaux avant le démarrage
+  const uiMenus = document.getElementById('ui-menus');
+  if (uiMenus) uiMenus.style.display = 'none';
+});
 
 // Contrôles du sous-marin déplacés dans submarine/controls.js
 
