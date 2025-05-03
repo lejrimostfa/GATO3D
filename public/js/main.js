@@ -3,6 +3,7 @@ import { loadSubmarine } from './submarine/model.js';
 import { updatePlayerSubmarine } from './submarine/controls.js';
 import { initMenus } from './ui/menus.js';
 import { initSettings } from './ui/settings.js';
+import { initLighting } from './lighting.js';
 console.log('main.js loaded');
 
 // public/js/main.js
@@ -19,9 +20,8 @@ let cameraFrustumHelper = null;
 let playerSubmarine; // C'est maintenant le pivot (l'objet parent du sous-marin)
 let cameraTarget = new THREE.Vector3(); // Pour le lag caméra
 let cameraTargetCube = null; // Cube rouge pour debug du point visé par la caméra
-// Lumière désormais gérée via lighting.js
-// let sunLight;
-// let ambientLight = null; // Pour contrôle dynamique sous l'eau
+let sunLight;
+let ambientLight = null; // Pour contrôle dynamique sous l'eau
 let fogDefault = { color: 0xbfd1e5, density: 0.00015 };
 let fogUnderwater = { color: 0x226688, density: 0.003 };
 let underwaterMode = false;
@@ -37,6 +37,7 @@ import { updateDepthHud, updateHudVisibility } from './ui/hud.js';
 
 const btnCreate = document.getElementById('btn-create');
 const btnJoin = document.getElementById('btn-join');
+const btnEditor = document.getElementById('btn-editor');
 
 // Clock UI elements
 let clockCanvas = null;
@@ -52,10 +53,13 @@ function initGame() {
     scene = loadedScene;
     camera = loadedCamera;
     sceneHandles = objects.sceneHandles;
+    // Utilise les lumières déjà créées par setupSkyAndWater
+    ambientLight = sceneHandles.ambientLight;
     // Initialisation UI, sous-marin, etc. ici
     loadSubmarine(scene, sub => {
       // Reconnexion explicite : la caméra suit toujours ce pivot parent du sous-marin
       playerSubmarine = sub;
+      console.log('[CAMERA] Caméra reconnectée au sous-marin', playerSubmarine);
       // Initialisation de la minimap après chargement du sous-marin
       initMinimap();
       // Correction bug : force la minimap à s'initialiser à la bonne taille dès le lancement
@@ -72,6 +76,8 @@ function initGame() {
 }
 
 // Appel au démarrage
+const uiMenus = document.getElementById('ui-menus');
+if (uiMenus) uiMenus.style.display = 'none';
 initGame();
 
 // --- Resize dynamique ---
@@ -317,6 +323,37 @@ btnJoin.addEventListener('click', () => {
   // future: initP2P(false);
 });
 
+if (btnEditor) {
+  btnEditor.addEventListener('click', async () => {
+    // Masquer overlay
+    const overlay = document.getElementById('overlay');
+    if (overlay) overlay.style.display = 'none';
+    // Masquer toutes les UI du jeu
+    const uiMenus = document.getElementById('ui-menus');
+    if (uiMenus) uiMenus.style.display = 'none';
+    const uiBottomBar = document.getElementById('ui-bottom-bar');
+    if (uiBottomBar) uiBottomBar.style.display = 'none';
+    const uiMinimap = document.getElementById('ui-minimap-area');
+    if (uiMinimap) uiMinimap.style.display = 'none';
+    const hud = document.getElementById('hud');
+    if (hud) hud.style.display = 'none';
+    const depthIndicator = document.getElementById('ui-depth-indicator');
+    if (depthIndicator) depthIndicator.style.display = 'none';
+    // Sécurité : forcer le masquage périodique
+    window.__editorHideUIInterval = setInterval(() => {
+      if (uiBottomBar) uiBottomBar.style.display = 'none';
+      if (uiMinimap) uiMinimap.style.display = 'none';
+      if (uiMenus) uiMenus.style.display = 'none';
+      if (hud) hud.style.display = 'none';
+      if (depthIndicator) depthIndicator.style.display = 'none';
+    }, 500);
+    // Lancer l'éditeur
+    const editor = await import('./editor.js');
+    if (editor && editor.initEditor) editor.initEditor();
+  });
+}
+
+
 // --- Submarine movement controls ---
 const keys = {};
 
@@ -359,6 +396,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('keydown', e => {
     keys[e.key.toLowerCase()] = true;
+    console.log('[KEYDOWN]', e.key.toLowerCase(), keys);
     if (e.key.toLowerCase() === 'p') {
       if (!isTimePaused) {
         // On passe en pause : capture l'heure courante
@@ -376,7 +414,10 @@ window.addEventListener('DOMContentLoaded', () => {
       }
     }
   });
-  window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+  window.addEventListener('keyup', e => {
+    keys[e.key.toLowerCase()] = false;
+    console.log('[KEYUP]', e.key.toLowerCase(), keys);
+});
 
   // Masquer les menus initiaux avant le démarrage
   const uiMenus = document.getElementById('ui-menus');
@@ -403,6 +444,9 @@ let pausedAt = 0;
 function animate() {
   requestAnimationFrame(animate);
   updatePlayerSubmarine(playerSubmarine, keys);
+  if (playerSubmarine) {
+    console.log('[ANIMATE] Sub position', playerSubmarine.position, playerSubmarine.children?.[0]?.position);
+  }
   updateDepthHud(playerSubmarine);
 
   // --- FPS counter ---
@@ -513,6 +557,18 @@ function animate() {
   }
 
   // Caméra de poursuite avec lag (centrée sur le pivot du sous-marin)
+  if (!playerSubmarine) {
+    // Tentative de reconnexion automatique : cherche un objet nommé 'Pivot' dans la scène
+    if (scene) {
+      const found = scene.children.find(obj => obj.name === 'Pivot' || obj.type === 'Group');
+      if (found) {
+        playerSubmarine = found;
+        console.warn('[CAMERA][AUTO] Pivot du sous-marin retrouvé et reconnecté', playerSubmarine);
+      } else {
+        console.warn('[CAMERA][WARN] Pivot du sous-marin introuvable dans la scène !');
+      }
+    }
+  }
   if (playerSubmarine) {
     // Lire la distance caméra depuis le slider
     const cameraSlider = document.getElementById('camera-slider');

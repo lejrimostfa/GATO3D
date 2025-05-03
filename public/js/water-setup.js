@@ -10,6 +10,13 @@ import { initLighting } from './lighting.js';
 export function setupSkyAndWater(scene, renderer, camera) {
   // Centralise la création des lumières et du ciel
   const { sunLight, ambientLight, sky, sun } = initLighting(scene);
+  // Ajoute un mesh sphérique pour le soleil visible
+  const sunSphere = new THREE.Mesh(
+    new THREE.SphereGeometry(3500, 16, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffffee, emissive: 0xffeeaa })
+  );
+  sunSphere.position.copy(sun.clone().multiplyScalar(1000));
+  scene.add(sunSphere);
   const phi = THREE.MathUtils.degToRad(90 - 45); // élévation plus haute
   const theta = THREE.MathUtils.degToRad(180);   // azimuth
   sun.setFromSphericalCoords(1, phi, theta);
@@ -44,8 +51,8 @@ export function setupSkyAndWater(scene, renderer, camera) {
   if (!scene.fog) {
     scene.fog = new THREE.FogExp2(0xbfd1e5, 0.00015);
   }
-  // Retourne uniquement les éléments principaux (sans soleil)
-  return { water, sky, sun, sunLight, renderer };
+  // Retourne les éléments principaux + sunSphere
+  return { water, sky, sun, sunLight, renderer, sunSphere };
 }
 
 export function updateSun(sceneHandles, hour) {
@@ -78,6 +85,11 @@ export function updateSun(sceneHandles, hour) {
   } else {
     sunColor = new THREE.Color(0x000022);
     sunOpacity = 0.1;
+  }
+  // Met à jour la position du disque solaire
+  if (sceneHandles.sunSphere) {
+    sceneHandles.sunSphere.position.copy(sun.clone().multiplyScalar(1000));
+    sceneHandles.sunSphere.visible = elevNorm > 0;
   }
   // Plus de mise à jour de sunSphere (aucun soleil visible)
   // Night sky: change clear color if sun below horizon

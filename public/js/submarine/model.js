@@ -10,6 +10,7 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/
  */
 export function loadSubmarine(scene, onLoaded) {
     const pivot = new THREE.Object3D();
+    pivot.name = 'Pivot';
     pivot.position.set(0, 20, 0); // Position de départ (surface)
     scene.add(pivot);
 
@@ -21,6 +22,7 @@ export function loadSubmarine(scene, onLoaded) {
             sub.position.set(0, 0, 0);
             sub.scale.set(0.1, 0.1, 0.1); // Divise la taille par 10
             pivot.add(sub);
+            console.log('[SUBMARINE] GLTF chargé et ajouté au pivot', sub, pivot.children);
             if (typeof onLoaded === 'function') {
                 onLoaded(pivot);
             }

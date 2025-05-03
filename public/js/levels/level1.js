@@ -1,7 +1,7 @@
 // levels/level1.js
 // Premier niveau/scène de GATO3D
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
-import { setupSkyAndWater } from '../water-setup.js';
+import { setupSkyAndWater, updateSun } from '../water-setup.js';
 
 /**
  * Initialise la scène du niveau 1 (pour l'instant, scène unique)
@@ -13,6 +13,8 @@ export function createLevel(renderer) {
   renderer.setSize(window.innerWidth, window.innerHeight);
   // Sky/water setup
   const sceneHandles = setupSkyAndWater(scene, renderer, null);
+  // Correction : place le soleil à midi par défaut
+  updateSun(sceneHandles, 12);
   // Caméra principale
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
   camera.position.set(0, 50, 100);

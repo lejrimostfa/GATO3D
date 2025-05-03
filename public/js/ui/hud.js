@@ -9,10 +9,16 @@ export function updateDepthHud(submarine) {
   const depthSlider = document.getElementById('depth-slider');
   const depthValue = document.getElementById('depth-value');
   if (!submarine || !depthSlider || !depthValue) return;
-  const y = submarine.position.y;
-  const depth = Math.round(y);
+  const surfaceY = 20;
+  let depth = surfaceY - submarine.position.y;
+  if (submarine.children && submarine.children[0]) {
+    depth -= submarine.children[0].position.y;
+  }
+  depth = Math.max(0, Math.round(depth));
   depthSlider.value = depth;
   depthValue.textContent = depth + ' m';
+
+
 }
 
 /**
