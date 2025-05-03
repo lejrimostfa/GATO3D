@@ -6,7 +6,7 @@ import { setSunIntensity, setSkyUniform, getLightingHandles, getSunIntensity } f
  * Initialise les sliders avancés de lumière dans le menu Réglages lumières.
  * @param {object} sceneHandles - objets de la scène (water, sky, sun, sunLight, renderer...)
  */
-function initLightSliders(sceneHandles) {
+export function initLightSliders(sceneHandles) {
   // Déclaration unique des éléments Rayleigh slider/label accessibles partout dans la fonction
   const raySlider = document.getElementById('rayleigh-slider');
   const rayLabel = document.getElementById('rayleigh-label');
@@ -251,7 +251,7 @@ function initLightSliders(sceneHandles) {
     // Redessine aussi au changement du slider (évite double déclaration)
     raySlider.addEventListener('input', window.drawRayleighGraph);
   }
-}
+
 
 /**
  * Met à jour la position et le label du slider Rayleigh selon la valeur dynamique.
@@ -266,14 +266,19 @@ function updateRayleighSlider(val) {
   }
 }
 
+// Exposition globale pour usage cross-fichier (si pas import ES module)
+window.updateRayleighSlider = updateRayleighSlider;
+
+}
+
+
 /**
  * Initialise tous les sliders et leurs callbacks.
  * @param {object} sceneHandles - objets de la scène (water, sky, sun, sunSphere...)
  * @param {object} playerSubmarine
  * @param {function} onDayDurationChange
- * @param {function} onMaxSpeedChange
  */
-function initSettings(sceneHandles, playerSubmarine, onDayDurationChange, onMaxSpeedChange) {
+export function initSettings(sceneHandles, playerSubmarine, onDayDurationChange) {
 
   // Durée du jour
   const daySlider = document.getElementById('day-duration-slider');
@@ -320,24 +325,4 @@ function initSettings(sceneHandles, playerSubmarine, onDayDurationChange, onMaxS
       altitudeLabel.textContent = `Altitude: ${altitudeSlider.value}`;
     });
   }
-
-  // Max Speed
-  const maxSpeedSlider = document.getElementById('max-speed-slider');
-  const maxSpeedLabel = document.getElementById('max-speed-label');
-  if (maxSpeedSlider && maxSpeedLabel) {
-    const initialSpeed = parseInt(maxSpeedSlider.value) || 300;
-    maxSpeedLabel.textContent = `Vitesse Max: ${initialSpeed} u/s`;
-    // Initialize max speed in main.js via callback
-    if (typeof onMaxSpeedChange === 'function') onMaxSpeedChange(initialSpeed);
-
-    maxSpeedSlider.addEventListener('input', () => {
-        const val = parseInt(maxSpeedSlider.value);
-        maxSpeedLabel.textContent = `Vitesse Max: ${val} u/s`;
-        if (typeof onMaxSpeedChange === 'function') onMaxSpeedChange(val);
-    });
-  } else {
-    console.warn('Max speed slider elements not found.');
-  }
 }
-
-export { initLightSliders, updateRayleighSlider, initSettings };
