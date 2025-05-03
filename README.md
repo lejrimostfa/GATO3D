@@ -8,46 +8,53 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
-### [2025-05] Refactoring & Modularisation
-- **Modularisation complète du code JS** :
-  - Création de modules dédiés :
-    - `submarine/model.js` (chargement du modèle)
-    - `submarine/controls.js` (contrôles du sous-marin)
-    - `ui/minimap.js` (mini-map, zoom, rotation, recentrage nord)
-    - `ui/time-slider.js` (slider durée de journée)
-    - `ui/hud.js` (HUD profondeur, visibilité)
-  - Suppression de la logique inline du main, usage d’imports modulaires.
-- **Mini-map** :
-  - Modularisation complète (init, update, zoom, rotation)
-  - Correction : passage nord en haut lors du retour en mode fixe (X)
-  - Correction : boutons zoom et rotation sans erreur d’assignation
-- **Horloge** :
-  - Correction : 2 tours pour 24h de jeu, minuit en haut
-- **HUD** :
-  - Synchronisation profondeur via module dédié
-  - Fonction de gestion de visibilité centralisée
-- **Boussole** :
-  - Correction : indique toujours le nord réel, revient à 0° en mode nord fixe
-- **Robustesse** :
-  - Correction de plusieurs ReferenceError (btnGameSettings, keys)
-  - Sécurisation des accès DOM et synchronisation UI
-- **Qualité** :
-  - Code plus clair, modulaire, maintenable, compatible ES6 modules
+### [2025-05-03] UI/UX & Minimap Improvements
+- **Minimap**
+  - Correction : la minimap s’initialise correctement au lancement du jeu (plus besoin de resize)
+  - Responsive et taille dynamique dès le chargement
+  - Boutons (+, -, rotation) groupés, accessibles et responsives
+- **Horloge**
+  - Agrandissement du canvas horloge pour une meilleure visibilité
+  - Affichage toujours lisible, responsive
+- **Panels de menu**
+  - Exclusivité : un seul panel ouvert à la fois (fermeture auto des autres)
+  - Les panels s’ouvrent à gauche des boutons (plus d’overlap)
+- **Robustesse UI**
+  - Correction de bugs d’initialisation, accès DOM, et synchronisation
+  - Refactoring et nettoyage du code d’initialisation UI
+
+### [2025-05-03] Refactoring & Modularisation Lumière
+- **Centralisation complète de la gestion des lumières et de l'atmosphère** dans `public/js/lighting.js`
+- Suppression du code dupliqué : tous les scripts utilisent désormais le module unique pour créer, modifier et piloter la lumière, le ciel et l'atmosphère
+- Nettoyage de `main.js`, `water-setup.js`, `ui/settings.js` : plus de gestion locale de la lumière
+- Correction de l'import dynamique dans `settings.js` (ES6 only)
+- Par défaut : intensité du soleil (DirectionalLight) à 2
 
 ---
 
 ## 🚀 PLAN DE CONTINUATION / NEXT DEVELOPMENT PLAN
 
-- **Poursuite de la modularisation** :
-  - Extraction des sliders restants (caméra, damping, altitude, lumière…)
-  - Modularisation de la gestion de l’environnement (eau, ciel, lumière, soleil)
-  - Séparation de la gestion des entrées clavier/souris dans un module dédié
-  - Modularisation du panneau de paramètres et autres éléments UI
-- **Tests et validation** à chaque étape pour garantir la stabilité
-- **Améliorations UI/UX** :
-  - Responsive, accessibilité, feedback visuel
-- **Préparation à l’intégration multijoueur** (plus tard)
-- **Documentation et nettoyage**
+- **Modularisation à terminer**
+  - Migration des sliders Rayleigh, Turbidity, Mie, etc. vers `lighting.js` (actuellement partiellement dans `settings.js`)
+  - Extraction finale de tout contrôle lumière/atmosphère dans le module central
+  - Gestion centralisée des entrées clavier/souris
+  - Modularisation complète des panneaux UI
+- **UI/UX & Accessibilité**
+  - Amélioration responsive sur tous les panels et boutons
+  - Accessibilité (navigation clavier, ARIA, contrastes)
+  - Polish visuel : icônes, feedback, animations légères
+- **Tests & Robustesse**
+  - Tests unitaires sur modules critiques (minimap, panels, sliders, lighting)
+  - Validation multi-plateforme (desktop/mobile)
+- **Gameplay & Logic**
+  - Ajout de la logique de jeu (objectifs, scoring, etc.)
+  - Synchronisation UI ↔ gameplay
+- **Multijoueur**
+  - Intégration WebRTC (étape 2)
+  - Synchronisation d’état et interpolation client
+- **Documentation**
+  - Mise à jour continue du README et des commentaires code
+  - Tutoriels d’utilisation et guides contributeurs
 
 ---
 
@@ -172,18 +179,26 @@ http://localhost:3000
 
 ## Development Status
 
-✅ Completed:
-- Basic scene setup with Three.js
-- Water and sky environment
-- Submarine movement
-- UI controls
-- Base server setup
+✅ **Completed**
+- Modularisation complète du code JS (minimap, horloge, HUD, panels, **lumière/atmosphère**)
+- Centralisation de la gestion lumière/atmosphère dans `lighting.js`
+- UI réactive et responsive (minimap, horloge, boutons, panels)
+- Panels de menu exclusifs et ergonomiques
+- Correction des bugs d’initialisation UI/minimap
+- Base serveur Node.js opérationnelle
+- Contrôles sous-marin (ZQSD/Flèches)
+- Cycle jour/nuit dynamique
 
-🔜 Next Steps:
-- Visual & Lighting Improvements
-- Submarine UI Panel
-- Basic Game Logic
-- Camera Improvements
+🚧 **En cours**
+- Migration des sliders Rayleigh, Turbidity, etc. vers `lighting.js`
+- Polish UI/UX (feedback, accessibilité, animations)
+- Refactoring & documentation continue
+
+🔜 **Next Steps**
+- Ajout logique gameplay (objectifs, scoring)
+- Tests unitaires et validation multi-plateforme
+- Intégration multijoueur (WebRTC)
+- Tutoriels et guides contributeurs
 
 ## License
 

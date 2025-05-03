@@ -9,21 +9,6 @@ let menuButtons = [];
  * @param {Array<{btnId: string, panelId: string}>} menuConfig
  */
 export function initMenus(menuConfig) {
-  // Ajout gestion bouton Réglages lumières
-  const btnLight = document.getElementById('light-settings-toggle');
-  const panelLight = document.getElementById('light-settings-panel');
-  if (btnLight && panelLight) {
-    btnLight.addEventListener('click', e => {
-      e.stopPropagation();
-      // Ferme tous les autres panels
-      document.querySelectorAll('.menu-panel').forEach(p => { if (p !== panelLight) p.style.display = 'none'; });
-      // Affiche ou masque ce panel
-      panelLight.style.display = (panelLight.style.display === 'flex') ? 'none' : 'flex';
-    });
-    // Ferme le panel si on clique ailleurs
-    window.addEventListener('click', () => { panelLight.style.display = 'none'; });
-    panelLight.addEventListener('click', e => e.stopPropagation());
-  }
 
   menuButtons = menuConfig.map(({btnId, panelId}) => {
     const btn = document.getElementById(btnId);

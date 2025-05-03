@@ -19,8 +19,9 @@ let cameraFrustumHelper = null;
 let playerSubmarine; // C'est maintenant le pivot (l'objet parent du sous-marin)
 let cameraTarget = new THREE.Vector3(); // Pour le lag caméra
 let cameraTargetCube = null; // Cube rouge pour debug du point visé par la caméra
-let sunLight;
-let ambientLight = null; // Pour contrôle dynamique sous l'eau
+// Lumière désormais gérée via lighting.js
+// let sunLight;
+// let ambientLight = null; // Pour contrôle dynamique sous l'eau
 let fogDefault = { color: 0xbfd1e5, density: 0.00015 };
 let fogUnderwater = { color: 0x226688, density: 0.003 };
 let underwaterMode = false;
@@ -53,9 +54,13 @@ function initGame() {
     sceneHandles = objects.sceneHandles;
     // Initialisation UI, sous-marin, etc. ici
     loadSubmarine(scene, sub => {
+      // Reconnexion explicite : la caméra suit toujours ce pivot parent du sous-marin
       playerSubmarine = sub;
       // Initialisation de la minimap après chargement du sous-marin
       initMinimap();
+      // Correction bug : force la minimap à s'initialiser à la bonne taille dès le lancement
+      window.dispatchEvent(new Event('resize'));
+
       // Initialisation des sliders et paramètres UI
       initSettings(sceneHandles, playerSubmarine, val => { dayDurationSeconds = val; });
       // Active les sliders avancés de lumière (nouveau menu)
@@ -68,6 +73,98 @@ function initGame() {
 
 // Appel au démarrage
 initGame();
+
+// --- Resize dynamique ---
+window.addEventListener('resize', () => {
+  if (renderer && camera) {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    const gameCanvas = document.getElementById('gameCanvas');
+    if (gameCanvas) {
+      gameCanvas.width = w;
+      gameCanvas.height = h;
+    }
+    // --- Responsive HUD ---
+    // Minimap
+    const minimapContainer = document.getElementById('minimap-container');
+    const minimap = document.getElementById('minimap');
+    if (minimapContainer && minimap) {
+      const minSize = Math.min(w, h) * 0.22;
+      minimapContainer.style.width = minSize + 'px';
+      minimapContainer.style.height = minSize + 'px';
+      minimap.width = minSize;
+      minimap.height = minSize;
+    }
+    // Horloge
+    const clockCanvas = document.getElementById('clock-canvas');
+    if (clockCanvas) {
+      const clockSize = Math.min(w, h) * 0.14;
+      clockCanvas.width = clockSize;
+      clockCanvas.height = clockSize;
+    }
+  }
+});
+// --- Responsive boutons menus (corrigé) ---
+window.addEventListener('resize', () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  const menuButtons = document.querySelectorAll('.menu-btn, .hud-btn');
+  if (menuButtons) {
+    const btnSize = Math.max(32, Math.min(w, h) * 0.045);
+    menuButtons.forEach(btn => {
+      btn.style.fontSize = (btnSize * 0.5) + 'px';
+      btn.style.width = btn.style.height = btnSize + 'px';
+      btn.style.padding = (btnSize * 0.12) + 'px';
+    });
+  }
+  // --- Responsive boutons minimap ---
+  const minimapZoomIn = document.getElementById('minimap-zoom-in');
+  const minimapZoomOut = document.getElementById('minimap-zoom-out');
+  const minimapRotationToggle = document.getElementById('minimap-rotation-toggle');
+  const minimapCanvas = document.getElementById('minimap');
+  if (minimapZoomIn && minimapZoomOut && minimapRotationToggle && minimapCanvas) {
+    // Utilise la taille réelle du canvas minimap pour le scaling
+    const miniSize = minimapCanvas.offsetWidth || minimapCanvas.width || Math.min(w, h) * 0.22;
+    const btnMini = Math.max(24, miniSize * 0.18);
+    // Boutons + et - (hors overlay, à droite de la minimap)
+    minimapZoomIn.style.width = minimapZoomOut.style.width = btnMini + 'px';
+    minimapZoomIn.style.height = minimapZoomOut.style.height = btnMini + 'px';
+    minimapZoomIn.style.fontSize = minimapZoomOut.style.fontSize = (btnMini * 0.55) + 'px';
+    minimapZoomIn.style.borderRadius = minimapZoomOut.style.borderRadius = (btnMini * 0.28) + 'px';
+    minimapZoomIn.style.position = minimapZoomOut.style.position = 'static';
+    minimapZoomIn.style.margin = minimapZoomOut.style.margin = (btnMini * 0.12) + 'px 0';
+
+    // Centrage vertical dynamique du groupe de boutons
+    const btnsGroup = document.querySelector('.minimap-btns-group');
+    if (btnsGroup) {
+      btnsGroup.style.gap = (btnMini * 0.18) + 'px';
+      btnsGroup.style.justifyContent = 'center';
+      btnsGroup.style.height = miniSize + 'px';
+    }
+
+    // Bouton X/O en haut-droit
+    minimapRotationToggle.style.width = minimapRotationToggle.style.height = (btnMini * 0.85) + 'px';
+    minimapRotationToggle.style.fontSize = (btnMini * 0.48) + 'px';
+    minimapRotationToggle.style.borderRadius = (btnMini * 0.28) + 'px';
+    minimapRotationToggle.style.position = 'absolute';
+    minimapRotationToggle.style.top = (miniSize * 0.04) + 'px';
+    minimapRotationToggle.style.right = (miniSize * 0.04) + 'px';
+
+    // Boussole responsive en haut-gauche
+    const compass = document.getElementById('compass');
+    if (compass) {
+      const compassSize = Math.max(28, miniSize * 0.19);
+      compass.setAttribute('width', compassSize);
+      compass.setAttribute('height', compassSize);
+      compass.style.position = 'absolute';
+      compass.style.left = (miniSize * 0.04) + 'px';
+      compass.style.top = (miniSize * 0.04) + 'px';
+    }
+  }
+});
 
 
 // (Les fonctions drawClockFace et drawTime sont maintenant importées du module ui/clock.js)
@@ -228,7 +325,8 @@ window.addEventListener('DOMContentLoaded', () => {
   initMenus([
     {btnId: 'game-settings-toggle', panelId: 'game-settings-panel'},
     {btnId: 'slider-toggle', panelId: 'slider-panel'},
-    {btnId: 'visibility-toggle', panelId: 'visibility-panel'}
+    {btnId: 'visibility-toggle', panelId: 'visibility-panel'},
+    {btnId: 'light-settings-toggle', panelId: 'light-settings-panel'}
   ]);
 
 

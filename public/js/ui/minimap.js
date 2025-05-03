@@ -31,8 +31,28 @@ export function setMinimapRotating(val, playerSubmarine = null) {
 export function initMinimap() {
   const minimapCanvas = document.getElementById('minimap');
   minimapRenderer = new THREE.WebGLRenderer({ canvas: minimapCanvas, antialias: true, alpha: true });
-  minimapRenderer.setSize(200, 200);
+  // Responsive : adapte la taille à la fenêtre
+const size = Math.min(window.innerWidth, window.innerHeight) * 0.22;
+minimapRenderer.setSize(size, size);
+minimapCanvas.width = size;
+minimapCanvas.height = size;
   minimapRenderer.setClearColor(0x111122, 1);
+
+  // Resize dynamique minimap
+  window.addEventListener('resize', () => {
+    const size = Math.min(window.innerWidth, window.innerHeight) * 0.22;
+    minimapRenderer.setSize(size, size);
+    minimapCanvas.width = size;
+    minimapCanvas.height = size;
+  });
+
+  // Resize dynamique minimap
+  window.addEventListener('resize', () => {
+    const size = Math.min(window.innerWidth, window.innerHeight) * 0.22;
+    minimapRenderer.setSize(size, size);
+    minimapCanvas.width = size;
+    minimapCanvas.height = size;
+  });
   minimapCamera = new THREE.OrthographicCamera(-100, 100, 100, -100, 1, 10000);
   minimapCamera.up.set(0,0,-1);
   minimapCamera.lookAt(new THREE.Vector3(0,-1,0));

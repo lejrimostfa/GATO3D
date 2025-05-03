@@ -81,17 +81,17 @@
         }
       </style>
       <button id="visibility-toggle" class="menu-button" style="top:60px;">Objets visibles</button>
-      <div id="visibility-panel" class="menu-panel" style="top:100px;"></div>
+      <div id="visibility-panel" class="menu-panel" style="top:100px; right:210px;"></div>
       <button id="game-settings-toggle" class="menu-button" style="top:118px;">Paramètres de jeu</button>
       <button id="light-settings-toggle" class="menu-button" style="top:154px; margin-top:22px;">Réglages lumières</button>
-      <div id="game-settings-panel" class="menu-panel" style="top:158px;">
+      <div id="game-settings-panel" class="menu-panel" style="top:158px; right:210px;">
 
         <label style="color:#0f0; font-family:monospace; margin-top:10px;">Durée d'une journée
           <input id="day-duration-slider" type="range" min="30" max="600" step="10" value="120" style="width:180px; margin-top:4px;" />
           <div id="day-duration-label" style="color:#0f0; font-family:monospace;">Jour: 2.00 min</div>
         </label>
       </div>
-      <div id="light-settings-panel" class="menu-panel" style="top:194px;">
+      <div id="light-settings-panel" class="menu-panel" style="top:194px; right:210px;">
         <label style="color:#0f0; font-family:monospace;">Soleil (DirectionalLight)
           <input id="sunlight-slider" type="range" min="0" max="2" step="0.01" value="0.21" style="width:180px; margin-top:4px;" />
           <div id="sunlight-label" style="color:#0f0; font-family:monospace;">Soleil: 0.21</div>
@@ -106,7 +106,7 @@
         </label>
       </div>
       <button id="slider-toggle" class="menu-button" style="top:230px;">Réglages caméra</button>
-      <div id="slider-panel" class="menu-panel" style="top:266px; width:320px;">
+      <div id="slider-panel" class="menu-panel" style="top:266px; right:210px; width:320px;">
         <label style="color:#0f0; font-family:monospace;">Distance caméra
           <input id="camera-slider" type="range" min="10" max="500" step="1" value="130" style="width:180px; margin-top:4px;" />
           <div id="camera-label" style="color:#0f0; font-family:monospace;">Camera: 130</div>
@@ -125,21 +125,25 @@
     <!-- == Minimap Area (Bottom Left) == -->
     <div id="ui-bottom-bar" style="position:fixed; left:0; right:0; bottom:0; width:100vw; display:none; flex-direction:row; justify-content:space-between; align-items:flex-end; pointer-events:none; z-index:30;">
   <div id="ui-minimap-area" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:8px;">
-    <div style="position:relative; width:200px; height:200px;">
-      <button id="minimap-zoom-in" style="position:absolute; left:0; bottom:210px; width:30px; height:30px; font-size:20px;">+</button>
-      <button id="minimap-zoom-out" style="position:absolute; left:40px; bottom:210px; width:30px; height:30px; font-size:20px;">-</button>
-      <button id="minimap-rotation-toggle" style="position:absolute; right:6px; top:6px; pointer-events:auto; background:#111c; color:#0ff; border-radius:6px; border:1px solid #0ff; font-family:monospace; font-size:15px; padding:2px 8px; width:26px; height:26px; display:flex; align-items:center; justify-content:center;">X</button>
-      <svg id="compass" width="38" height="38" style="position:absolute; left:6px; top:6px;">
-        <circle cx="19" cy="19" r="17" fill="#111c" stroke="#0ff" stroke-width="2"/>
-        <polygon points="19,5 15,19 23,19" fill="#f00"/>
-        <text x="19" y="35" text-anchor="middle" fill="#0ff" font-size="13" font-family="monospace">N</text>
-      </svg>
-      <canvas id="minimap" width="200" height="200" style="border-radius:10px; background:#111a; box-shadow:0 2px 12px #000b;"></canvas>
+    <div class="minimap-group" style="display:flex; align-items:center; justify-content:center; width:100%; gap:18px;">
+      <div class="minimap-container" style="position:relative; display:flex; align-items:center; justify-content:center;">
+        <canvas id="minimap" width="200" height="200" style="border-radius:10px; background:#111a; box-shadow:0 2px 12px #000b;"></canvas>
+        <svg id="compass" style="position:absolute;" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="19" cy="19" r="17" fill="#111c" stroke="#0ff" stroke-width="2"/>
+          <polygon points="19,5 15,19 23,19" fill="#f00"/>
+          <text x="19" y="35" text-anchor="middle" fill="#0ff" font-size="13" font-family="monospace">N</text>
+        </svg>
+        <button id="minimap-rotation-toggle" class="minimap-btn" style="position:absolute;">X</button>
+      </div>
+      <div class="minimap-btns-group" style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;">
+        <button id="minimap-zoom-in" class="minimap-btn">+</button>
+        <button id="minimap-zoom-out" class="minimap-btn">-</button>
+      </div>
     </div>
     <div id="fps-counter" style="font-family:monospace; color:#0f0; background:#111c; border-radius:6px; padding:5px 12px; min-width:60px; text-align:center; margin-top:6px;">FPS: 0</div>
   </div>
   <div style="position:relative; display:inline-block;">
-  <canvas id="clock-canvas" width="100" height="100" style="pointer-events:auto;"></canvas>
+  <canvas id="clock-canvas" width="140" height="140" style="pointer-events:auto;"></canvas>
   <div style="position:absolute;top:40px;left:0;width:100px;text-align:center;pointer-events:none;"></div>
 </div>
   <div id="ui-depth-indicator" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:200px;">

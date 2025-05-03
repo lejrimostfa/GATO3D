@@ -5,24 +5,11 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 import { Water } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Water.js';
 import { Sky } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Sky.js';
 
+import { initLighting } from './lighting.js';
+
 export function setupSkyAndWater(scene, renderer, camera) {
-  // Ajout d'une vraie lumière directionnelle pour le soleil
-  const sunLight = new THREE.DirectionalLight(0xffffff, 0.21);
-  sunLight.position.set(0, 1000, 0);
-  sunLight.castShadow = true;
-  scene.add(sunLight);
-  const sky = new Sky();
-  sky.scale.setScalar(450000);
-  scene.add(sky);
-
-  // Configure sky atmosphere
-  const skyUniforms = sky.material.uniforms;
-  skyUniforms['turbidity'].value = 8;
-skyUniforms['rayleigh'].value = 2.5;
-skyUniforms['mieCoefficient'].value = 0.005;
-skyUniforms['mieDirectionalG'].value = 0.85;
-
-  const sun = new THREE.Vector3();
+  // Centralise la création des lumières et du ciel
+  const { sunLight, ambientLight, sky, sun } = initLighting(scene);
   const phi = THREE.MathUtils.degToRad(90 - 45); // élévation plus haute
   const theta = THREE.MathUtils.degToRad(180);   // azimuth
   sun.setFromSphericalCoords(1, phi, theta);

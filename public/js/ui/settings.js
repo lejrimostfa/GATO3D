@@ -1,5 +1,6 @@
 // ui/settings.js
 // Gestion des sliders et contrôles de paramètres (lumière, caméra, damping, etc.)
+import { setSunIntensity, setSkyUniform, getLightingHandles, getSunIntensity } from '../lighting.js';
 
 /**
  * Initialise les sliders avancés de lumière dans le menu Réglages lumières.
@@ -10,14 +11,15 @@ export function initLightSliders(sceneHandles) {
   const raySlider = document.getElementById('rayleigh-slider');
   const rayLabel = document.getElementById('rayleigh-label');
   // Slider DirectionalLight
+
   const sunSlider = document.getElementById('sunlight-slider');
   const sunLabel = document.getElementById('sunlight-label');
-  if (sunSlider && sunLabel && sceneHandles.sunLight) {
-    sunSlider.value = sceneHandles.sunLight.intensity;
+  if (sunSlider && sunLabel) {
+    sunSlider.value = getSunIntensity(); // Ajout de la fonction getSunIntensity
     sunLabel.textContent = `Soleil: ${parseFloat(sunSlider.value).toFixed(2)}`;
     sunSlider.addEventListener('input', () => {
-      sceneHandles.sunLight.intensity = parseFloat(sunSlider.value);
       sunLabel.textContent = `Soleil: ${parseFloat(sunSlider.value).toFixed(2)}`;
+      setSunIntensity(parseFloat(sunSlider.value));
     });
   }
   // Slider Exposure
