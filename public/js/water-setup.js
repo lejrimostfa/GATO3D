@@ -6,6 +6,11 @@ import { Water } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/o
 import { Sky } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Sky.js';
 
 export function setupSkyAndWater(scene, renderer, camera) {
+  // Ajout d'une vraie lumière directionnelle pour le soleil
+  const sunLight = new THREE.DirectionalLight(0xffffff, 0.21);
+  sunLight.position.set(0, 1000, 0);
+  sunLight.castShadow = true;
+  scene.add(sunLight);
   const sky = new Sky();
   sky.scale.setScalar(450000);
   scene.add(sky);
@@ -32,6 +37,7 @@ skyUniforms['mieDirectionalG'].value = 0.85;
       '/textures/waternormals.jpg',
       tex => {
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        tex.flipY = false; // Correction obligatoire pour éviter l'erreur WebGL sur les textures 3D
       },
       undefined,
       err => console.warn('Water normals not found:', err)
@@ -52,7 +58,7 @@ skyUniforms['mieDirectionalG'].value = 0.85;
     scene.fog = new THREE.FogExp2(0xbfd1e5, 0.00015);
   }
   // Retourne uniquement les éléments principaux (sans soleil)
-  return { water, sky, sun, renderer };
+  return { water, sky, sun, sunLight, renderer };
 }
 
 export function updateSun(sceneHandles, hour) {

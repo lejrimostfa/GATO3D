@@ -83,18 +83,30 @@
       <button id="visibility-toggle" class="menu-button" style="top:60px;">Objets visibles</button>
       <div id="visibility-panel" class="menu-panel" style="top:100px;"></div>
       <button id="game-settings-toggle" class="menu-button" style="top:118px;">Paramètres de jeu</button>
+      <button id="light-settings-toggle" class="menu-button" style="top:154px; margin-top:22px;">Réglages lumières</button>
       <div id="game-settings-panel" class="menu-panel" style="top:158px;">
-        <label style="color:#0f0; font-family:monospace;">Lumière soleil
-          <input id="light-slider" type="range" min="0" max="2" step="0.01" value="0.21" style="width:180px; margin-top:4px;" />
-          <div id="light-label" style="color:#0f0; font-family:monospace;">Light: 0.21</div>
-        </label>
+
         <label style="color:#0f0; font-family:monospace; margin-top:10px;">Durée d'une journée
           <input id="day-duration-slider" type="range" min="30" max="600" step="10" value="120" style="width:180px; margin-top:4px;" />
           <div id="day-duration-label" style="color:#0f0; font-family:monospace;">Jour: 2.00 min</div>
         </label>
       </div>
-      <button id="slider-toggle" class="menu-button" style="top:186px;">Réglages caméra</button>
-      <div id="slider-panel" class="menu-panel" style="top:226px;">
+      <div id="light-settings-panel" class="menu-panel" style="top:194px;">
+        <label style="color:#0f0; font-family:monospace;">Soleil (DirectionalLight)
+          <input id="sunlight-slider" type="range" min="0" max="2" step="0.01" value="0.21" style="width:180px; margin-top:4px;" />
+          <div id="sunlight-label" style="color:#0f0; font-family:monospace;">Soleil: 0.21</div>
+        </label>
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Luminosité globale (Exposure)
+          <input id="exposure-slider" type="range" min="0" max="2" step="0.01" value="0.21" style="width:180px; margin-top:4px;" />
+          <div id="exposure-label" style="color:#0f0; font-family:monospace;">Exposure: 0.21</div>
+        </label>
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Ciel (Rayleigh)
+          <input id="rayleigh-slider" type="range" min="0.5" max="4" step="0.01" value="2.5" style="width:180px; margin-top:4px;" />
+          <div id="rayleigh-label" style="color:#0f0; font-family:monospace;">Rayleigh: 2.50</div>
+        </label>
+      </div>
+      <button id="slider-toggle" class="menu-button" style="top:230px;">Réglages caméra</button>
+      <div id="slider-panel" class="menu-panel" style="top:266px; width:320px;">
         <label style="color:#0f0; font-family:monospace;">Distance caméra
           <input id="camera-slider" type="range" min="10" max="500" step="1" value="130" style="width:180px; margin-top:4px;" />
           <div id="camera-label" style="color:#0f0; font-family:monospace;">Camera: 130</div>

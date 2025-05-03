@@ -1,12 +1,16 @@
 import { setupSkyAndWater, updateSun } from './water-setup.js';
 import { loadSubmarine } from './submarine/model.js';
 import { updatePlayerSubmarine } from './submarine/controls.js';
+import { initMenus } from './ui/menus.js';
+import { initSettings } from './ui/settings.js';
 console.log('main.js loaded');
 
 // public/js/main.js
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
 
 // Global variables
+import { loadLevel } from './levels/levelManager.js';
+import { drawClockFace, drawTime } from './ui/clock.js';
 let scene, camera, renderer;
 let sceneHandles = null;
 let cameraFrustumHelper = null;
@@ -36,59 +40,33 @@ let clockCanvas = null;
 let clockCtx = null;
 let radius = 50; // Default radius, moved here
 
-// Initialize Three.js scene
-function initScene() {
-  scene = new THREE.Scene();
+// Initialise le jeu et charge la scène du niveau 1
+function initGame() {
   renderer = new THREE.WebGLRenderer({ antialias: true, canvas: document.getElementById('gameCanvas') });
-  renderer.setSize(window.innerWidth, window.innerHeight);
-
-  // --- Mini-map renderer ---
-  initMinimap();
-
-
-  // Set tone mapping for more cinematic rendering
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
-  // Set clear background color for debugging
-  renderer.setClearColor(0x222244);
-
-  camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
-  camera.position.set(0, 50, 100);
-
-  // Repère frustum pour la caméra principale (après initialisation !)
-  cameraFrustumHelper = new THREE.CameraHelper(camera);
-  scene.add(cameraFrustumHelper);
-
-  // Add ambient light (référence globale)
-  ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
-  scene.add(ambientLight);
-  // Directional light (sun)
-  sunLight = new THREE.DirectionalLight(0xffffff, 2.5);
-  sunLight.position.set(0, 100, 0);
-  sunLight.target.position.set(0, 0, 0);
-  scene.add(sunLight);
-  scene.add(sunLight.target);
-
-  // Debug test cube
-  const cubeGeo = new THREE.BoxGeometry(10, 10, 10);
-  const cubeMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-  const cube = new THREE.Mesh(cubeGeo, cubeMat);
-  cube.position.set(0, 10, 0);
-  scene.add(cube);
-
-  window.addEventListener('resize', onWindowResize);
+  renderer.toneMappingExposure = 0.21; // Valeur initiale, sera contrôlée par le slider
+  loadLevel('level1', renderer, ({scene: loadedScene, camera: loadedCamera, objects}) => {
+    scene = loadedScene;
+    camera = loadedCamera;
+    sceneHandles = objects.sceneHandles;
+    // Initialisation UI, sous-marin, etc. ici
+    loadSubmarine(scene, sub => {
+      playerSubmarine = sub;
+      // Initialisation de la minimap après chargement du sous-marin
+      initMinimap();
+      // Initialisation des sliders et paramètres UI
+      initSettings(sceneHandles, playerSubmarine, val => { dayDurationSeconds = val; });
+      // Active les sliders avancés de lumière (nouveau menu)
+      import('./ui/settings.js').then(mod => { mod.initLightSliders(sceneHandles); });
+      // ...autres initialisations dépendantes du sous-marin
+    });
+    // ...
+  });
 }
 
-// Handle window resize
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-}
+// Appel au démarrage
+initGame();
 
-// --- Clock Drawing Functions ---
-// --- Clock Drawing Functions ---
-import { drawClockFace, drawTime } from './ui/clock.js';
 
 // (Les fonctions drawClockFace et drawTime sont maintenant importées du module ui/clock.js)
 
@@ -100,7 +78,7 @@ function startGame() {
   overlay.style.display = 'none';
   const uiMenus = document.getElementById('ui-menus');
   if (uiMenus) uiMenus.style.display = 'block';
-  initScene();
+  initGame();
 
   // Get clock canvas context
   clockCanvas = document.getElementById('clock-canvas');
@@ -123,20 +101,7 @@ function startGame() {
       daySlider = panel.querySelector('#day-duration-slider');
       dayLabel = panel.querySelector('#day-duration-label');
     }
-    if (lightSlider && sunLight && renderer) {
-      // Valeur par défaut
-      lightSlider.value = 0.21;
-      sunLight.intensity = 0.21;
-      renderer.toneMappingExposure = 0.21;
-      if (lightLabel) lightLabel.textContent = `Light: 0.21`;
-      const updateLight = () => {
-        const val = parseFloat(lightSlider.value);
-        sunLight.intensity = val;
-        renderer.toneMappingExposure = val;
-        if (lightLabel) lightLabel.textContent = `Light: ${val.toFixed(2)}`;
-      };
-      lightSlider.addEventListener('input', updateLight);
-    }
+
     // Initialisation du slider de durée de journée via module
     initDayDurationSlider(val => { dayDurationSeconds = val; });
     // Synchronise les valeurs par défaut sliders et labels
@@ -164,33 +129,8 @@ function startGame() {
       console.warn('Slider, sunLight, or renderer not found.');
     }
     // --- Ajout : gestion sliders menu rétractable ---
-    // --- Ajout : injection dynamique des checkboxes dans visibility-panel ---
-    const visPanel = document.getElementById('visibility-panel');
-    if (!visPanel) {
-      console.warn('[UI] Panel menu manquant: #visibility-panel');
-    } else {
-      visPanel.innerHTML = '';
-      // Liste des objets principaux à contrôler
-      const objects = [
-        { id: 'water', label: 'Eau', ref: () => sceneHandles.water },
-        { id: 'sub', label: 'Sous-marin', ref: () => playerSubmarine }
-      ];
-      objects.forEach(obj => {
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.id = 'toggle-' + obj.id;
-        checkbox.checked = true;
-        checkbox.addEventListener('change', e => {
-          const target = obj.ref();
-          if (target) target.visible = e.target.checked;
-        });
-        const label = document.createElement('label');
-        label.appendChild(checkbox);
-        label.appendChild(document.createTextNode(' ' + obj.label));
-        visPanel.appendChild(label);
-        visPanel.appendChild(document.createElement('br'));
-      });
-    }
+    // --- Initialisation des sliders et contrôles (centralisée) ---
+    initSettings(sceneHandles, playerSubmarine, val => { dayDurationSeconds = val; });
     // --- Ajout : gestion boutons zoom mini-map ---
     const btnZoomIn = document.getElementById('minimap-zoom-in');
     const btnZoomOut = document.getElementById('minimap-zoom-out');
@@ -282,49 +222,13 @@ btnJoin.addEventListener('click', () => {
 const keys = {};
 
 window.addEventListener('DOMContentLoaded', () => {
-  const menuConfig = [
-  {btnId: 'game-settings-toggle', panelId: 'game-settings-panel'},
-  {btnId: 'slider-toggle', panelId: 'slider-panel'},
-  {btnId: 'visibility-toggle', panelId: 'visibility-panel'}
-];
+  // Initialise la gestion des menus (centralisée)
+  initMenus([
+    {btnId: 'game-settings-toggle', panelId: 'game-settings-panel'},
+    {btnId: 'slider-toggle', panelId: 'slider-panel'},
+    {btnId: 'visibility-toggle', panelId: 'visibility-panel'}
+  ]);
 
-let menuTimeout = null;
-
-const menuButtons = menuConfig.map(({btnId, panelId}) => {
-  const btn = document.getElementById(btnId);
-  const panel = document.getElementById(panelId);
-  if (!btn) console.warn(`[UI] Bouton menu manquant: #${btnId}`);
-  if (!panel) console.warn(`[UI] Panel menu manquant: #${panelId}`);
-  return {btn, panel};
-});
-
-menuButtons.forEach(({btn, panel}) => {
-  if (!btn || !panel) return;
-  // Par défaut, fermé
-  panel.style.display = 'none';
-  btn.addEventListener('click', e => {
-    // Ferme tous les autres panels
-    menuButtons.forEach(({panel: p}) => { if (p && p !== panel) p.style.display = 'none'; });
-    // Toggle ce panel
-    if (panel.style.display === 'none' || panel.style.display === '') {
-      panel.style.display = 'flex';
-      // Timer auto-close
-      clearTimeout(menuTimeout);
-      menuTimeout = setTimeout(() => { panel.style.display = 'none'; }, 10000);
-    } else {
-      panel.style.display = 'none';
-      clearTimeout(menuTimeout);
-    }
-    e.stopPropagation();
-  });
-  // Empêche la fermeture si clic dans le panel
-  panel.addEventListener('click', e => { e.stopPropagation(); });
-});
-// Ferme tout menu si clic ailleurs
-window.addEventListener('click', () => {
-  menuButtons.forEach(({panel}) => { if(panel) panel.style.display = 'none'; });
-  clearTimeout(menuTimeout);
-});
 
   // Observer pour afficher le layout flex dès que l'overlay disparaît
   
@@ -353,7 +257,20 @@ window.addEventListener('click', () => {
     observer.observe(overlay, { attributes: true, attributeFilter: ['style'] });
   }
 
-  window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
+  window.addEventListener('keydown', e => {
+    keys[e.key.toLowerCase()] = true;
+    if (e.key.toLowerCase() === 'p') {
+      isTimePaused = !isTimePaused;
+      if (isTimePaused) {
+        pausedAt = performance.now();
+        console.log('[PAUSE] Temps du jeu en pause (P)');
+      } else {
+        // Décale timeStart pour que le temps ne saute pas
+        timeStart += performance.now() - pausedAt;
+        console.log('[RESUME] Temps du jeu repris (P)');
+      }
+    }
+  });
   window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
 
   // Masquer les menus initiaux avant le démarrage
@@ -375,6 +292,8 @@ const hud = document.getElementById('hud');
 // --- Défilement automatique du temps ---
 let timeStart = performance.now();
 let lastTimeValue = 0;
+let isTimePaused = false;
+let pausedAt = 0;
 
 function animate() {
   requestAnimationFrame(animate);
@@ -393,9 +312,52 @@ function animate() {
   }
 
   // --- Défilement automatique du temps (0 à 24h en 300s = 5min) ---
-  const elapsedTime = performance.now() - timeStart;
+  let elapsedTime = performance.now() - timeStart;
+  if (isTimePaused) {
+    elapsedTime = pausedAt - timeStart;
+  }
   const timeOfDay = (elapsedTime / (dayDurationSeconds * 1000)) % 1; // Fraction of day (0-1)
   const currentGameHour = timeOfDay * 24; // Hour (0-24)
+
+  // --- Rayleigh dynamique (ciel rouge matin/soir, bleu pâle midi/minuit) ---
+  if (sceneHandles && sceneHandles.sky && sceneHandles.sky.material && sceneHandles.sky.material.uniforms.rayleigh) {
+    // Synchronise la barre blanche du minigraphique avec l'heure courante
+    if (typeof window.setRayleighGraphHour === 'function') {
+      window.setRayleighGraphHour(currentGameHour);
+    }
+
+    // Mode sélectionné par l'utilisateur
+    let rayleigh;
+    const mode = (typeof window.getRayleighMode === 'function') ? window.getRayleighMode() : 'auto';
+    const period = (typeof window.getRayleighPeriod === 'function') ? window.getRayleighPeriod() : 24;
+    const phase = (typeof window.getRayleighPhase === 'function') ? window.getRayleighPhase() : 21;
+    let t = currentGameHour % period;
+    if (mode === 'auto') {
+      // Courbe en cloche : Rayleigh max à 6h/18h, min à 0h/12h/24h
+      // Utilise cosinus sur période et phase paramétrables
+      rayleigh = 0.5 + (6 - 0.5) * 0.5 * (1 - Math.cos(2 * Math.PI * ((t - phase) / period)));
+    } else if (mode === 'sin') {
+      // Sinus simple : max à 6h/18h, min à 0h/12h/24h
+      rayleigh = 0.5 + (6 - 0.5) * 0.5 * (1 - Math.cos(2 * Math.PI * ((t - phase) / period)));
+    } else if (mode === 'manual') {
+      // Contrôle manuel : ne pas écraser la valeur du slider
+      rayleigh = sceneHandles.sky.material.uniforms.rayleigh.value;
+    } else {
+      // fallback
+      rayleigh = 2.5;
+    }
+    sceneHandles.sky.material.uniforms.rayleigh.value = rayleigh;
+    // Met à jour le slider Rayleigh si la fonction est dispo
+    if (window.updateRayleighSlider) window.updateRayleighSlider(rayleigh);
+    // (Import dynamique pour éviter les cycles)
+    else if (!window._rayleighSliderInjected) {
+      window._rayleighSliderInjected = true;
+      import('./ui/settings.js').then(mod => {
+        window.updateRayleighSlider = mod.updateRayleighSlider;
+        mod.updateRayleighSlider(rayleigh);
+      });
+    }
+  }
 
   // Update sun position based on time
   if (sceneHandles) { // Ensure sceneHandles is initialized
@@ -509,21 +471,25 @@ function animate() {
       targetX = playerSubmarine.position.x + camDist * Math.sin(playerSubmarine.rotation.y);
       targetZ = playerSubmarine.position.z + camDist * Math.cos(playerSubmarine.rotation.y);
     }
-    // Suivi vertical immédiat (Y)
-    let camSubY = playerSubmarine.position.y;
-    if (playerSubmarine.children && playerSubmarine.children[0]) {
-      camSubY += playerSubmarine.children[0].position.y;
-    }
-    const targetY = camSubY + camAltitude;
-    // Lerp caméra vers la cible (XZ interpolé, Y immédiat)
-    camera.position.x += (targetX - camera.position.x) * damping;
-    camera.position.z += (targetZ - camera.position.z) * damping;
-    camera.position.y += (targetY - camera.position.y) * damping * 2; // Y plus réactif
+    // --- Suivi caméra du sous-marin ---
+    if (playerSubmarine && camera) {
+      // Suivi vertical immédiat (Y)
+      let camSubY = playerSubmarine.position.y;
+      if (playerSubmarine.children && playerSubmarine.children[0]) {
+        camSubY += playerSubmarine.children[0].position.y;
+      }
+      const targetY = camSubY + camAltitude;
+      // Lerp caméra vers la cible (XZ interpolé, Y immédiat)
+      camera.position.x += (targetX - camera.position.x) * damping;
+      camera.position.z += (targetZ - camera.position.z) * damping;
+      camera.position.y += (targetY - camera.position.y) * damping * 2; // Y plus réactif
 
-    // Toujours regarder le centre du sous-marin (pivot + enfant)
-    const lookAtTarget = playerSubmarine.position.clone();
-    lookAtTarget.y = camSubY;
-    camera.lookAt(lookAtTarget);
+      // Toujours regarder le centre du sous-marin (pivot + enfant)
+      const lookAtTarget = playerSubmarine.position.clone();
+      lookAtTarget.y = camSubY;
+      camera.lookAt(lookAtTarget);
+    }
+    // --- Fin suivi caméra ---
   } else if (cameraTargetCube) {
     cameraTargetCube.visible = false;
   }
