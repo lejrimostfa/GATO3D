@@ -216,6 +216,23 @@ http://localhost:3000
 - **Descend/Brake**: W (also acts as dive brake at high speeds)
 
 ### UI Controls
+
+#### Minimap Controls
+- **Zoom In**: Click the **+** button on the minimap
+- **Zoom Out**: Click the **-** button on the minimap
+- **Rotate/Compass**: Click the compass (🧭/🔄) button to toggle minimap rotation (auto-rotate/fixed north)
+
+#### UI/Overlay Behavior
+- The game UI is now fully modular and will only appear after the title overlay is dismissed.
+- All minimap controls are now robust and should work regardless of load order.
+
+#### Developer Notes
+- The UI and minimap system have been refactored for modularity:
+  - UI logic is split into `/public/js/ui/components/`, `/public/js/ui/controls/`, `/public/js/ui/minimap/`
+  - Minimap controls communicate via custom DOM events (`minimap-zoom-change`, `minimap-rotation-change`)
+  - The compass is always visible and rotates with the submarine if auto-rotate is enabled.
+- If you encounter UI issues, check the browser console for `[UI:Minimap]` or `[UI:Visibility]` logs for diagnostics.
+
 - **Unified Top Bar**: All menu buttons (game settings, submarine settings, visibility, light, wave, camera) are now in a single top bar at the top right.
 - **Submarine Settings**: Speed, rotation, and mass sliders in a dedicated submarine panel (opens below the submarine button in the top bar).
 - **Visibility Panel**: Manage visibility of scene objects via the top bar.

@@ -2,6 +2,7 @@
 // Centralized input management for keyboard and game controls
 
 import { elements } from '../ui/domElements.js';
+import { showAllUIElements } from '../ui/components/visibility.js';
 
 // Key state tracking
 export const keys = {};
@@ -99,17 +100,15 @@ function setupButtonEvents() {
  * Start the game
  */
 function startGame() {
-  const { overlay, uiBottomBar } = elements;
+  const { overlay } = elements;
   
   // Hide overlay
   if (overlay) {
     overlay.style.display = 'none';
   }
   
-  // Show UI
-  if (uiBottomBar) {
-    uiBottomBar.style.display = 'flex';
-  }
+  // Show UI using the centralized function from UI module
+  showAllUIElements();
 }
 
 /**
