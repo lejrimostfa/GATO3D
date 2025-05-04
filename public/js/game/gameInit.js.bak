@@ -8,6 +8,7 @@ import { loadLevel } from '../levels/levelManager.js';
 import { initTimeManager } from '../time/timeManager.js';
 import { initCameraFollow } from '../camera/followCamera.js';
 import { initMinimap } from '../ui/minimap.js';
+// Utiliser temporairement l'ancien fichier settings.js pour assurer la compatibilité
 import { initSettings } from '../ui/settings.js';
 import { initUnderwaterEffects } from '../effects/underwater.js';
 import { initSkyEffects } from '../effects/skyEffects.js';
@@ -394,8 +395,7 @@ function initUIComponents() {
     }
   });
   
-  // Setup wave control sliders
-  initWaveControls();
+  // Wave controls are now handled by the settings module
 }
 
 /**
@@ -440,44 +440,6 @@ function initWaveControls() {
       waveDirectionSlider, waveDirectionLabel
     } = elements;
     
-    if (waveAmplitudeSlider && waveAmplitudeLabel) {
-      // Initialize with default value
-      setWaveAmplitude(parseFloat(waveAmplitudeSlider.value));
-      
-      // Add event listener
-      waveAmplitudeSlider.addEventListener('input', () => {
-        const amplitude = parseFloat(waveAmplitudeSlider.value);
-        waveAmplitudeLabel.textContent = `Amplitude: ${amplitude.toFixed(1)}`;
-        setWaveAmplitude(amplitude);
-        
-        // Update water material if available
-        if (sceneHandles && sceneHandles.water) {
-          updateWaterMaterial(sceneHandles.water);
-        }
-      });
-      
-      // Manually trigger an update to apply initial settings
-      waveAmplitudeSlider.dispatchEvent(new Event('input'));
-    }
-    
-    if (waveDirectionSlider && waveDirectionLabel) {
-      // Initialize with default value
-      setWaveDirection(parseFloat(waveDirectionSlider.value));
-      
-      // Add event listener
-      waveDirectionSlider.addEventListener('input', () => {
-        const direction = parseFloat(waveDirectionSlider.value);
-        waveDirectionLabel.textContent = `Direction: ${direction}°`;
-        setWaveDirection(direction);
-        
-        // Update water material if available
-        if (sceneHandles && sceneHandles.water) {
-          updateWaterMaterial(sceneHandles.water);
-        }
-      });
-      
-      // Manually trigger an update to apply initial settings
-      waveDirectionSlider.dispatchEvent(new Event('input'));
-    }
+    // Wave controls are now handled by the settings/waveSettings.js module
   });
 }

@@ -205,26 +205,6 @@ node server.js
 http://localhost:3000
 ```
 
-## Known Issues
-
-### 3D Canvas Not Displaying After Settings Refactor
-
-**Problem:**
-After refactoring the `public/js/ui/settings.js` file into multiple smaller modules (e.g. `settings/lightSettings.js`, `settings/waveSettings.js`, etc.), the 3D canvas may appear blank or not render any scene content. This is due to missing or incorrectly ordered initialization of settings and global functions that the rest of the UI and rendering logic depend on.
-
-**Explanation:**
-- The original `settings.js` file exposed several global functions and handled side effects (e.g. updating Rayleigh, initializing sliders, and exposing functions on `window`) that are expected by other modules and the rendering pipeline.
-- When refactoring, if these functions are not re-exposed or the initialization order is changed, critical parameters (lighting, exposure, Rayleigh, camera, etc.) may not be set up in time for the initial render, resulting in a blank or non-interactive 3D canvas.
-- Some modules (like `skyEffects.js` and `gameInit.js`) dynamically import or call these global functions, expecting them to be available on `window` or as named exports.
-
-**How to Fix or Avoid:**
-- When refactoring, always ensure that:
-  - All global functions previously exposed by `settings.js` are still available, either by re-exporting them or attaching them to `window`.
-  - The initialization order in your main game setup (`initSettings`, `initLightSliders`, etc.) is preserved and all dependent modules are loaded before the first render.
-  - Test after each extraction: move one settings group at a time and validate the 3D canvas is still rendering.
-- If you encounter a blank canvas after refactoring, revert to the original `settings.js`, then retry the migration gradually, checking for missing exports or initialization steps at each stage.
-- See comments in `gameInit.js` and `settings/index.js` for more details on migration and compatibility.
-
 ## Controls
 
 ### Submarine Movement
@@ -261,6 +241,51 @@ After refactoring the `public/js/ui/settings.js` file into multiple smaller modu
 - **Panel Positioning**: All panels open directly under their respective buttons and are clearly labeled.
 - **Minimap Zoom**: + and - buttons on minimap
 - **Minimap Rotation**: R button on minimap
+
+## IMPORTANT NOTES
+
+### UI Component Initialization and Event Connection
+
+#### Camera Controls Implementation
+We've implemented a modular camera control system with the following features:
+- Distance control (50-500 units)
+- Altitude/height control (10-200 units)
+- Smoothness/damping control (0.001-0.05)
+
+#### Diagnosed Issues
+When implementing new UI controls (sliders, buttons), we identified the following critical issues:
+
+1. **DOM Element References**: Using cached element references via a central element registry can be problematic if elements are dynamically added, removed, or replaced during runtime. This affected camera controls when UI was reinitialized.
+
+2. **Event Listener Connection**: The application has two separate systems for connecting UI controls:
+   - The `sliderConnector.js` module (which is called manually and not automatically on startup)
+   - The module-specific initialization functions (like `initCameraSliders()` in `cameraControls.js`)
+
+3. **Function Parameter Order**: Inconsistent parameter order in key functions like `setCameraFollowParams()` caused confusion. Some places expected (distance, damping, height) while others used (distance, height, smoothness).
+
+#### Implementation Solution
+To address these issues, we:
+
+1. **Direct DOM Queries**: Modified control handlers to directly query DOM elements by ID at each update, making them more resilient to DOM changes:
+   ```javascript
+   // Instead of using cached references
+   const distanceSlider = document.getElementById('camera-distance-slider');
+   ```
+
+2. **Standardized Parameter Order**: Ensured consistent parameter ordering across all camera control functions.
+
+3. **Added Validation and Fallbacks**: All control functions now check for missing elements and apply sensible defaults when needed.
+
+4. **Improved Logging**: Added detailed console logging to track UI control state changes.
+
+#### Developer Guidelines
+When adding new UI controls:
+
+1. Always connect your controls in **both** the relevant module (e.g., `cameraControls.js`) AND in `sliderConnector.js` for redundancy
+2. Use direct DOM queries for more resilient event handling
+3. Add fallback logic for missing elements
+4. Follow consistent parameter order in related function calls
+5. Provide detailed console logs for debugging
 
 ## Development Status
 

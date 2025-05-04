@@ -191,20 +191,29 @@
           <div id="wave-direction-label" style="color:#0f0; font-family:monospace;">Direction: 0°</div>
         </label>
       </div>
-      <div id="slider-panel" class="menu-panel" style="top:70px; right:0px; width:280px; transform: translateX(-50%);"><!-- Sixième bouton, léger décalage vers la gauche -->
-        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Réglages de caméra</h3>
-        <label style="color:#0f0; font-family:monospace;">Distance caméra
-          <input id="camera-slider" type="range" min="10" max="500" step="1" value="130" style="width:180px; margin-top:4px;" />
-          <div id="camera-label" style="color:#0f0; font-family:monospace;">Camera: 130</div>
-        </label>
-        <label style="color:#0f0; font-family:monospace;">Altitude caméra
-          <input id="altitude-slider" type="range" min="0" max="300" step="1" value="80" style="width:180px; margin-top:4px;" />
-          <div id="altitude-label" style="color:#0f0; font-family:monospace;">Altitude: 80</div>
-        </label>
-        <label style="color:#0f0; font-family:monospace;">Damping caméra
-          <input id="damping-slider" type="range" min="0" max="0.2" step="0.001" value="0.005" style="width:180px; margin-top:4px;" />
-          <div id="damping-label" style="color:#0f0; font-family:monospace;">Damping: 0.005</div>
-        </label>
+      <div id="slider-panel" class="menu-panel" style="top:70px; right:0px; width:280px; transform: translateX(-50%);">
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Contrôles Caméra</h3>
+        
+        <!-- Slider pour la distance caméra -->  
+        <div class="slider-group" style="margin-bottom:12px;">
+          <label style="color:#0f0; font-family:monospace;">Distance caméra</label>
+          <input id="camera-distance-slider" type="range" min="50" max="500" step="10" value="250" style="width:100%; margin-top:4px;" />
+          <div id="camera-distance-value" style="color:#0ff; font-family:monospace;">250</div>
+        </div>
+        
+        <!-- Slider pour l'altitude caméra -->  
+        <div class="slider-group" style="margin-bottom:12px;">
+          <label style="color:#0f0; font-family:monospace;">Altitude caméra</label>
+          <input id="camera-height-slider" type="range" min="10" max="200" step="5" value="60" style="width:100%; margin-top:4px;" />
+          <div id="camera-height-value" style="color:#0ff; font-family:monospace;">60</div>
+        </div>
+        
+        <!-- Slider pour le damping caméra -->  
+        <div class="slider-group" style="margin-bottom:12px;">
+          <label style="color:#0f0; font-family:monospace;">Fluidité du mouvement</label>
+          <input id="camera-smoothness-slider" type="range" min="0.001" max="0.05" step="0.001" value="0.005" style="width:100%; margin-top:4px;" />
+          <div id="camera-smoothness-value" style="color:#0ff; font-family:monospace;">0.005</div>
+        </div>
       </div>
     </div>
 

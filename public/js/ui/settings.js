@@ -293,36 +293,6 @@ export function initSettings(sceneHandles, playerSubmarine, onDayDurationChange)
     });
   }
 
-  // Caméra
-  const camSlider = document.getElementById('camera-slider');
-  const camLabel = document.getElementById('camera-label');
-  if (camSlider && camLabel) {
-    camSlider.value = 130;
-    camLabel.textContent = `Camera: 130`;
-    camSlider.addEventListener('input', () => {
-      camLabel.textContent = `Camera: ${camSlider.value}`;
-    });
-  }
-
-  // Damping
-  const dampingSlider = document.getElementById('damping-slider');
-  const dampingLabel = document.getElementById('damping-label');
-  if (dampingSlider && dampingLabel) {
-    dampingSlider.value = 0.005;
-    dampingLabel.textContent = `Damping: ${parseFloat(dampingSlider.value).toFixed(3)}`;
-    dampingSlider.addEventListener('input', () => {
-      dampingLabel.textContent = `Damping: ${parseFloat(dampingSlider.value).toFixed(3)}`;
-    });
-  }
-
-  // Altitude caméra
-  const altitudeSlider = document.getElementById('altitude-slider');
-  const altitudeLabel = document.getElementById('altitude-label');
-  if (altitudeSlider && altitudeLabel) {
-    altitudeSlider.value = 40;
-    altitudeLabel.textContent = `Altitude: 40`;
-    altitudeSlider.addEventListener('input', () => {
-      altitudeLabel.textContent = `Altitude: ${altitudeSlider.value}`;
-    });
-  }
+  // Section des contrôles de caméra supprimée
+  // Les sliders de caméra, damping et altitude ont été retirés de l'interface
 }

@@ -10,93 +10,88 @@ import { setCameraFollowParams } from '../../camera/followCamera.js';
 export function initCameraSliders() {
   console.log('[UI:Camera] Initializing camera control sliders');
   
-  const { 
-    cameraDistanceSlider,
-    cameraHeightSlider,
-    cameraSmoothnessSlider
-  } = elements;
+  // Utiliser les nouveaux ID de sliders que nous avons ajoutés dans l'HTML
+  const distanceSlider = document.getElementById('camera-distance-slider');
+  const heightSlider = document.getElementById('camera-height-slider');
+  const smoothnessSlider = document.getElementById('camera-smoothness-slider');
   
-  // Skip if elements not found
-  if (!cameraDistanceSlider || !cameraHeightSlider || !cameraSmoothnessSlider) {
+  // Vérifier que les sliders existent
+  if (!distanceSlider || !heightSlider || !smoothnessSlider) {
     console.warn('[UI:Camera] Camera slider elements not found');
+    // Appliquer des valeurs par défaut
+    setCameraFollowParams(250, 0.005, 60);
     return;
   }
   
-  // Set initial values
-  cameraDistanceSlider.value = 30;
-  cameraHeightSlider.value = 12;
-  cameraSmoothnessSlider.value = 0.05;
-  
-  // Display initial values in labels
+  // Mettre à jour les labels
   updateSliderLabels();
   
-  // Add event listeners
-  cameraDistanceSlider.addEventListener('input', updateCameraUIControls);
-  cameraHeightSlider.addEventListener('input', updateCameraUIControls);
-  cameraSmoothnessSlider.addEventListener('input', updateCameraUIControls);
+  // Ajouter les écouteurs d'événements
+  distanceSlider.addEventListener('input', updateCameraUIControls);
+  heightSlider.addEventListener('input', updateCameraUIControls);
+  smoothnessSlider.addEventListener('input', updateCameraUIControls);
   
-  // Apply initial camera settings
+  // Appliquer les paramètres initiaux de la caméra
   updateCameraUIControls();
   
-  console.log('[UI:Camera] Camera sliders initialized');
+  console.log('[UI:Camera] Camera sliders initialized successfully');
 }
 
 /**
  * Update camera controls based on slider values
  */
 export function updateCameraUIControls() {
-  const { 
-    cameraDistanceSlider,
-    cameraHeightSlider,
-    cameraSmoothnessSlider
-  } = elements;
+  // Utiliser directement les sliders avec les nouveaux ID
+  const distanceSlider = document.getElementById('camera-distance-slider');
+  const heightSlider = document.getElementById('camera-height-slider');
+  const smoothnessSlider = document.getElementById('camera-smoothness-slider');
   
-  // Skip if elements not found
-  if (!cameraDistanceSlider || !cameraHeightSlider || !cameraSmoothnessSlider) {
+  // Skip si les éléments ne sont pas trouvés
+  if (!distanceSlider || !heightSlider || !smoothnessSlider) {
+    console.warn('[UI:Camera] Camera sliders not found in updateCameraUIControls');
     return;
   }
   
-  // Get values
-  const distance = parseFloat(cameraDistanceSlider.value);
-  const height = parseFloat(cameraHeightSlider.value);
-  const smoothness = parseFloat(cameraSmoothnessSlider.value);
+  // Récupérer les valeurs
+  const distance = parseFloat(distanceSlider.value);
+  const height = parseFloat(heightSlider.value);
+  const smoothness = parseFloat(smoothnessSlider.value);
   
-  // Update camera parameters
-  setCameraFollowParams({
-    distance,
-    height,
-    smoothness
-  });
+  // Mettre à jour les paramètres de la caméra
+  setCameraFollowParams(distance, smoothness, height);
   
-  // Update labels
+  // Mettre à jour les labels
   updateSliderLabels();
+  
+  // Log des nouvelles valeurs
+  console.log(`[UI:Camera] Updated: distance=${distance}, height=${height}, smoothness=${smoothness}`);
 }
 
 /**
  * Update slider labels with current values
  */
 function updateSliderLabels() {
-  const { 
-    cameraDistanceSlider,
-    cameraHeightSlider,
-    cameraSmoothnessSlider
-  } = elements;
+  // Récupérer directement les sliders avec leurs nouveaux ID
+  const distanceSlider = document.getElementById('camera-distance-slider');
+  const heightSlider = document.getElementById('camera-height-slider');
+  const smoothnessSlider = document.getElementById('camera-smoothness-slider');
   
-  // Get label elements
+  // Récupérer les éléments d'affichage
   const distanceLabel = document.getElementById('camera-distance-value');
   const heightLabel = document.getElementById('camera-height-value');
   const smoothnessLabel = document.getElementById('camera-smoothness-value');
   
-  // Update labels if they exist
-  if (distanceLabel && cameraDistanceSlider) {
-    distanceLabel.textContent = cameraDistanceSlider.value;
+  // Mettre à jour les labels s'ils existent
+  if (distanceLabel && distanceSlider) {
+    distanceLabel.textContent = distanceSlider.value;
   }
   
-  if (heightLabel && cameraHeightSlider) {
-    heightLabel.textContent = cameraHeightSlider.value;
+  if (heightLabel && heightSlider) {
+    heightLabel.textContent = heightSlider.value;
   }
   
-  if (smoothnessLabel && cameraSmoothnessSlider) {
-    smoothnessLabel.textContent = cameraSmoothnessSlider.value;
+  if (smoothnessLabel && smoothnessSlider) {
+    // Formater la valeur avec 3 décimales pour le damping/smoothness
+    smoothnessLabel.textContent = parseFloat(smoothnessSlider.value).toFixed(3);
   }
 }
