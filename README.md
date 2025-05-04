@@ -1,5 +1,7 @@
 # GATO3D
 
+[![Demo en ligne](https://img.shields.io/badge/DEMO-Jouer%20en%20ligne-blue?logo=github)](https://lejrimostfa.github.io/GATO3D/public/)
+
 [![Aperçu vidéo](https://img.youtube.com/vi/ii6EluTBPtY/hqdefault.jpg)](https://youtu.be/ii6EluTBPtY)
 
 *Aperçu vidéo du projet (cliquez sur l'image pour voir sur YouTube)*
