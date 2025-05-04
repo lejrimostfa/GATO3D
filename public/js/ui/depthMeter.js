@@ -1,0 +1,184 @@
+// ui/depthMeter.js
+// Depth meter UI component for GATO3D
+
+/**
+ * Initialize the depth meter component
+ * @returns {Object} - Interface to update the depth meter
+ */
+export function initDepthMeter() {
+  const depthCanvas = document.getElementById('depth-meter-canvas');
+  if (!depthCanvas) {
+    console.error("[UI:DepthMeter] Depth meter canvas not found!");
+    return null;
+  }
+  
+  const depthCtx = depthCanvas.getContext('2d');
+  
+  // Draw initial depth meter with 0 depth and max depth of 200m
+  drawDepthMeter(depthCtx, depthCanvas.width / 2, depthCanvas.height / 2, 0, 200);
+  
+  return {
+    /**
+     * Update the depth meter with a new depth value
+     * @param {number} depth - Current depth in meters
+     * @param {number} maxDepth - Maximum depth in meters (for graduations)
+     */
+    update: (depth, maxDepth = 200) => {
+      drawDepthMeter(depthCtx, depthCanvas.width / 2, depthCanvas.height / 2, depth, maxDepth);
+    }
+  };
+}
+
+// Global references
+let depthMeterCanvas;
+let ctx;
+
+/**
+ * Updates the depth meter based on current depth
+ * @param {number} depth - Current depth in meters
+ * @param {number} maxDepthValue - The maximum depth in meters (for depth meter graduation)
+ */
+function updateDepthMeter(depth, maxDepthValue) {
+  if (!depthMeterCanvas || !ctx) return;
+  
+  // Clear the canvas
+  ctx.clearRect(0, 0, depthMeterCanvas.width, depthMeterCanvas.height);
+  
+  // Redraw the depth meter with updated depth
+  drawDepthMeter(ctx, depthMeterCanvas.width / 2, depthMeterCanvas.height / 2, depth, maxDepthValue);
+}
+
+/**
+ * Draw the depth meter with the given depth
+ * @param {CanvasRenderingContext2D} ctx - Canvas context
+ * @param {number} centerX - Center X of the depth meter
+ * @param {number} centerY - Center Y of the depth meter
+ * @param {number} depth - Current depth in meters
+ * @param {number} maxDepthValue - The maximum depth in meters (for depth meter graduation)
+ */
+function drawDepthMeter(ctx, centerX, centerY, depth, maxDepthValue) {
+  // Store the canvas for future reference
+  depthMeterCanvas = ctx.canvas;
+  
+  // IMPORTANT: Fully clear the entire canvas before redrawing
+  ctx.clearRect(0, 0, depthMeterCanvas.width, depthMeterCanvas.height);
+  
+  // Center of the depth meter
+  const radius = Math.min(centerX, centerY);
+  
+  // Draw the outer circle
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, radius - 10, 0, Math.PI * 2);
+  ctx.strokeStyle = '#0ff'; // Couleur cyan pour distinction du speedometer
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  
+  // Draw the gauge background with graduations
+  const gaugeRadius = radius - 20;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, gaugeRadius, Math.PI * 0.75, Math.PI * 2.25);
+  ctx.strokeStyle = 'rgba(0, 150, 255, 0.3)'; // Couleur cyan plus transparente
+  ctx.lineWidth = 15;
+  ctx.stroke();
+  
+  // Max depth (use provided or default to 200)
+  const maxMeters = maxDepthValue || 200;
+  
+  // Calculate normalized depth (between 0 and 1)
+  let normalizedDepth = Math.min(1, Math.max(0, depth / maxMeters));
+  
+  // Draw graduations
+  for (let i = 0; i <= 10; i++) {
+    const gradAngle = Math.PI * 0.75 + (Math.PI * 1.5) * (i / 10);
+    const startX = centerX + Math.cos(gradAngle) * (gaugeRadius - 10);
+    const startY = centerY + Math.sin(gradAngle) * (gaugeRadius - 10);
+    const endX = centerX + Math.cos(gradAngle) * (gaugeRadius + 10);
+    const endY = centerY + Math.sin(gradAngle) * (gaugeRadius + 10);
+    
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.strokeStyle = i % 5 === 0 ? '#0ff' : 'rgba(0, 255, 255, 0.6)';
+    ctx.lineWidth = i % 5 === 0 ? 3 : 1;
+    ctx.stroke();
+    
+    // Add number labels for major graduations
+    if (i % 2 === 0) {
+      const labelX = centerX + Math.cos(gradAngle) * (gaugeRadius - 25);
+      const labelY = centerY + Math.sin(gradAngle) * (gaugeRadius - 25);
+      ctx.font = '10px monospace';
+      ctx.fillStyle = '#0ff';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      
+      // Calculate label value based on percentage of max depth
+      const depthValue = Math.round((i / 10) * maxMeters);
+      ctx.fillText(`${depthValue}`, labelX, labelY);
+    }
+  }
+  
+  // Draw the depth gauge (from 0 to current depth)
+  // Scale to 270 degrees (from PI*0.75 to PI*2.25)
+  const angle = Math.PI * 0.75 + normalizedDepth * Math.PI * 1.5;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, gaugeRadius, Math.PI * 0.75, angle);
+  
+  // Gradient color from shallow (cyan) to deep (dark blue)
+  let gaugeColor;
+  if (normalizedDepth < 0.5) {
+    // De cyan à bleu
+    gaugeColor = `rgba(0, ${Math.round(255 * (1 - normalizedDepth * 2))}, 255, 0.8)`;
+  } else {
+    // De bleu à bleu foncé
+    gaugeColor = `rgba(0, 0, ${Math.round(255 * (1 - (normalizedDepth - 0.5) * 0.8))}, 0.8)`;
+  }
+  
+  ctx.strokeStyle = gaugeColor;
+  ctx.lineWidth = 15;
+  ctx.stroke();
+  
+  // Draw the needle
+  const needleLength = radius - 25;
+  const needleAngle = Math.PI * 0.75 + normalizedDepth * Math.PI * 1.5;
+  const needleX = centerX + Math.cos(needleAngle) * needleLength;
+  const needleY = centerY + Math.sin(needleAngle) * needleLength;
+  
+  // Shadow
+  ctx.beginPath();
+  ctx.moveTo(centerX, centerY);
+  ctx.lineTo(needleX, needleY);
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  
+  // Actual needle
+  ctx.beginPath();
+  ctx.moveTo(centerX, centerY);
+  ctx.lineTo(needleX, needleY);
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+  
+  // Draw the center cap
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 12, 0, Math.PI * 2);
+  ctx.fillStyle = '#0ff';
+  ctx.fill();
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1;
+  ctx.stroke();
+  
+  // Draw the depth text
+  ctx.font = 'bold 18px monospace';
+  ctx.fillStyle = '#0ff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'bottom';
+  
+  // Display the current depth in meters
+  const depthText = Math.round(depth * 10) / 10; // Arrondi à 1 décimale
+  ctx.fillText(`${depthText} m`, centerX, centerY + 30);
+  
+  // Draw smaller unit label
+  ctx.font = '14px monospace';
+  ctx.fillText('DEPTH', centerX, centerY + 55);
+}

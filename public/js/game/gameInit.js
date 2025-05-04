@@ -433,7 +433,8 @@ function addObjectsToVisibilityPanel(visibilityManager) {
  * Initialize wave control sliders
  */
 function initWaveControls() {
-  import('../ocean/waveControls.js').then(({ setWaveAmplitude, setWaveDirection, updateWaterMaterial }) => {
+  // 1. D'abord, configurer les contrôles standard des vagues
+  import('../ocean/waveControls.js').then(({ setWaveAmplitude, setWaveDirection, setWaterTransparency, setWaterReflections, setWaterRefractions, updateWaterMaterial }) => {
     console.log('[GAME] Setting up wave control sliders');
     const { 
       waveAmplitudeSlider, waveAmplitudeLabel,
@@ -480,4 +481,159 @@ function initWaveControls() {
       waveDirectionSlider.dispatchEvent(new Event('input'));
     }
   });
+  
+  // 2. CONFIGURER LE SLIDER DE RÉSISTANCE DE L'EAU (DRAG)
+  console.log('[GAME] Setting up water resistance slider');
+  const waterResistanceSlider = document.getElementById('water-resistance-slider');
+  const waterResistanceLabel = document.getElementById('water-resistance-label');
+  
+  if (waterResistanceSlider && waterResistanceLabel) {
+    // Importer la fonction dédiée pour mettre à jour la résistance de l'eau
+    import('../submarine/controls.js').then(({ updateWaterResistance }) => {
+      // Vérifier que la fonction existe
+      if (typeof updateWaterResistance !== 'function') {
+        console.error('[GAME] updateWaterResistance function not found in controls.js');
+        return;
+      }
+      
+      console.log('[GAME] Successfully imported updateWaterResistance function');
+      
+      // Ajouter l'écouteur d'événement pour le slider
+      waterResistanceSlider.addEventListener('input', () => {
+        const resistance = parseFloat(waterResistanceSlider.value);
+        waterResistanceLabel.textContent = `Résistance: ${resistance.toFixed(1)}`;
+        
+        // Mettre à jour la résistance dans le système physique
+        updateWaterResistance(resistance);
+        
+        console.log(`[GAME] Updated water resistance to: ${resistance}`);
+      });
+      
+      // Déclencher l'événement pour appliquer les paramètres initiaux
+      waterResistanceSlider.dispatchEvent(new Event('input'));
+    }).catch(error => {
+      console.error('[GAME] Error importing submarine controls:', error);
+    });
+  } else {
+    console.warn('[GAME] Water resistance slider or label not found in DOM');
+  }
+
+  // 3. CONFIGURER LE SLIDER DE TRANSPARENCE DE L'EAU
+  console.log('[GAME] Setting up water transparency slider');
+  const waterTransparencySlider = document.getElementById('water-transparency-slider');
+  const waterTransparencyLabel = document.getElementById('water-transparency-label');
+
+  if (waterTransparencySlider && waterTransparencyLabel) {
+    // Importer la fonction dédiée pour mettre à jour la transparence de l'eau
+    import('../ocean/waveControls.js').then(({ setWaterTransparency, updateWaterMaterial }) => {
+      // Vérifier que la fonction existe
+      if (typeof setWaterTransparency !== 'function') {
+        console.error('[GAME] setWaterTransparency function not found in waveControls.js');
+        return;
+      }
+      
+      console.log('[GAME] Successfully imported setWaterTransparency function');
+      
+      // Ajouter l'écouteur d'événement pour le slider
+      waterTransparencySlider.addEventListener('input', () => {
+        const transparency = parseFloat(waterTransparencySlider.value);
+        waterTransparencyLabel.textContent = `Transparence: ${transparency.toFixed(1)}`;
+        
+        // Mettre à jour la transparence et le matériau de l'eau
+        setWaterTransparency(transparency);
+        
+        // Mettre à jour le matériau si disponible
+        if (sceneHandles && sceneHandles.water) {
+          updateWaterMaterial(sceneHandles.water);
+        }
+        
+        console.log(`[GAME] Updated water transparency to: ${transparency}`);
+      });
+      
+      // Déclencher l'événement pour appliquer les paramètres initiaux
+      waterTransparencySlider.dispatchEvent(new Event('input'));
+    }).catch(error => {
+      console.error('[GAME] Error importing ocean wave controls:', error);
+    });
+  } else {
+    console.warn('[GAME] Water transparency slider or label not found in DOM');
+  }
+  
+  // 4. CONFIGURER LE SLIDER DE RÉFLEXIONS DE L'EAU
+  console.log('[GAME] Setting up water reflections slider');
+  const waterReflectionsSlider = document.getElementById('water-reflections-slider');
+  const waterReflectionsLabel = document.getElementById('water-reflections-label');
+  
+  if (waterReflectionsSlider && waterReflectionsLabel) {
+    // Importer la fonction dédiée pour mettre à jour les réflexions
+    import('../ocean/waveControls.js').then(({ setWaterReflections, updateWaterMaterial }) => {
+      // Vérifier que la fonction existe
+      if (typeof setWaterReflections !== 'function') {
+        console.error('[GAME] setWaterReflections function not found');
+        return;
+      }
+      
+      // Ajouter l'écouteur d'événement pour le slider
+      waterReflectionsSlider.addEventListener('input', () => {
+        const reflections = parseFloat(waterReflectionsSlider.value);
+        waterReflectionsLabel.textContent = `Réflexions: ${reflections.toFixed(1)}`;
+        
+        // Mettre à jour les réflexions et le matériau de l'eau
+        setWaterReflections(reflections);
+        
+        // Mettre à jour le matériau si disponible
+        if (sceneHandles && sceneHandles.water) {
+          updateWaterMaterial(sceneHandles.water);
+        }
+        
+        console.log(`[GAME] Updated water reflections to: ${reflections}`);
+      });
+      
+      // Déclencher l'événement pour appliquer les paramètres initiaux
+      waterReflectionsSlider.dispatchEvent(new Event('input'));
+    }).catch(error => {
+      console.error('[GAME] Error importing water controls:', error);
+    });
+  } else {
+    console.warn('[GAME] Water reflections slider or label not found in DOM');
+  }
+  
+  // 5. CONFIGURER LE SLIDER DE RÉFRACTIONS DE L'EAU
+  console.log('[GAME] Setting up water refractions slider');
+  const waterRefractionsSlider = document.getElementById('water-refractions-slider');
+  const waterRefractionsLabel = document.getElementById('water-refractions-label');
+  
+  if (waterRefractionsSlider && waterRefractionsLabel) {
+    // Importer la fonction dédiée pour mettre à jour les réfractions
+    import('../ocean/waveControls.js').then(({ setWaterRefractions, updateWaterMaterial }) => {
+      // Vérifier que la fonction existe
+      if (typeof setWaterRefractions !== 'function') {
+        console.error('[GAME] setWaterRefractions function not found');
+        return;
+      }
+      
+      // Ajouter l'écouteur d'événement pour le slider
+      waterRefractionsSlider.addEventListener('input', () => {
+        const refractions = parseFloat(waterRefractionsSlider.value);
+        waterRefractionsLabel.textContent = `Réfractions: ${refractions.toFixed(1)}`;
+        
+        // Mettre à jour les réfractions et le matériau de l'eau
+        setWaterRefractions(refractions);
+        
+        // Mettre à jour le matériau si disponible
+        if (sceneHandles && sceneHandles.water) {
+          updateWaterMaterial(sceneHandles.water);
+        }
+        
+        console.log(`[GAME] Updated water refractions to: ${refractions}`);
+      });
+      
+      // Déclencher l'événement pour appliquer les paramètres initiaux
+      waterRefractionsSlider.dispatchEvent(new Event('input'));
+    }).catch(error => {
+      console.error('[GAME] Error importing water controls:', error);
+    });
+  } else {
+    console.warn('[GAME] Water refractions slider or label not found in DOM');
+  }
 }

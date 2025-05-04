@@ -31,6 +31,9 @@ export class SubmarinePhysics {
       // Mass and inertia simulation - much lighter
       mass: options.mass || 0.3,  // Lower mass = less inertia
       
+      // Resistance de l'eau - fréquence et intensité du drag
+      waterResistance: options.waterResistance || 1.0,  // Valeur par défaut = résistance normale
+      
       // Minimum velocity to consider moving
       minEffectiveVelocity: options.minEffectiveVelocity || 0.0001
     };
@@ -38,8 +41,8 @@ export class SubmarinePhysics {
     // Derived values
     this.momentumFactor = 1.0 + (this.config.mass * 0.5);
     
-    // Debug mode
-    this.debug = options.debug || false;
+    // Debug mode - activer pour voir les effets de la résistance dans la console
+    this.debug = options.debug || true;
   }
   
   /**
@@ -103,29 +106,25 @@ export class SubmarinePhysics {
    * @private
    */
   _updateTargetVelocity(input) {
-    // Detect direction changes (forward to backward or vice versa)
+    // Détection des changements de direction (avant vers arrière ou inversement)
     const directionChangeDetected = 
       (this.lastInput.forward && input.backward) || 
       (this.lastInput.backward && input.forward);
     
-    // Store current input for next frame comparison
+    // Stocker l'entrée actuelle pour comparaison à la trame suivante
     this.lastInput = { ...input };
     
+    // Si appui simultané des touches de direction: aller vers l'arrêt
+    if (input.forward && input.backward) {
+      this.targetVelocity = 0;
+      return;
+    }
+    
+    // Déterminer la direction et la vitesse cibles
     if (input.forward) {
-      // Want to go forward
       this.targetVelocity = this.config.maxForwardSpeed;
-      
-      // If switching from backward to forward, first help slow down
-      if (this.velocity < 0 && directionChangeDetected) {
-        // Instead of immediately targeting max forward speed,
-        // first target zero to help decelerate
-        this.targetVelocity = 0;
-      }
     } else if (input.backward) {
-      // Want to go backward
       this.targetVelocity = -this.config.maxBackwardSpeed;
-      
-      // If switching from forward to backward, first help slow down
       if (this.velocity > 0 && directionChangeDetected) {
         // Instead of immediately targeting max backward speed,
         // first target zero to help decelerate
@@ -156,36 +155,58 @@ export class SubmarinePhysics {
     
     if (this.targetVelocity === 0) {
       // Coasting to stop - apply drag
-      // Much simpler formula with less inertia
-      const dragFactor = 1.2; // Reduced from previous complex calculation
+      // La masse affecte la décélération - plus le sous-marin est lourd, plus il met du temps à s'arrêter
+      // La résistance de l'eau augmente le facteur de freinage (effet amplifié de 3x pour être plus perceptible)
+      const dragFactor = (1.2 * Math.pow(this.config.waterResistance, 2)) / this.momentumFactor;
       
       acceleration = (this.config.dragDeceleration * dragFactor) * Math.sign(velocityDiff);
     } else if (velocityDiff > 0) {
-      // Accelerating forward (or decelerating from backward)
-      // Faster initial response curve with less inertia
+      // Accélération vers l'avant (ou décélération depuis l'arrière)
       const progressToMax = Math.abs(this.velocity / this.config.maxForwardSpeed);
       let accelerationFactor;
       
       if (progressToMax < 0.2) {
-        // Initial acceleration is now much faster (easy to overcome inertia)
-        accelerationFactor = 0.9; // Up from 0.5
+        accelerationFactor = 0.9; // Up from 0.6
       } else if (progressToMax < 0.7) {
-        // Mid-range is even faster
         accelerationFactor = 1.0;
       } else {
-        // Approaching max speed - less diminishing returns
         accelerationFactor = 0.85 * (1 - (progressToMax - 0.7) / 0.3); // Up from 0.7
       }
       
-      acceleration = this.config.forwardAcceleration * accelerationFactor;
+      // Résistance de l'eau basée sur la vitesse actuelle
+      // Formule: accélération = accélération_base * (1 - (vitesse_actuelle/vitesse_max)^2 * facteur_drag)
+      // Où facteur_drag dépend de la résistance de l'eau configurée
       
-      // Fast response boost - add an immediate boost based on input change
+      // 1. Calculer le ratio vitesse actuelle / vitesse max (entre 0 et 1)
+      const velocityRatio = Math.abs(this.velocity / this.config.maxForwardSpeed);
+      
+      // 2. Facteur de résistance qui dépend du slider (résistance de l'eau)
+      // Lorsque waterResistance = 1.0, le facteur est 0.8 (résistance normale)
+      // Lorsque waterResistance = 0.1, le facteur est 0.2 (résistance faible)
+      // Lorsque waterResistance = 5.0, le facteur est 0.98 (résistance très élevée)
+      const resistanceFactor = 1.0 - Math.exp(-this.config.waterResistance);
+      
+      // 3. Réduction de l'accélération basée sur la vitesse et la résistance
+      // Formule: 1 - (vitesse/vitesse_max)^2 * facteur_resistance
+      // Résultat: plus on va vite et plus la résistance est élevée, plus l'accélération diminue
+      const dragMultiplier = 1.0 - (Math.pow(velocityRatio, 2) * resistanceFactor);
+      
+      // 4. Application de la masse et du drag sur l'accélération de base
+      acceleration = (this.config.forwardAcceleration * accelerationFactor * dragMultiplier) / this.momentumFactor;
+      
+      if (this.debug) {
+        console.log(`[PHYSICS] V_ratio: ${velocityRatio.toFixed(2)}, R_factor: ${resistanceFactor.toFixed(2)}, Drag_mult: ${dragMultiplier.toFixed(2)}`);
+      }
+      
+      // Boost de réponse rapide - ajoute un boost immédiat basé sur le changement d'entrée
       if (Math.abs(this.velocity) < 0.1 * this.config.maxForwardSpeed) {
-        acceleration *= 3.0; // Triple acceleration from standstill
+        // Les sous-marins plus légers ont une meilleure réactivité au démarrage
+        // La résistance de l'eau réduit ce boost
+        const massBoostFactor = 3.0 / (Math.sqrt(this.momentumFactor) * Math.sqrt(this.config.waterResistance));
+        acceleration *= massBoostFactor; 
       }
     } else {
-      // Accelerating backward (or decelerating from forward)
-      // Similar faster curve for backward acceleration
+      // Accélération vers l'arrière (ou décélération depuis l'avant)
       const progressToMax = Math.abs(this.velocity / this.config.maxBackwardSpeed);
       let accelerationFactor;
       
@@ -197,16 +218,57 @@ export class SubmarinePhysics {
         accelerationFactor = 0.85 * (1 - (progressToMax - 0.7) / 0.3); // Up from 0.7
       }
       
-      acceleration = -this.config.backwardAcceleration * accelerationFactor;
+      // Appliquer exactement la même formule de résistance qu'en marche avant,
+      // pour assurer un comportement cohérent
       
-      // Fast response boost - add an immediate boost based on input change
+      // 1. Calculer le ratio vitesse actuelle / vitesse max
+      const velocityRatio = Math.abs(this.velocity / this.config.maxBackwardSpeed);
+      
+      // 2. Facteur de résistance basé sur le slider
+      const resistanceFactor = 1.0 - Math.exp(-this.config.waterResistance);
+      
+      // 3. Calcul du multiplicateur de drag
+      const dragMultiplier = 1.0 - (Math.pow(velocityRatio, 2) * resistanceFactor);
+      
+      // 4. Application à l'accélération arrière
+      acceleration = (-this.config.backwardAcceleration * accelerationFactor * dragMultiplier) / this.momentumFactor;
+      
+      if (this.debug) {
+        console.log(`[PHYSICS] Backward - V_ratio: ${velocityRatio.toFixed(2)}, Drag_mult: ${dragMultiplier.toFixed(2)}`);
+      }
+      
+      // Boost de réponse rapide - ajoute un boost immédiat basé sur le changement d'entrée
       if (Math.abs(this.velocity) < 0.1 * this.config.maxBackwardSpeed) {
-        acceleration *= 3.0; // Triple acceleration from standstill
+        // Les sous-marins plus légers ont une meilleure réactivité au démarrage
+        // La résistance de l'eau réduit ce boost
+        const massBoostFactor = 3.0 / (Math.sqrt(this.momentumFactor) * Math.sqrt(this.config.waterResistance));
+        acceleration *= massBoostFactor;
       }
     }
     
+    // ******************************************************************
+    // NOUVELLE APPROCHE POUR LE DRAG - MODIFICATION DE L'ACCÉLÉRATION PLUTÔT QUE FORCE OPPOSÉE
+    // ******************************************************************
+    // Au lieu d'ajouter une force opposée, on va diminuer l'accélération progressivement 
+    // en fonction de la vitesse et du coefficient de résistance
+    //
+    // Plus la résistance est élevée, plus l'accélération diminue rapidement avec la vitesse
+    // ******************************************************************
+    
+    // On applique le drag (résistance de l'eau) avant d'appliquer l'accélération
+    // pour modifier directement la façon dont le sous-marin accélère
+    
+    // Ne rien faire ici, le drag est maintenant appliqué dans les fonctions d'accélération
+    
     // Apply acceleration (with a small boost for more immediate response)
-    this.velocity += acceleration * 1.5;
+    // Réduire encore plus le boost d'accélération pour les sous-marins lourds et en eau résistante
+    // Version amplifiée pour rendre l'effet beaucoup plus visible
+    const responseMultiplier = 1.5 / (Math.sqrt(this.momentumFactor) * Math.pow(this.config.waterResistance, 1.5));
+    this.velocity += acceleration * responseMultiplier;
+    
+    if (this.debug) {
+      console.log(`[PHYSICS] Response multiplier: ${responseMultiplier.toFixed(4)} at resistance ${this.config.waterResistance.toFixed(2)}`);
+    }
     
     // Ensure we don't overshoot target
     if ((velocityDiff > 0 && this.velocity > this.targetVelocity) ||
@@ -216,7 +278,8 @@ export class SubmarinePhysics {
     
     // Log debug info if enabled
     if (this.debug) {
-      console.log(`Velocity: ${this.velocity.toFixed(4)}, Target: ${this.targetVelocity.toFixed(4)}`);
+      console.log(`Velocity: ${this.velocity.toFixed(4)}, Target: ${this.targetVelocity.toFixed(4)}, ` + 
+                 `Mass: ${this.momentumFactor.toFixed(2)}, Water Resistance: ${this.config.waterResistance.toFixed(2)}`);
     }
   }
   
@@ -228,18 +291,34 @@ export class SubmarinePhysics {
     let rotation = 0;
     
     // Base rotation on inputs
-    if (input.left) rotation += this.config.rotationSpeed;
-    if (input.right) rotation -= this.config.rotationSpeed;
+    // La masse du sous-marin et la résistance de l'eau affectent le taux de rotation de base
+    // Version amplifiée pour rendre l'effet beaucoup plus visible
+    const rotationFactor = 1.0 / (Math.sqrt(this.momentumFactor) * this.config.waterResistance);
+    if (input.left) rotation += this.config.rotationSpeed * rotationFactor;
+    if (input.right) rotation -= this.config.rotationSpeed * rotationFactor;
+    
+    if (this.debug) {
+      console.log(`[PHYSICS] Rotation factor: ${rotationFactor.toFixed(4)} at resistance ${this.config.waterResistance.toFixed(2)}`);
+    }
     
     // Adjust rotation based on current speed
-    // Submarines rotate more slowly at higher speeds
+    // Les sous-marins tournent plus difficilement à haute vitesse
     if (rotation !== 0 && Math.abs(this.velocity) > 0.01) {
-      const speedFactor = 1.0 - (Math.abs(this.velocity) / this.config.maxForwardSpeed) * 0.7;
+      // La masse et la résistance de l'eau réduisent la capacité à tourner à haute vitesse
+      const massSpeedEffect = 0.7 * Math.min(1.0, Math.sqrt(this.momentumFactor * this.config.waterResistance) * 0.5);
+      const speedFactor = 1.0 - (Math.abs(this.velocity) / this.config.maxForwardSpeed) * massSpeedEffect;
       rotation *= speedFactor;
+      
+      // Appliquer une résistance hydrodynamique supplémentaire proportionnelle à la vitesse
+      // Plus on va vite, plus les virages sont larges et difficiles
+      const speedResistance = 1.0 - Math.min(0.7, Math.pow(Math.abs(this.velocity) / this.config.maxForwardSpeed, 2) * this.config.waterResistance * 0.5);
+      rotation *= speedResistance;
       
       // If moving backward, turning behaves differently (reverse steering)
       if (this.velocity < 0) {
-        rotation *= this.config.rotationDamping;
+        // La masse et la résistance de l'eau impactent la maniabilité en marche arrière
+        const reverseFactor = this.config.rotationDamping * Math.min(1.8, this.momentumFactor * this.config.waterResistance * 0.6);
+        rotation *= reverseFactor;
       }
     }
     
@@ -261,12 +340,16 @@ export function createSubmarinePhysics(options = {}) {
  */
 export const defaultPhysics = new SubmarinePhysics();
 
+// Exposer l'instance physique au niveau global pour un accès facile depuis d'autres modules
+// C'est important pour garantir que tous les modules interagissent avec la même instance
+window.submarinePhysics = defaultPhysics;
+
 /**
  * Current velocity state
  * (for backward compatibility - use the class for new code)
  */
 export let currentVelocity = 0;
-export let maxSpeed = 0.5;
+export let maxSpeed = 1.0;
 
 // Update the global variables when physics updates
 function syncPhysicsToGlobals() {

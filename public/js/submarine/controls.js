@@ -34,8 +34,10 @@ export function updateSubmarineMass(mass) {
   if (defaultPhysics && defaultPhysics.config) {
     defaultPhysics.config.mass = mass;
     
-    // Recalculate momentum factor
-    defaultPhysics.momentumFactor = 1.0 + (mass * 0.5);
+    // Recalculate momentum factor based on the new 0-1 scale
+    // À masse = 0.1 (minimum): momentumFactor = 1.0 (sous-marin léger)
+    // À masse = 1.0 (maximum): momentumFactor = 3.0 (sous-marin lourd)
+    defaultPhysics.momentumFactor = 1.0 + (mass * 2.0);
     
     // Store value globally
     window.submarineMass = mass;
@@ -43,6 +45,32 @@ export function updateSubmarineMass(mass) {
     console.log(`[SUBMARINE] Updated mass to ${mass} (momentum factor: ${defaultPhysics.momentumFactor.toFixed(2)})`);
   } else {
     console.warn('[SUBMARINE] Cannot update mass: physics system not initialized');
+  }
+}
+
+/**
+ * Update water resistance parameter (drag coefficient)
+ * @param {number} resistance - Water resistance value (affects drag and handling)
+ */
+export function updateWaterResistance(resistance) {
+  // Update the physics system water resistance directly
+  if (defaultPhysics && defaultPhysics.config) {
+    // Mettre à jour la valeur dans la configuration
+    defaultPhysics.config.waterResistance = resistance;
+    
+    // Stocker la valeur au niveau global pour y accéder facilement
+    window.waterResistance = resistance;
+    
+    // Activer temporairement le mode debug pour vérifier que les calculs sont affectés
+    const prevDebug = defaultPhysics.debug;
+    defaultPhysics.debug = true;
+    
+    console.log(`[SUBMARINE] Updated water resistance to ${resistance}`);
+    
+    // Désactiver le mode debug après le premier log
+    setTimeout(() => { defaultPhysics.debug = prevDebug; }, 500);
+  } else {
+    console.warn('[SUBMARINE] Cannot update water resistance: physics system not initialized');
   }
 }
 

@@ -103,7 +103,7 @@ function animate() {
   // Update submarine controls
   if (playerSubmarine) {
     updatePlayerSubmarine(playerSubmarine);
-    updateDepthHud(playerSubmarine);
+    // updateDepthHud(playerSubmarine); // Remplacé par le depth-o-meter
   }
   
   // Update FPS counter

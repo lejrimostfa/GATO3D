@@ -18,10 +18,13 @@ export function reconnectSliders() {
   // 2. Sliders du sous-marin (vitesse, rotation, masse)
   connectSubmarineSliders();
   
-  // 3. Sliders d'éclairage
+  // 3. Slider de résistance de l'eau (drag)
+  connectWaterResistanceSlider();
+  
+  // 4. Sliders d'éclairage
   connectLightingSliders();
   
-  // 4. Autres sliders
+  // 5. Autres sliders
   connectMiscSliders();
   
   console.log('[UI:SliderConnector] All sliders reconnected successfully');
@@ -31,21 +34,29 @@ export function reconnectSliders() {
 // La gestion des contrôles caméra est maintenant entièrement centralisée dans le module ui/controls/cameraControls.js
 
 /**
- * Connecte les sliders de vagues à leurs fonctions appropriées
+ * Connecte les sliders de vagues et d'océan à leurs fonctions appropriées
  */
 function connectWaveSliders() {
   const waveAmplitudeSlider = document.getElementById('wave-amplitude-slider');
   const waveDirectionSlider = document.getElementById('wave-direction-slider');
+  const waterTransparencySlider = document.getElementById('water-transparency-slider');
   
   // Importer les fonctions de gestion des vagues
-  import('../ocean/waveControls.js').then(({ setWaveAmplitude, setWaveDirection, updateWaterMaterial }) => {
+  import('../ocean/waveControls.js').then(({ setWaveAmplitude, setWaveDirection, setWaterTransparency, updateWaterMaterial }) => {
     // Fonction de mise à jour pour l'amplitude
     if (waveAmplitudeSlider) {
       waveAmplitudeSlider.addEventListener('input', () => {
         const amplitude = parseFloat(waveAmplitudeSlider.value);
         setWaveAmplitude(amplitude);
         updateWaterMaterial(window.sceneHandles?.water);
-        console.log(`[UI:Wave] Updated wave amplitude: ${amplitude}`);
+        
+        // Mettre à jour le texte d'affichage
+        const amplitudeLabel = document.getElementById('wave-amplitude-label');
+        if (amplitudeLabel) {
+          amplitudeLabel.textContent = `Amplitude: ${amplitude.toFixed(1)}`;
+        }
+        
+        console.log(`[UI:Ocean] Updated wave amplitude: ${amplitude}`);
       });
       
       // Déclencher l'événement initialement
@@ -58,13 +69,77 @@ function connectWaveSliders() {
         const direction = parseFloat(waveDirectionSlider.value);
         setWaveDirection(direction);
         updateWaterMaterial(window.sceneHandles?.water);
-        console.log(`[UI:Wave] Updated wave direction: ${direction}°`);
+        
+        // Mettre à jour le texte d'affichage
+        const directionLabel = document.getElementById('wave-direction-label');
+        if (directionLabel) {
+          directionLabel.textContent = `Direction: ${direction}°`;
+        }
+        
+        console.log(`[UI:Ocean] Updated wave direction: ${direction}°`);
       });
       
       // Déclencher l'événement initialement
       waveDirectionSlider.dispatchEvent(new Event('input'));
     }
+    
+    // Fonction de mise à jour pour la transparence de l'eau
+    if (waterTransparencySlider) {
+      waterTransparencySlider.addEventListener('input', () => {
+        const transparency = parseFloat(waterTransparencySlider.value);
+        setWaterTransparency(transparency);
+        updateWaterMaterial(window.sceneHandles?.water);
+        
+        // Mettre à jour le texte d'affichage
+        const transparencyLabel = document.getElementById('water-transparency-label');
+        if (transparencyLabel) {
+          transparencyLabel.textContent = `Transparence: ${transparency.toFixed(1)}`;
+        }
+        
+        console.log(`[UI:Ocean] Updated water transparency: ${transparency}`);
+      });
+      
+      // Déclencher l'événement initialement
+      waterTransparencySlider.dispatchEvent(new Event('input'));
+    }
   });
+  
+  // Connecter le slider de résistance de l'eau au système physique du sous-marin
+  // REMARQUE: Ce slider est géré séparément dans la fonction connectWaterResistanceSlider()
+  // pour suivre la même structure que les autres contrôles du sous-marin
+}
+
+/**
+ * Connecte spécifiquement le slider de résistance de l'eau au système physique
+ * en utilisant la même approche que les autres sliders de contrôle du sous-marin
+ */
+function connectWaterResistanceSlider() {
+  const waterResistanceSlider = document.getElementById('water-resistance-slider');
+  
+  if (waterResistanceSlider) {
+    // Importer la fonction dédiée pour mettre à jour la résistance de l'eau
+    import('../submarine/controls.js').then(({ updateWaterResistance }) => {
+      waterResistanceSlider.addEventListener('input', () => {
+        const resistance = parseFloat(waterResistanceSlider.value);
+        
+        // Appeler la fonction dédiée pour mettre à jour la résistance
+        updateWaterResistance(resistance);
+        
+        // Mettre à jour l'affichage
+        const resistanceLabel = document.getElementById('water-resistance-label');
+        if (resistanceLabel) {
+          resistanceLabel.textContent = `Résistance: ${resistance.toFixed(1)}`;
+        }
+        
+        console.log(`[UI:Ocean] Updated water resistance to ${resistance}`);
+      });
+      
+      // Déclencher l'événement initialement
+      waterResistanceSlider.dispatchEvent(new Event('input'));
+    }).catch(err => {
+      console.error('[UI:Ocean] Error loading submarine controls:', err);
+    });
+  }
 }
 
 /**
@@ -130,8 +205,8 @@ function connectSubmarineSliders() {
     // Slider de masse
     const massSlider = document.getElementById('submarine-mass-slider');
     if (massSlider) {
-      // Fixer la valeur maximale à 100
-      massSlider.max = 100;
+      // Fixer la valeur maximale à 1000
+      massSlider.max = 1000;
       massSlider.addEventListener('input', () => {
         const value = parseFloat(massSlider.value);
         updateSubmarineMass(value);
@@ -143,9 +218,10 @@ function connectSubmarineSliders() {
         }
         
         // Mettre à jour le label du slider
-        const massLabel = document.querySelector('label[for="submarine-mass-slider"]');
+        // Mettre à jour le label de masse
+        const massLabel = document.getElementById('submarine-mass-label');
         if (massLabel) {
-          massLabel.textContent = `Mass: ${value.toFixed(0)} tons`;
+          massLabel.textContent = `Masse: ${value.toFixed(1)}`;
         }
         
         console.log(`[UI:Submarine] Updated submarine mass: ${value}`);

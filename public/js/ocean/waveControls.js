@@ -7,6 +7,9 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 // Default wave parameters
 let waveAmplitude = 1.0;
 let waveDirection = 0; // degrees (0-360)
+let waterTransparency = 0.1; // 0.1 (opaque) to 1.0 (transparent)
+let waterReflections = 0.5; // 0.0 (none) to 1.0 (maximum)
+let waterRefractions = 0.7; // 0.0 (none) to 1.0 (maximum)
 
 /**
  * Set the wave amplitude
@@ -27,6 +30,33 @@ export function setWaveDirection(direction) {
 }
 
 /**
+ * Set the water transparency
+ * @param {number} transparency - Water transparency value (0.1-1.0)
+ */
+export function setWaterTransparency(transparency) {
+  waterTransparency = transparency;
+  return waterTransparency;
+}
+
+/**
+ * Set the water reflections intensity
+ * @param {number} reflections - Water reflections value (0.0-1.0)
+ */
+export function setWaterReflections(reflections) {
+  waterReflections = reflections;
+  return waterReflections;
+}
+
+/**
+ * Set the water refractions intensity
+ * @param {number} refractions - Water refractions value (0.0-1.0)
+ */
+export function setWaterRefractions(refractions) {
+  waterRefractions = refractions;
+  return waterRefractions;
+}
+
+/**
  * Get the current wave parameters
  * @returns {Object} - Current wave settings
  */
@@ -34,7 +64,10 @@ export function getWaveParameters() {
   return {
     amplitude: waveAmplitude,
     direction: waveDirection,
-    directionRadians: waveDirection * (Math.PI / 180)
+    directionRadians: waveDirection * (Math.PI / 180),
+    transparency: waterTransparency,
+    reflections: waterReflections,
+    refractions: waterRefractions
   };
 }
 
@@ -64,7 +97,7 @@ export function updateWaterMaterial(water) {
   // Advance wave time based on amplitude (higher waves move faster)
   waveTime += deltaTime * (0.5 + waveAmplitude * 0.3);
   
-  console.log(`[DEBUG] Updating 3D waves: Amplitude=${waveAmplitude}, Direction=${waveDirection}°, Time=${waveTime.toFixed(2)}`);
+  console.log(`[DEBUG] Updating 3D waves: Amplitude=${waveAmplitude}, Direction=${waveDirection}°, Transparency=${waterTransparency.toFixed(1)}, Time=${waveTime.toFixed(2)}`);
   
   // Basic material adjustments
   // Apply wave amplitude to the water distortion scale
@@ -79,6 +112,44 @@ export function updateWaterMaterial(water) {
       0.3 * intensityFactor, 
       0.5 * intensityFactor
     );
+  }
+  
+  // Appliquer la transparence de l'eau - doit utiliser l'uniform 'alpha' spécifique au shader Water
+  if (water.material && water.material.uniforms) {
+    // Les shaders Water utilisent un uniform 'alpha' au lieu de material.opacity
+    if (water.material.uniforms['alpha']) {
+      // La valeur alpha est inversée par rapport à la transparence (1.0 = complètement opaque)
+      // On veut que notre slider de transparence soit intuitif (1.0 = très transparent)
+      const alphaValue = 1.0 - (waterTransparency * 0.8);
+      
+      // Définir le niveau de transparence
+      water.material.uniforms['alpha'].value = alphaValue;
+      
+      // Assurer que le matériau est marqué comme transparent
+      water.material.transparent = true;
+      
+      console.log(`[DEBUG] Updated water transparency: alpha=${alphaValue.toFixed(2)}, transparency=${waterTransparency.toFixed(2)}`);
+    } else {
+      console.log('[DEBUG] Water material does not have alpha uniform, trying opacity');
+      // Tenter d'utiliser l'approche standard d'opacité comme plan B
+      water.material.transparent = true;
+      water.material.opacity = 1.0 - (waterTransparency * 0.8);
+    }
+    
+    // Appliquer les réflexions de l'eau (en utilisant le bon uniform)
+    if (water.material.uniforms['reflectivity']) {
+      water.material.uniforms['reflectivity'].value = waterReflections;
+      console.log(`[DEBUG] Updated water reflections: ${waterReflections.toFixed(2)}`);
+    }
+    
+    // Appliquer les réfractions de l'eau
+    if (water.material.uniforms['refractionRatio']) {
+      // La valeur de réfraction est typiquement entre 0.02 (forte) et 0.5 (faible)
+      // On doit donc l'inverser par rapport à notre slider (slider à 1.0 = réfraction forte)
+      const refractionValue = 0.5 - (waterRefractions * 0.48);
+      water.material.uniforms['refractionRatio'].value = refractionValue;
+      console.log(`[DEBUG] Updated water refractions: ratio=${refractionValue.toFixed(2)}, value=${waterRefractions.toFixed(2)}`);
+    }
   }
   
   // Force material update

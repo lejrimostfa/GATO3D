@@ -12,6 +12,7 @@ import { initMinimap } from './minimap/minimapManager.js';
 
 // UI state variables
 let speedometerInstance = null;
+let depthMeterInstance = null;
 
 /**
  * Initialize all UI components
@@ -44,6 +45,7 @@ export function initUI(onComplete) {
   initClockUI();
   initAllSliders();
   initSpeedometer();
+  initDepthMeter(); // Ajout du depth meter
   initMinimap();
   
   // Initialize HUD visibility
@@ -86,10 +88,18 @@ function initClockUI() {
   
   if (clockCanvas) {
     const clockCtx = clockCanvas.getContext('2d');
-    // Increased clock size by 1.5x
-    const clockSize = Math.min(window.innerWidth, window.innerHeight) * 0.21;
-    clockCanvas.width = clockSize;
-    clockCanvas.height = clockSize;
+    
+    // Définir une taille fixe pour l'horloge et le speedomètre (la même pour les deux)
+    const uiComponentSize = Math.min(window.innerWidth, window.innerHeight) * 0.18;
+    
+    // Définir la même taille pour les deux composants
+    clockCanvas.width = uiComponentSize;
+    clockCanvas.height = uiComponentSize;
+    
+    // Stocker la taille comme variable globale pour l'utiliser dans le speedomètre
+    window.uiComponentSize = uiComponentSize;
+    
+    console.log(`[UI:Clock] Initialized with size ${uiComponentSize}px`);
     
     // Draw initial clock
     drawClockFace(clockCtx, clockCanvas.width / 2);
@@ -152,6 +162,70 @@ function initSpeedometer() {
       
       // Start the update loop
       updateSpeedometer();
+    });
+  });
+}
+
+/**
+ * Initialize the depth meter UI
+ */
+function initDepthMeter() {
+  import('./depthMeter.js').then(module => {
+    console.log('[UI] Initializing depth meter');
+    depthMeterInstance = module.initDepthMeter();
+    
+    // Start updating depth meter with submarine depth
+    import('../submarine/controls.js').then(submarineModule => {
+      // Cache for submarine instance
+      let submarineInstance = null;
+      
+      // Update the depth meter every frame
+      function updateDepthMeter() {
+        if (depthMeterInstance) {
+          // Default max depth is 200 meters
+          const maxDepth = 200;
+          
+          // Try to get depth from submarine instance
+          let depth = 0;
+          
+          // Get submarine position if available
+          try {
+            const scene = window.currentScene;
+            if (scene && scene.playerSubmarine) {
+              // Dans notre système, la surface de l'eau est à Y=20
+              const surfaceY = 20;
+              
+              // Calcul correct de la profondeur
+              depth = surfaceY - scene.playerSubmarine.position.y;
+              
+              // Ajustement pour prendre en compte la position des enfants du sous-marin
+              if (scene.playerSubmarine.children && scene.playerSubmarine.children[0]) {
+                depth -= scene.playerSubmarine.children[0].position.y;
+              }
+              
+              // Make sure depth is never negative (above water)
+              depth = Math.max(0, depth);
+              
+              // Cache the submarine for additional data
+              submarineInstance = submarineModule.updatePlayerSubmarine(scene.playerSubmarine);
+            }
+          } catch (error) {
+            console.warn('[UI:DepthMeter] Error accessing submarine depth', error);
+            // Keep last depth value if error
+          }
+          
+          // Update the global depth value for other UI components
+          window.currentDepth = depth;
+          
+          // Update depth meter display
+          depthMeterInstance.update(depth, maxDepth);
+        }
+        
+        requestAnimationFrame(updateDepthMeter);
+      }
+      
+      // Start the update loop
+      updateDepthMeter();
     });
   });
 }

@@ -127,7 +127,7 @@
           <i class="fas fa-sun"></i> Lumières
         </button>
         <button id="wave-settings-toggle" class="menu-button">
-          <i class="fas fa-water"></i> Vagues
+          <i class="fas fa-water"></i> Océan
         </button>
         <button id="slider-toggle" class="menu-button">
           <i class="fas fa-camera"></i> Caméra
@@ -147,13 +147,13 @@
         <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Paramètres du sous-marin</h3>
 
         <label style="color:#0f0; font-family:monospace; margin-top:10px;">Vitesse max sous-marin
-          <input id="submarine-speed-slider" type="range" min="0.1" max="10" step="0.1" value="3" style="width:180px; margin-top:4px;" />
+          <input id="submarine-speed-slider" type="range" min="0.1" max="10" step="0.1" value="1" style="width:180px; margin-top:4px;" />
           <div id="submarine-speed-label" style="color:#0f0; font-family:monospace;">Vitesse: 3 kn</div>
         </label>
         
         <label style="color:#0f0; font-family:monospace; margin-top:15px;">Vitesse de rotation
-          <input id="rotation-speed-slider" type="range" min="0.001" max="0.01" step="0.001" value="0.005" style="width:180px; margin-top:4px;" />
-          <div id="rotation-speed-label" style="color:#0f0; font-family:monospace;">Rotation: 0.005</div>
+          <input id="rotation-speed-slider" type="range" min="0.001" max="0.01" step="0.001" value="0.003" style="width:180px; margin-top:4px;" />
+          <div id="rotation-speed-label" style="color:#0f0; font-family:monospace;">Rotation: 0.003</div>
         </label>
         
         <label style="color:#0f0; font-family:monospace; margin-top:15px;">Inertie/Masse
@@ -181,7 +181,7 @@
       </div>
       
       <div id="wave-settings-panel" class="menu-panel" style="top:70px; right:10px; transform: translateX(0);"><!-- Cinquième bouton -->
-        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Réglages des vagues</h3>
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Réglages de l'océan</h3>
         <label style="color:#0f0; font-family:monospace;">Amplitude des vagues
           <input id="wave-amplitude-slider" type="range" min="0" max="5" step="0.1" value="1.0" style="width:180px; margin-top:4px;" />
           <div id="wave-amplitude-label" style="color:#0f0; font-family:monospace;">Amplitude: 1.0</div>
@@ -190,6 +190,27 @@
           <input id="wave-direction-slider" type="range" min="0" max="360" step="10" value="0" style="width:180px; margin-top:4px;" />
           <div id="wave-direction-label" style="color:#0f0; font-family:monospace;">Direction: 0°</div>
         </label>
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Résistance de l'eau (Drag)
+          <input id="water-resistance-slider" type="range" min="0.1" max="5" step="0.1" value="3.5" style="width:180px; margin-top:4px;" />
+          <div id="water-resistance-label" style="color:#0ff; font-weight:bold; font-family:monospace;">Résistance: 3.5</div>
+          <div style="color:#999; font-size:0.8em; font-family:monospace; margin-top:3px;">Faible (0.1) = moins de résistance<br>Élevée (5.0) = mouvement difficile</div>
+        </label>
+        
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Transparence de l'eau
+          <input id="water-transparency-slider" type="range" min="0.1" max="1.0" step="0.1" value="0.1" style="width:180px; margin-top:4px;" />
+          <div id="water-transparency-label" style="color:#0f0; font-family:monospace;">Transparence: 0.1</div>
+          <div style="color:#999; font-size:0.8em; font-family:monospace; margin-top:3px;">Faible (0.1) = eau opaque<br>Élevée (1.0) = eau très transparente</div>
+        </label>
+        
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Réflexions
+          <input id="water-reflections-slider" type="range" min="0.0" max="1.0" step="0.1" value="0.5" style="width:180px; margin-top:4px;" />
+          <div id="water-reflections-label" style="color:#0f0; font-family:monospace;">Réflexions: 0.5</div>
+        </label>
+        
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Réfractions
+          <input id="water-refractions-slider" type="range" min="0.0" max="1.0" step="0.1" value="0.7" style="width:180px; margin-top:4px;" />
+          <div id="water-refractions-label" style="color:#0f0; font-family:monospace;">Réfractions: 0.7</div>
+        </label>
       </div>
       <div id="slider-panel" class="menu-panel" style="top:70px; right:0px; width:280px; transform: translateX(-50%);">
         <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Contrôles Caméra</h3>
@@ -197,22 +218,22 @@
         <!-- Slider pour la distance caméra -->  
         <div class="slider-group" style="margin-bottom:12px;">
           <label style="color:#0f0; font-family:monospace;">Distance caméra</label>
-          <input id="camera-distance-slider" type="range" min="50" max="500" step="10" value="250" style="width:100%; margin-top:4px;" />
-          <div id="camera-distance-value" style="color:#0ff; font-family:monospace;">250</div>
+          <input id="camera-distance-slider" type="range" min="50" max="500" step="10" value="150" style="width:100%; margin-top:4px;" />
+          <div id="camera-distance-value" style="color:#0ff; font-family:monospace;">150</div>
         </div>
         
         <!-- Slider pour l'altitude caméra -->  
         <div class="slider-group" style="margin-bottom:12px;">
           <label style="color:#0f0; font-family:monospace;">Altitude caméra</label>
-          <input id="camera-height-slider" type="range" min="10" max="200" step="5" value="60" style="width:100%; margin-top:4px;" />
-          <div id="camera-height-value" style="color:#0ff; font-family:monospace;">60</div>
+          <input id="camera-height-slider" type="range" min="10" max="200" step="5" value="30" style="width:100%; margin-top:4px;" />
+          <div id="camera-height-value" style="color:#0ff; font-family:monospace;">30</div>
         </div>
         
         <!-- Slider pour le damping caméra -->  
         <div class="slider-group" style="margin-bottom:12px;">
           <label style="color:#0f0; font-family:monospace;">Fluidité du mouvement</label>
-          <input id="camera-smoothness-slider" type="range" min="0.001" max="0.05" step="0.001" value="0.005" style="width:100%; margin-top:4px;" />
-          <div id="camera-smoothness-value" style="color:#0ff; font-family:monospace;">0.005</div>
+          <input id="camera-smoothness-slider" type="range" min="0.001" max="0.05" step="0.001" value="0.05" style="width:100%; margin-top:4px;" />
+          <div id="camera-smoothness-value" style="color:#0ff; font-family:monospace;">0.050</div>
         </div>
       </div>
     </div>
@@ -237,19 +258,19 @@
     </div>
     <div id="fps-counter" style="font-family:monospace; color:#0f0; background:#111c; border-radius:6px; padding:5px 12px; min-width:60px; text-align:center; margin-top:6px;">FPS: 0</div>
   </div>
-  <div style="position:relative; display:inline-block;">
-  <canvas id="clock-canvas" width="140" height="140" style="pointer-events:auto;"></canvas>
-  <div style="position:absolute;top:40px;left:0;width:100px;text-align:center;pointer-events:none;"></div>
-</div>
+  <!-- Horloge UI -->
+  <div style="position:relative; display:inline-block; margin-right:20px;">
+    <canvas id="clock-canvas" width="170" height="170" style="pointer-events:auto; border-radius:50%; background:rgba(0,0,0,0.6); border:2px solid #0f0;"></canvas>
+  </div>
 
   <!-- Speedometer UI -->
   <div style="position:relative; display:inline-block; margin-right:20px;">
-    <canvas id="speedometer-canvas" width="210" height="210" style="pointer-events:auto; border-radius:50%; background:rgba(0,0,0,0.6); border:3px solid #0f0;"></canvas>
-    <div style="position:absolute; top:90px; left:0; width:100%; text-align:center; color:#0f0; font-family:monospace; font-size:16px;">SPEED</div>
+    <canvas id="speedometer-canvas" width="200" height="200" style="pointer-events:auto; border-radius:50%; background:rgba(0,0,0,0.6); border:2px solid #0f0;"></canvas>
   </div>
-  <div id="ui-depth-indicator" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:200px;">
-    <span id="depth-value" style="color:#0ff; font-family:monospace; min-width:44px; margin-bottom:8px;">0 m</span>
-    <input id="depth-slider" type="range" min="0" max="200" step="1" value="0" disabled style="height:150px; width:28px; writing-mode: vertical-lr; direction: rtl; background:#223; border-radius:8px;">
+  
+  <!-- Depth-o-meter UI -->
+  <div style="position:relative; display:inline-block; margin-right:20px;">
+    <canvas id="depth-meter-canvas" width="200" height="200" style="pointer-events:auto; border-radius:50%; background:rgba(0,0,0,0.6); border:2px solid #0ff;"></canvas>
   </div>
 </div>
 

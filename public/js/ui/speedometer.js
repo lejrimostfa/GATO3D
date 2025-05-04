@@ -108,8 +108,8 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue) {
       ctx.textBaseline = 'middle';
       
       // Dynamic graduation based on max speed
-      // Calculate label value as percentage of max speed
-      const speedValue = Math.round((i / 10) * maxKnots);
+      // Calculate label value as percentage of max speed with one decimal point
+      const speedValue = ((i / 10) * maxKnots).toFixed(1);
       ctx.fillText(`${speedValue}`, labelX, labelY);
     }
   }
@@ -163,18 +163,18 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue) {
   ctx.lineWidth = 1;
   ctx.stroke();
   
-  // Draw the velocity text
-  ctx.font = 'bold 24px monospace'; // Increased font size by 1.5x
-  ctx.fillStyle = '#0f0'; // Changed to green to match clock
+  // Draw the velocity text - taille réduite pour mieux s'harmoniser avec l'horloge
+  ctx.font = 'bold 18px monospace'; // Taille réduite (24 → 18)
+  ctx.fillStyle = '#0f0';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
   
-  // Display as absolute value (knots)
+  // Display as absolute value (knots) with one decimal point
   // Convert normalized velocity (0-1) to nautical speed
-  const velocityKnots = Math.round(velocity * maxKnots);
-  ctx.fillText(`${velocityKnots} kn`, centerX, centerY + 45); // Adjusted position for larger size
+  const velocityKnots = (velocity * maxKnots).toFixed(1);
+  ctx.fillText(`${velocityKnots} kn`, centerX, centerY + 30); // Position ajustée pour la nouvelle taille
   
   // Draw smaller unit label
-  ctx.font = '15px monospace'; // Increased font size
-  ctx.fillText('SPEED', centerX, centerY + 70); // Adjusted position for larger size
+  ctx.font = '14px monospace'; // Taille réduite 
+  ctx.fillText('SPEED', centerX, centerY + 55); // Position ajustée pour la nouvelle taille
 }

@@ -16,7 +16,7 @@ export function drawClockFace(ctx, radius) {
     ctx.stroke();
 
     // Draw hour numbers (1 to 12, 12 at top)
-    ctx.font = `${radius * 0.32}px monospace`;
+    ctx.font = `${radius * 0.22}px monospace`; // Taille réduite (0.32 → 0.22)
     ctx.fillStyle = '#0f0';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
