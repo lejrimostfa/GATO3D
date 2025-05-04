@@ -7,35 +7,83 @@ import { Sky } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/obj
 
 import { initLighting } from './lighting.js';
 
+// Define layer constants
+export const LAYERS = {
+  DEFAULT: 0,       // Default layer (0) - visible to all cameras
+  MAIN_CAMERA: 1,   // Layer 1 - only visible to main camera
+  MINIMAP: 2,       // Layer 2 - only visible to minimap camera
+};
+
 export function setupSkyAndWater(scene, renderer, camera) {
   // Centralise la création des lumières et du ciel
   const { sunLight, ambientLight, sky, sun } = initLighting(scene);
+  
   // Ajoute un mesh sphérique pour le soleil visible
   const sunSphere = new THREE.Mesh(
     new THREE.SphereGeometry(3500, 16, 8),
-    new THREE.MeshBasicMaterial({ color: 0xffffee, emissive: 0xffeeaa })
+    new THREE.MeshBasicMaterial({ color: 0xffffee })
   );
   sunSphere.position.copy(sun.clone().multiplyScalar(1000));
+  
+  // Set the sun sphere to only be visible to the main camera (not the minimap)
+  sunSphere.layers.set(LAYERS.MAIN_CAMERA);
+  
+  // Add to scene
   scene.add(sunSphere);
+  
+  // Configure main camera to see both default and main camera layers
+  if (camera) {
+    camera.layers.enable(LAYERS.DEFAULT);
+    camera.layers.enable(LAYERS.MAIN_CAMERA);
+  }
   const phi = THREE.MathUtils.degToRad(90 - 45); // élévation plus haute
   const theta = THREE.MathUtils.degToRad(180);   // azimuth
   sun.setFromSphericalCoords(1, phi, theta);
   sky.material.uniforms['sunPosition'].value.copy(sun);
 
 
-  const waterGeometry = new THREE.PlaneGeometry(10000, 10000);
+  console.log('[DEBUG] Creating dynamic water surface with 3D waves');
+  
+  // Create a much larger water surface that extends beyond the visible area
+  // Using higher vertex density (250x250) for more detailed waves
+  const waterGeometry = new THREE.PlaneGeometry(50000, 50000, 250, 250);
+  
+  // Initialize wave parameters
+  let waveAmplitude = 1.0;
+  let waveFrequency = 0.05;
+  let waveTime = 0;
+  
+  // Create a reference to the original vertices for wave animation
+  const originalVertices = [];
+  for (let i = 0; i < waterGeometry.attributes.position.count; i++) {
+    originalVertices.push(new THREE.Vector3(
+      waterGeometry.attributes.position.getX(i),
+      waterGeometry.attributes.position.getY(i),
+      waterGeometry.attributes.position.getZ(i)
+    ));
+  }
+  
+  // Load the water normal texture with higher resolution and repeat
+  const waterNormalTexture = new THREE.TextureLoader().load(
+    '/textures/waternormals.jpg',
+    tex => {
+      // Set repeat wrapping for infinite tiling
+      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+      // Increase the repeat factor for more detail
+      tex.repeat.set(20, 20);
+      tex.flipY = false; // Required to avoid WebGL errors with 3D textures
+      // Set anisotropy for better texture quality at grazing angles
+      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    },
+    undefined,
+    err => console.warn('Water normals not found:', err)
+  );
+  
+  // Create water with improved parameters
   const water = new Water(waterGeometry, {
-    textureWidth: 512,
-    textureHeight: 512,
-    waterNormals: new THREE.TextureLoader().load(
-      '/textures/waternormals.jpg',
-      tex => {
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        tex.flipY = false; // Correction obligatoire pour éviter l'erreur WebGL sur les textures 3D
-      },
-      undefined,
-      err => console.warn('Water normals not found:', err)
-    ),
+    textureWidth: 1024, // Higher resolution for better detail
+    textureHeight: 1024,
+    waterNormals: waterNormalTexture,
     alpha: 1.0,
     sunDirection: sun.clone().normalize(),
     sunColor: 0xffffff,
@@ -43,6 +91,53 @@ export function setupSkyAndWater(scene, renderer, camera) {
     distortionScale: 3.7,
     fog: scene.fog !== undefined
   });
+  
+  // Add custom uniforms for our wave system
+  water.material.uniforms.waveAmplitude = { value: waveAmplitude };
+  water.material.uniforms.waveFrequency = { value: waveFrequency };
+  water.material.uniforms.waveTime = { value: waveTime };
+  water.material.uniforms.waveDirection = { value: new THREE.Vector2(1, 0) };
+  
+  // Custom function to update wave geometry
+  water.updateWaves = function(amplitude, direction, time) {
+    waveAmplitude = amplitude;
+    waveTime = time;
+    
+    // Convert direction from degrees to radians
+    const dirRad = direction * (Math.PI / 180);
+    const dirX = Math.cos(dirRad);
+    const dirZ = Math.sin(dirRad);
+    
+    // Update vertex positions to create real 3D waves
+    const positions = this.geometry.attributes.position;
+    
+    for (let i = 0; i < positions.count; i++) {
+      const vertex = originalVertices[i];
+      
+      // Skip center vertices to keep submarine area more stable
+      const distanceFromCenter = Math.sqrt(vertex.x * vertex.x + vertex.z * vertex.z);
+      if (distanceFromCenter < 500) continue; // Leave center area flatter
+      
+      // Calculate wave effect based on position and direction
+      const waveFactor = Math.sin(
+        (vertex.x * dirX + vertex.z * dirZ) * waveFrequency + waveTime
+      );
+      
+      // Apply wave height - scale amplitude by distance from center
+      const scaledAmplitude = waveAmplitude * (1.0 - Math.min(1.0, 500 / distanceFromCenter));
+      const waveHeight = waveFactor * scaledAmplitude * 20; // Scale for better visual effect
+      
+      // Update vertex Y position with wave height
+      positions.setY(i, vertex.y + waveHeight);
+    }
+    
+    // Mark geometry for update
+    positions.needsUpdate = true;
+    this.geometry.computeVertexNormals();
+  };
+  
+  // Initial wave update
+  water.updateWaves(waveAmplitude, 0, 0);
 
   water.rotation.x = -Math.PI / 2;
   scene.add(water);

@@ -2,15 +2,44 @@
 // Gestion de la mini-map pour GATO3D
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
 
+// Import layer definitions
+import { LAYERS } from '../water-setup.js';
+
 export let minimapRenderer = null;
 export let minimapCamera = null;
 
-export const MINIMAP_ZOOM_MIN = 200;
-export const MINIMAP_ZOOM_MAX = 5000;
-export const MINIMAP_ZOOM_STEP = 200;
+// Configure minimap zoom settings with much better flexibility
+export const MINIMAP_ZOOM_MIN = 250;  // Even closer zoom for more detail
+export const MINIMAP_ZOOM_MAX = 15000; // Further max zoom for wider view
+
+// More granular dynamic zoom step based on current zoom level
+export function getZoomStep(currentZoom) {
+  // Calculate zoom step as a percentage of current zoom
+  // This creates a much more natural zooming experience
+  // with proportional steps at all zoom levels
+  const basePercentage = 0.15; // 15% zoom change per click
+  
+  // Apply different percentage based on zoom range
+  let percentage;
+  if (currentZoom < 500) {
+    percentage = 0.10; // 10% steps for very close zoom
+  } else if (currentZoom < 2000) {
+    percentage = 0.15; // 15% steps for close-medium zoom
+  } else if (currentZoom < 5000) {
+    percentage = 0.20; // 20% steps for medium-far zoom
+  } else {
+    percentage = 0.25; // 25% steps for very far zoom
+  }
+  
+  // Calculate the actual step value based on current zoom
+  const step = Math.max(50, Math.round(currentZoom * percentage / 50) * 50);
+  
+  return step;
+}
+
 export const MINIMAP_CAM_HEIGHT = 2000;
 
-export let minimapZoom = 2000;
+export let minimapZoom = 3000; // Default zoom level within the new range
 export function setMinimapZoom(val) {
   minimapZoom = val;
 }
@@ -29,15 +58,64 @@ export function setMinimapRotating(val, playerSubmarine = null) {
 
 
 export function initMinimap() {
+  console.log('[MINIMAP] Initializing minimap');
+  
   const minimapCanvas = document.getElementById('minimap');
+  if (!minimapCanvas) {
+    console.error('[MINIMAP] Cannot initialize minimap: canvas element not found');
+    return;
+  }
+  
   minimapRenderer = new THREE.WebGLRenderer({ canvas: minimapCanvas, antialias: true, alpha: true });
-  // Responsive : adapte la taille à la fenêtre
-const size = Math.min(window.innerWidth, window.innerHeight) * 0.22;
-minimapRenderer.setSize(size, size);
-minimapCanvas.width = size;
-minimapCanvas.height = size;
+  
+  // Responsive: adapt size to window
+  const size = Math.min(window.innerWidth, window.innerHeight) * 0.22;
+  minimapRenderer.setSize(size, size);
+  minimapCanvas.width = size;
+  minimapCanvas.height = size;
   minimapRenderer.setClearColor(0x111122, 1);
+  
+  console.log(`[MINIMAP] Set size to ${size}x${size}`);
+  
+  // Fix minimap rotation toggle button position
+  const minimapContainer = document.querySelector('.minimap-container');
+  const rotationToggle = document.getElementById('minimap-rotation-toggle');
+  
+  if (rotationToggle && minimapContainer) {
+    // Fix rotation toggle position
+    rotationToggle.style.top = '10px';
+    rotationToggle.style.right = '10px';
+    rotationToggle.style.width = '24px';
+    rotationToggle.style.height = '24px';
+    rotationToggle.style.background = '#111c';
+    rotationToggle.style.color = '#0ff';
+    rotationToggle.style.border = '1px solid #0ff';
+    rotationToggle.style.borderRadius = '6px';
+    rotationToggle.style.cursor = 'pointer';
+    rotationToggle.style.fontSize = '14px';
+    rotationToggle.style.lineHeight = '22px';
+    rotationToggle.style.textAlign = 'center';
+  }
 
+  // Style + and - buttons
+  const zoomInBtn = document.getElementById('minimap-zoom-in');
+  const zoomOutBtn = document.getElementById('minimap-zoom-out');
+  
+  if (zoomInBtn && zoomOutBtn) {
+    [zoomInBtn, zoomOutBtn].forEach(btn => {
+      btn.style.width = '24px';
+      btn.style.height = '24px';
+      btn.style.background = '#111c';
+      btn.style.color = '#0ff';
+      btn.style.border = '1px solid #0ff';
+      btn.style.borderRadius = '6px';
+      btn.style.cursor = 'pointer';
+      btn.style.fontSize = '14px';
+      btn.style.lineHeight = '22px';
+      btn.style.textAlign = 'center';
+    });
+  }
+  
   // Resize dynamique minimap
   window.addEventListener('resize', () => {
     const size = Math.min(window.innerWidth, window.innerHeight) * 0.22;
@@ -45,18 +123,24 @@ minimapCanvas.height = size;
     minimapCanvas.width = size;
     minimapCanvas.height = size;
   });
-
-  // Resize dynamique minimap
-  window.addEventListener('resize', () => {
-    const size = Math.min(window.innerWidth, window.innerHeight) * 0.22;
-    minimapRenderer.setSize(size, size);
-    minimapCanvas.width = size;
-    minimapCanvas.height = size;
-  });
+  
+  // Create orthographic camera for minimap
   minimapCamera = new THREE.OrthographicCamera(-100, 100, 100, -100, 1, 10000);
-  minimapCamera.up.set(0,0,-1);
-  minimapCamera.lookAt(new THREE.Vector3(0,-1,0));
+  minimapCamera.up.set(0, 0, -1);
+  minimapCamera.lookAt(new THREE.Vector3(0, -1, 0));
   minimapCamera.position.set(0, 200, 0);
+  
+  // Configure minimap camera to only see appropriate layers
+  // Reset all layers first
+  minimapCamera.layers.mask = 0;
+  // Enable default layer
+  minimapCamera.layers.enable(LAYERS.DEFAULT);
+  // Enable minimap-specific layer if needed
+  minimapCamera.layers.enable(LAYERS.MINIMAP);
+  // Explicitly disable the main camera layer to make sure the sun sphere is not visible
+  minimapCamera.layers.disable(LAYERS.MAIN_CAMERA);
+  
+  console.log('[MINIMAP] Minimap initialized successfully');
 }
 
 export function updateMinimap(scene, playerSubmarine, cameraFrustumHelper) {

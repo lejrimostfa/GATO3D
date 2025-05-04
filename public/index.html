@@ -87,6 +87,11 @@
       <button id="light-settings-toggle" class="menu-button" style="top:154px; margin-top:22px;">Réglages lumières</button>
       <div id="game-settings-panel" class="menu-panel" style="top:158px; right:210px;">
 
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Vitesse max sous-marin
+          <input id="submarine-speed-slider" type="range" min="0.1" max="300" step="1" value="10" style="width:180px; margin-top:4px;" />
+          <div id="submarine-speed-label" style="color:#0f0; font-family:monospace;">Vitesse: 10 kn</div>
+        </label>
+
         <label style="color:#0f0; font-family:monospace; margin-top:10px;">Durée d'une journée
           <input id="day-duration-slider" type="range" min="30" max="600" step="10" value="120" style="width:180px; margin-top:4px;" />
           <div id="day-duration-label" style="color:#0f0; font-family:monospace;">Jour: 2.00 min</div>
@@ -95,15 +100,23 @@
       <div id="light-settings-panel" class="menu-panel" style="top:194px; right:210px;">
         <label style="color:#0f0; font-family:monospace;">Soleil (DirectionalLight)
           <input id="sunlight-slider" type="range" min="0" max="2" step="0.01" value="0.21" style="width:180px; margin-top:4px;" />
-          <div id="sunlight-label" style="color:#0f0; font-family:monospace;">Soleil: 0.21</div>
+          <div id="light-label" style="color:#0f0; font-family:monospace;">Light: 0.21</div>
         </label>
-        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Luminosité globale (Exposure)
-          <input id="exposure-slider" type="range" min="0" max="2" step="0.01" value="0.21" style="width:180px; margin-top:4px;" />
-          <div id="exposure-label" style="color:#0f0; font-family:monospace;">Exposure: 0.21</div>
-        </label>
-        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Ciel (Rayleigh)
-          <input id="rayleigh-slider" type="range" min="0.5" max="4" step="0.01" value="2.5" style="width:180px; margin-top:4px;" />
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Rayleigh (diffusion)
+          <input id="rayleigh-slider" type="range" min="0" max="10" step="0.1" value="2.5" style="width:180px; margin-top:4px;" />
           <div id="rayleigh-label" style="color:#0f0; font-family:monospace;">Rayleigh: 2.50</div>
+        </label>
+      </div>
+      
+      <button id="wave-settings-toggle" class="menu-button" style="top:190px; margin-top:22px;">Vagues Ocean</button>
+      <div id="wave-settings-panel" class="menu-panel" style="top:230px; right:210px;">
+        <label style="color:#0f0; font-family:monospace;">Amplitude des vagues
+          <input id="wave-amplitude-slider" type="range" min="0" max="5" step="0.1" value="1.0" style="width:180px; margin-top:4px;" />
+          <div id="wave-amplitude-label" style="color:#0f0; font-family:monospace;">Amplitude: 1.0</div>
+        </label>
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Direction des vagues
+          <input id="wave-direction-slider" type="range" min="0" max="360" step="10" value="0" style="width:180px; margin-top:4px;" />
+          <div id="wave-direction-label" style="color:#0f0; font-family:monospace;">Direction: 0°</div>
         </label>
       </div>
       <button id="slider-toggle" class="menu-button" style="top:230px;">Réglages caméra</button>
@@ -124,7 +137,7 @@
     </div>
 
     <!-- == Minimap Area (Bottom Left) == -->
-    <div id="ui-bottom-bar" style="position:fixed; left:0; right:0; bottom:0; width:100vw; display:none; flex-direction:row; justify-content:space-between; align-items:flex-end; pointer-events:none; z-index:30;">
+    <div id="ui-bottom-bar" style="position:fixed; left:0; right:0; bottom:0; width:100vw; display:none; flex-direction:row; justify-content:space-between; align-items:flex-end; pointer-events:none; z-index:30; padding: 0 10px 10px 10px;">
   <div id="ui-minimap-area" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:8px;">
     <div class="minimap-group" style="display:flex; align-items:center; justify-content:center; width:100%; gap:18px;">
       <div class="minimap-container" style="position:relative; display:flex; align-items:center; justify-content:center;">
@@ -147,6 +160,12 @@
   <canvas id="clock-canvas" width="140" height="140" style="pointer-events:auto;"></canvas>
   <div style="position:absolute;top:40px;left:0;width:100px;text-align:center;pointer-events:none;"></div>
 </div>
+
+  <!-- Speedometer UI -->
+  <div style="position:relative; display:inline-block; margin-right:20px;">
+    <canvas id="speedometer-canvas" width="210" height="210" style="pointer-events:auto; border-radius:50%; background:rgba(0,0,0,0.6); border:3px solid #0f0;"></canvas>
+    <div style="position:absolute; top:90px; left:0; width:100%; text-align:center; color:#0f0; font-family:monospace; font-size:16px;">SPEED</div>
+  </div>
   <div id="ui-depth-indicator" style="pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:200px;">
     <span id="depth-value" style="color:#0ff; font-family:monospace; min-width:44px; margin-bottom:8px;">0 m</span>
     <input id="depth-slider" type="range" min="0" max="200" step="1" value="0" disabled style="height:150px; width:28px; writing-mode: vertical-lr; direction: rtl; background:#223; border-radius:8px;">

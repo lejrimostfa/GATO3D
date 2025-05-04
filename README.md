@@ -8,6 +8,19 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
+### [2025-05-04] Submarine Physics & Velocity Improvements
+- **Submarine Speed Controls**
+  - Fixed velocity behavior when changing direction (forward to backward or vice versa)
+  - Added special "dive brake" system - pressing down (W) at high speed now properly decelerates
+  - Implemented "reverse brake" for pressing backward (S) at high speeds
+  - Set default maximum submarine speed to 10 knots (previously 130 knots)
+- **Minimap Zoom Controls**
+  - Enhanced flexibility with dynamic zoom step based on current zoom level
+  - Changed minimum zoom level to 250 and maximum to 15,000 for better usability
+- **Speedometer**
+  - Improved to accurately show combined velocity from both horizontal and vertical movement
+  - Fixed velocity reporting for vertical movement
+
 ### [2025-05-03] UI/UX & Minimap Improvements
 - **Minimap**
   - Correction : la minimap s’initialise correctement au lancement du jeu (plus besoin de resize)
@@ -65,15 +78,19 @@ GATO3D is an interactive 3D submarine game prototype written in JavaScript (Thre
 ---
 
 ## Fonctionnalités principales / Main Features
-- Contrôle d'un sous-marin dans un environnement 3D
-- Interface utilisateur (UI) réactive : profondeur, minimap, horloge
+- Contrôle d'un sous-marin dans un environnement 3D avec physique réaliste
+- Système avancé de contrôle de vitesse avec freins de plongée et marche arrière
+- Interface utilisateur (UI) réactive : profondeur, minimap, horloge, compteur de vitesse
+- Minimap avec contrôles de zoom dynamiques adaptés au niveau de zoom actuel
 - Cycle jour/nuit dynamique avec position du soleil ajustable
-- Synchronisation UI ↔ gameplay (slider de profondeur, horloge, etc.)
+- Synchronisation UI ↔ gameplay (slider de vitesse, profondeur, horloge, etc.)
 
-- Control a submarine in a 3D environment
-- Responsive UI: depth, minimap, clock
+- Control a submarine in a 3D environment with realistic physics
+- Advanced velocity control system with dive brakes and reverse braking
+- Responsive UI: depth indicator, minimap, clock, speedometer
+- Minimap with dynamic zoom controls that adapt to current zoom level
 - Dynamic day/night cycle with adjustable sun position
-- UI ↔ gameplay synchronization (depth slider, clock, etc.)
+- UI ↔ gameplay synchronization (speed slider, depth, clock, etc.)
 
 ---
 
@@ -172,25 +189,45 @@ http://localhost:3000
 
 ## Controls
 
-- Movement: ZQSD or Arrow Keys
-- Time of Day: Slider at bottom
-- Sunlight Intensity: Slider at right
-- Visibility Toggles: Buttons at top-right
+### Submarine Movement
+- **Forward**: Z or Up Arrow
+- **Backward/Brake**: S or Down Arrow (also acts as brake at high speeds)
+- **Turn Left**: Q or Left Arrow
+- **Turn Right**: D or Right Arrow
+- **Ascend**: A (move submarine upward)
+- **Descend/Brake**: W (also acts as dive brake at high speeds)
+
+### UI Controls
+- **Submarine Speed**: Slider in bottom panel
+- **Time of Day**: Slider at bottom
+- **Sunlight Intensity**: Slider at right
+- **Visibility Toggles**: Buttons at top-right
+- **Minimap Zoom**: + and - buttons on minimap
+- **Minimap Rotation**: R button on minimap
 
 ## Development Status
 
 ✅ **Completed**
+- **Submarine Physics System**
+  - Realistic submarine movement with momentum and inertia
+  - Special braking systems (dive brake, reverse brake) for intuitive control
+  - Proper velocity calculation with combined horizontal and vertical movement
+  - Realistic maximum speed (10 knots) with adjustable slider
+- **Minimap & UI Improvements**
+  - Dynamic zoom controls based on current zoom level
+  - Enhanced minimap visibility and usability
+  - Accurate speedometer that accounts for all movement directions
 - Modularisation complète du code JS (minimap, horloge, HUD, panels, **lumière/atmosphère**)
 - Centralisation de la gestion lumière/atmosphère dans `lighting.js`
 - UI réactive et responsive (minimap, horloge, boutons, panels)
 - Panels de menu exclusifs et ergonomiques
-- Correction des bugs d’initialisation UI/minimap
+- Correction des bugs d'initialisation UI/minimap
 - Base serveur Node.js opérationnelle
 - Contrôles sous-marin (ZQSD/Flèches)
 - Cycle jour/nuit dynamique
 
 🚧 **En cours**
-- Migration des sliders Rayleigh, Turbidity, etc. vers `lighting.js`
+- Migration des sliders Rayleigh, Turbidity, Mie, etc. vers `lighting.js`
 - Polish UI/UX (feedback, accessibilité, animations)
 - Refactoring & documentation continue
 

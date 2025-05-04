@@ -9,15 +9,38 @@ import { setupSkyAndWater, updateSun } from '../water-setup.js';
  * @returns {{scene:THREE.Scene, camera:THREE.Camera, objects:Object}}
  */
 export function createLevel(renderer) {
+  console.log('[LEVEL1] Creating level scene...');
+  
+  // Check if renderer is valid
+  if (!renderer) {
+    console.error('[LEVEL1] Cannot create level: renderer is null');
+    throw new Error('Renderer is required to create level');
+  }
+  
+  // Create scene
   const scene = new THREE.Scene();
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  
+  // Set renderer size
+  try {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  } catch (error) {
+    console.error('[LEVEL1] Error setting renderer size:', error);
+    throw error;
+  }
+  
   // Sky/water setup
+  console.log('[LEVEL1] Setting up sky and water...');
   const sceneHandles = setupSkyAndWater(scene, renderer, null);
+  
   // Correction : place le soleil à midi par défaut
   updateSun(sceneHandles, 12);
+  
   // Caméra principale
+  console.log('[LEVEL1] Setting up camera...');
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
   camera.position.set(0, 50, 100);
+  
   // Autres objets à ajouter ici
+  console.log('[LEVEL1] Level created successfully');
   return { scene, camera, objects: { sceneHandles } };
 }
