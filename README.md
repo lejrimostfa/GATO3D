@@ -205,6 +205,26 @@ node server.js
 http://localhost:3000
 ```
 
+## Known Issues
+
+### 3D Canvas Not Displaying After Settings Refactor
+
+**Problem:**
+After refactoring the `public/js/ui/settings.js` file into multiple smaller modules (e.g. `settings/lightSettings.js`, `settings/waveSettings.js`, etc.), the 3D canvas may appear blank or not render any scene content. This is due to missing or incorrectly ordered initialization of settings and global functions that the rest of the UI and rendering logic depend on.
+
+**Explanation:**
+- The original `settings.js` file exposed several global functions and handled side effects (e.g. updating Rayleigh, initializing sliders, and exposing functions on `window`) that are expected by other modules and the rendering pipeline.
+- When refactoring, if these functions are not re-exposed or the initialization order is changed, critical parameters (lighting, exposure, Rayleigh, camera, etc.) may not be set up in time for the initial render, resulting in a blank or non-interactive 3D canvas.
+- Some modules (like `skyEffects.js` and `gameInit.js`) dynamically import or call these global functions, expecting them to be available on `window` or as named exports.
+
+**How to Fix or Avoid:**
+- When refactoring, always ensure that:
+  - All global functions previously exposed by `settings.js` are still available, either by re-exporting them or attaching them to `window`.
+  - The initialization order in your main game setup (`initSettings`, `initLightSliders`, etc.) is preserved and all dependent modules are loaded before the first render.
+  - Test after each extraction: move one settings group at a time and validate the 3D canvas is still rendering.
+- If you encounter a blank canvas after refactoring, revert to the original `settings.js`, then retry the migration gradually, checking for missing exports or initialization steps at each stage.
+- See comments in `gameInit.js` and `settings/index.js` for more details on migration and compatibility.
+
 ## Controls
 
 ### Submarine Movement
