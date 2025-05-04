@@ -10,6 +10,43 @@ import { keys } from '../input/inputManager.js';
 export { currentVelocity, maxSpeed, setMaxSpeed };
 
 /**
+ * Set rotation parameters for the submarine
+ * @param {number} speed - Rotation speed (radians per frame)
+ * @param {number} damping - Optional damping factor
+ */
+export function updateRotationParams(speed, damping = null) {
+  // Update the physics system
+  defaultPhysics.setRotationParams(speed, damping);
+  
+  // Store values globally for access by other systems
+  window.submarineRotationSpeed = speed;
+  if (damping !== null) window.submarineRotationDamping = damping;
+  
+  console.log(`[SUBMARINE] Updated rotation params - speed: ${speed}, damping: ${damping || 'unchanged'}`);
+}
+
+/**
+ * Update submarine mass/inertia parameter
+ * @param {number} mass - Submarine mass value (affects momentum and handling)
+ */
+export function updateSubmarineMass(mass) {
+  // Update the physics system mass directly
+  if (defaultPhysics && defaultPhysics.config) {
+    defaultPhysics.config.mass = mass;
+    
+    // Recalculate momentum factor
+    defaultPhysics.momentumFactor = 1.0 + (mass * 0.5);
+    
+    // Store value globally
+    window.submarineMass = mass;
+    
+    console.log(`[SUBMARINE] Updated mass to ${mass} (momentum factor: ${defaultPhysics.momentumFactor.toFixed(2)})`);
+  } else {
+    console.warn('[SUBMARINE] Cannot update mass: physics system not initialized');
+  }
+}
+
+/**
  * Update the maximum submarine speed and pass it to the physics system
  * @param {number} speed - New maximum speed
  */

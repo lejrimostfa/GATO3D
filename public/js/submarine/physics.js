@@ -25,8 +25,8 @@ export class SubmarinePhysics {
       dragDeceleration: options.dragDeceleration || 0.003,  // 6x faster
       
       // Turning parameters - more responsive
-      rotationSpeed: options.rotationSpeed || 0.01,  // Faster turning
-      rotationDamping: options.rotationDamping || 0.9, // Less damping
+      rotationSpeed: options.rotationSpeed || 0.005,  // Half as fast turning
+      rotationDamping: options.rotationDamping || 2.8, // Higher damping for heavier feel
       
       // Mass and inertia simulation - much lighter
       mass: options.mass || 0.3,  // Lower mass = less inertia
@@ -51,6 +51,21 @@ export class SubmarinePhysics {
     this.config.maxForwardSpeed = forward;
     // Always make backward speed equal to forward speed for consistent deceleration
     this.config.maxBackwardSpeed = forward;
+  }
+  
+  /**
+   * Set submarine rotation parameters
+   * @param {number} speed - Rotation speed (how fast the submarine turns)
+   * @param {number} damping - Rotation damping (higher = more resistance)
+   */
+  setRotationParams(speed, damping = null) {
+    if (speed !== null && speed !== undefined) {
+      this.config.rotationSpeed = speed;
+    }
+    
+    if (damping !== null && damping !== undefined) {
+      this.config.rotationDamping = damping;
+    }
   }
   
   /**

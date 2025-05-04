@@ -44,33 +44,44 @@
     <!-- == Menus (Top Right) == -->
     <div id="ui-menus" style="display:none; pointer-events:auto;">
       <style>
+        /* Style unifié pour tous les boutons de menu */
         .menu-button {
-          position: absolute;
-          right: 20px;
-          width: 180px;
-          z-index: 13;
-          background: rgba(17,17,34,0.65);
-          color: #0ff;
+          background-color: rgba(0, 32, 64, 0.6);
+          color: #00ffff;
+          border: 1px solid #00aaff;
+          border-radius: 6px;
+          padding: 8px 12px;
           font-family: monospace;
-          font-size: 16px;
-          border: 1px solid #0ff;
-          border-radius: 10px;
-          padding: 8px 0;
-          margin-top: 18px;
-          box-shadow: 0 2px 12px #0006;
-          transition: background 0.2s;
+          font-size: 14px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          min-width: 120px;
+          position: relative; /* Pour le positionnement correct */
         }
+        
         .menu-button:hover {
-          background: rgba(17,34,51,0.85);
+          background-color: rgba(0, 64, 128, 0.8);
+          border-color: #00ffff;
         }
+        
+        .menu-button i {
+          font-size: 16px;
+        }
+        
+        /* Style des panneaux de menu */
         .menu-panel {
           position: absolute;
-          right: 20px;
+          top: 70px; /* Sous la barre de menu */
+          transform: translateX(50%); /* Centre le panneau sous le bouton */
           width: 220px;
           background: rgba(17,17,34,0.7);
           border-radius: 10px;
           padding: 18px 10px 10px 10px;
-          z-index: 14;
+          z-index: 1001; /* Au-dessus de la barre */
           display: none;
           flex-direction: column;
           gap: 16px;
@@ -79,25 +90,86 @@
           box-shadow: 0 4px 20px #000a;
           border: 1px solid #0ff;
           backdrop-filter: blur(3px);
+          max-height: 80vh;
+          overflow-y: auto;
+        }
+        
+        /* Style de la barre de menu principale */
+        .ui-top-bar {
+          display: flex;
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          gap: 15px;
+          background-color: rgba(0,0,0,0.6);
+          padding: 10px 15px;
+          border-radius: 10px;
+          backdrop-filter: blur(5px);
+          z-index: 1000;
+          flex-wrap: wrap;
+          justify-content: flex-end;
+          max-width: 80%;
         }
       </style>
-      <button id="visibility-toggle" class="menu-button" style="top:60px;">Objets visibles</button>
-      <div id="visibility-panel" class="menu-panel" style="top:100px; right:210px;"></div>
-      <button id="game-settings-toggle" class="menu-button" style="top:118px;">Paramètres de jeu</button>
-      <button id="light-settings-toggle" class="menu-button" style="top:154px; margin-top:22px;">Réglages lumières</button>
-      <div id="game-settings-panel" class="menu-panel" style="top:158px; right:210px;">
-
-        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Vitesse max sous-marin
-          <input id="submarine-speed-slider" type="range" min="0.1" max="300" step="1" value="10" style="width:180px; margin-top:4px;" />
-          <div id="submarine-speed-label" style="color:#0f0; font-family:monospace;">Vitesse: 10 kn</div>
-        </label>
+      
+      <!-- Barre de menu unifiée en haut à droite -->
+      <div class="ui-top-bar">
+        <button id="game-settings-toggle" class="menu-button">
+          <i class="fas fa-cog"></i> Jeu
+        </button>
+        <button id="submarine-settings-toggle" class="menu-button">
+          <i class="fas fa-ship"></i> Sous-marin
+        </button>
+        <button id="visibility-toggle" class="menu-button">
+          <i class="fas fa-eye"></i> Visibilité
+        </button>
+        <button id="light-settings-toggle" class="menu-button">
+          <i class="fas fa-sun"></i> Lumières
+        </button>
+        <button id="wave-settings-toggle" class="menu-button">
+          <i class="fas fa-water"></i> Vagues
+        </button>
+        <button id="slider-toggle" class="menu-button">
+          <i class="fas fa-camera"></i> Caméra
+        </button>
+      </div>
+      <div id="game-settings-panel" class="menu-panel" style="top:70px; right:550px; transform: translateX(0);"><!-- Premier bouton -->
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Paramètres de jeu</h3>
 
         <label style="color:#0f0; font-family:monospace; margin-top:10px;">Durée d'une journée
           <input id="day-duration-slider" type="range" min="30" max="600" step="10" value="120" style="width:180px; margin-top:4px;" />
           <div id="day-duration-label" style="color:#0f0; font-family:monospace;">Jour: 2.00 min</div>
         </label>
       </div>
-      <div id="light-settings-panel" class="menu-panel" style="top:194px; right:210px;">
+      
+      <!-- Panel des réglages du sous-marin -->
+      <div id="submarine-settings-panel" class="menu-panel" style="top:70px; right:415px; transform: translateX(0);"><!-- Deuxième bouton -->
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Paramètres du sous-marin</h3>
+
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Vitesse max sous-marin
+          <input id="submarine-speed-slider" type="range" min="0.1" max="10" step="0.1" value="3" style="width:180px; margin-top:4px;" />
+          <div id="submarine-speed-label" style="color:#0f0; font-family:monospace;">Vitesse: 3 kn</div>
+        </label>
+        
+        <label style="color:#0f0; font-family:monospace; margin-top:15px;">Vitesse de rotation
+          <input id="rotation-speed-slider" type="range" min="0.001" max="0.01" step="0.001" value="0.005" style="width:180px; margin-top:4px;" />
+          <div id="rotation-speed-label" style="color:#0f0; font-family:monospace;">Rotation: 0.005</div>
+        </label>
+        
+        <label style="color:#0f0; font-family:monospace; margin-top:15px;">Inertie/Masse
+          <input id="submarine-mass-slider" type="range" min="0.1" max="1.0" step="0.1" value="0.3" style="width:180px; margin-top:4px;" />
+          <div id="submarine-mass-label" style="color:#0f0; font-family:monospace;">Masse: 0.3</div>
+        </label>
+      </div>
+      
+      <div id="visibility-panel" class="menu-panel" style="top:70px; right:280px; max-height:70vh; overflow-y:auto; transform: translateX(0);"><!-- Troisième bouton -->
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Visibilité des objets</h3>
+        <!-- Le contenu sera généré dynamiquement par le code JavaScript -->
+      </div>
+        
+      <div id="light-settings-panel" class="menu-panel" style="top:70px; right:145px; transform: translateX(0);"><!-- Quatrième bouton -->
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Réglages d'éclairage</h3>
+
         <label style="color:#0f0; font-family:monospace;">Soleil (DirectionalLight)
           <input id="sunlight-slider" type="range" min="0" max="2" step="0.01" value="0.21" style="width:180px; margin-top:4px;" />
           <div id="light-label" style="color:#0f0; font-family:monospace;">Light: 0.21</div>
@@ -108,8 +180,8 @@
         </label>
       </div>
       
-      <button id="wave-settings-toggle" class="menu-button" style="top:190px; margin-top:22px;">Vagues Ocean</button>
-      <div id="wave-settings-panel" class="menu-panel" style="top:230px; right:210px;">
+      <div id="wave-settings-panel" class="menu-panel" style="top:70px; right:10px; transform: translateX(0);"><!-- Cinquième bouton -->
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Réglages des vagues</h3>
         <label style="color:#0f0; font-family:monospace;">Amplitude des vagues
           <input id="wave-amplitude-slider" type="range" min="0" max="5" step="0.1" value="1.0" style="width:180px; margin-top:4px;" />
           <div id="wave-amplitude-label" style="color:#0f0; font-family:monospace;">Amplitude: 1.0</div>
@@ -119,8 +191,8 @@
           <div id="wave-direction-label" style="color:#0f0; font-family:monospace;">Direction: 0°</div>
         </label>
       </div>
-      <button id="slider-toggle" class="menu-button" style="top:230px;">Réglages caméra</button>
-      <div id="slider-panel" class="menu-panel" style="top:266px; right:210px; width:320px;">
+      <div id="slider-panel" class="menu-panel" style="top:70px; right:0px; width:280px; transform: translateX(-50%);"><!-- Sixième bouton, léger décalage vers la gauche -->
+        <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Réglages de caméra</h3>
         <label style="color:#0f0; font-family:monospace;">Distance caméra
           <input id="camera-slider" type="range" min="10" max="500" step="1" value="130" style="width:180px; margin-top:4px;" />
           <div id="camera-label" style="color:#0f0; font-family:monospace;">Camera: 130</div>

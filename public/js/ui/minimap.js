@@ -8,40 +8,26 @@ import { LAYERS } from '../water-setup.js';
 export let minimapRenderer = null;
 export let minimapCamera = null;
 
-// Configure minimap zoom settings with much better flexibility
-export const MINIMAP_ZOOM_MIN = 250;  // Even closer zoom for more detail
-export const MINIMAP_ZOOM_MAX = 15000; // Further max zoom for wider view
+// Configure minimap zoom settings with fixed 500 unit increments
+export const MINIMAP_ZOOM_MIN = 500;  // Minimum zoom level
+export const MINIMAP_ZOOM_MAX = 5000; // Maximum zoom level
 
-// More granular dynamic zoom step based on current zoom level
+// Fixed 500 unit increment for minimap zoom
 export function getZoomStep(currentZoom) {
-  // Calculate zoom step as a percentage of current zoom
-  // This creates a much more natural zooming experience
-  // with proportional steps at all zoom levels
-  const basePercentage = 0.15; // 15% zoom change per click
-  
-  // Apply different percentage based on zoom range
-  let percentage;
-  if (currentZoom < 500) {
-    percentage = 0.10; // 10% steps for very close zoom
-  } else if (currentZoom < 2000) {
-    percentage = 0.15; // 15% steps for close-medium zoom
-  } else if (currentZoom < 5000) {
-    percentage = 0.20; // 20% steps for medium-far zoom
-  } else {
-    percentage = 0.25; // 25% steps for very far zoom
-  }
-  
-  // Calculate the actual step value based on current zoom
-  const step = Math.max(50, Math.round(currentZoom * percentage / 50) * 50);
-  
-  return step;
+  // Always return 500 as the fixed step size
+  return 500;
 }
 
 export const MINIMAP_CAM_HEIGHT = 2000;
 
-export let minimapZoom = 3000; // Default zoom level within the new range
+export let minimapZoom = 3000; // Default zoom level (will be rounded to nearest 500)
 export function setMinimapZoom(val) {
-  minimapZoom = val;
+  // Round to nearest 500
+  const roundedVal = Math.round(val / 500) * 500;
+  
+  // Ensure zoom is always between min and max
+  minimapZoom = Math.max(MINIMAP_ZOOM_MIN, Math.min(roundedVal, MINIMAP_ZOOM_MAX));
+  console.log(`[MINIMAP] Zoom set to ${minimapZoom} (rounded from ${val})`);
 }
 
 export let minimapRotating = false;

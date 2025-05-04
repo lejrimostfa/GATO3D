@@ -10,6 +10,22 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
+### [2025-05-05] Submarine Control UI Overhaul & Settings Panels
+- **Unified Top Bar UI**
+  - All menu buttons are now organized into a single top bar, positioned at the top right for easy access.
+  - Consistent button styling: uniform size, spacing, color, and hover effects for a modern look.
+- **Panel Improvements**
+  - Menu panels now open directly below their corresponding buttons and never overflow the screen.
+  - Each panel is clearly labeled and organized for intuitive navigation.
+- **Dedicated Submarine Settings Panel**
+  - Submarine-specific controls (speed, rotation, mass) are grouped in a dedicated panel with clear titles.
+  - Sliders update submarine physics in real-time for immediate feedback.
+- **Visibility, Wave, and Camera Panels**
+  - Added a visibility panel to manage scene object visibility.
+  - Integrated wave and camera settings into their own panels with appropriate controls.
+- **General UI/UX Enhancements**
+  - Improved overall consistency, responsiveness, and accessibility for all controls and panels.
+
 ### [2025-05-04] Submarine Physics & Velocity Improvements
 - **Submarine Speed Controls**
   - Fixed velocity behavior when changing direction (forward to backward or vice versa)
@@ -200,16 +216,28 @@ http://localhost:3000
 - **Descend/Brake**: W (also acts as dive brake at high speeds)
 
 ### UI Controls
-- **Submarine Speed**: Slider in bottom panel
-- **Time of Day**: Slider at bottom
-- **Sunlight Intensity**: Slider at right
-- **Visibility Toggles**: Buttons at top-right
+- **Unified Top Bar**: All menu buttons (game settings, submarine settings, visibility, light, wave, camera) are now in a single top bar at the top right.
+- **Submarine Settings**: Speed, rotation, and mass sliders in a dedicated submarine panel (opens below the submarine button in the top bar).
+- **Visibility Panel**: Manage visibility of scene objects via the top bar.
+- **Wave & Camera Panels**: Access wave and camera settings from their dedicated top bar buttons.
+- **Consistent Button Styling**: All buttons have uniform appearance and responsive hover feedback.
+- **Panel Positioning**: All panels open directly under their respective buttons and are clearly labeled.
 - **Minimap Zoom**: + and - buttons on minimap
 - **Minimap Rotation**: R button on minimap
 
 ## Development Status
 
 ✅ **Completed**
+- **Unified Top Bar for Menu Buttons**
+  - All menu controls are now grouped in a single top bar with consistent styling and placement.
+- **Panel System Overhaul**
+  - Panels open under their respective buttons, are clearly labeled, and never overflow the screen.
+- **Submarine Settings Panel**
+  - Dedicated panel for submarine controls (speed, rotation, mass) with real-time feedback.
+- **Visibility, Wave, and Camera Panels**
+  - Dedicated panels for visibility, wave, and camera settings, accessible from the top bar.
+- **Consistent Button & Panel Styling**
+  - Uniform appearance, spacing, and hover effects across all UI controls.
 - **Submarine Physics System**
   - Realistic submarine movement with momentum and inertia
   - Special braking systems (dive brake, reverse brake) for intuitive control

@@ -99,51 +99,131 @@ function initRenderer() {
 }
 
 /**
- * Initialize the submarine speed slider controls
+ * Initialize the submarine control sliders (speed and rotation)
  */
 function initSubmarineSpeedControls() {
+  // Get references to elements
   const { submarineSpeedSlider, submarineSpeedLabel } = elements;
+  const rotationSpeedSlider = document.getElementById('rotation-speed-slider');
+  const rotationSpeedLabel = document.getElementById('rotation-speed-label');
   
+  // Check if main speed elements exist
   if (!submarineSpeedSlider || !submarineSpeedLabel) {
     console.warn('[GAME] Submarine speed slider elements not found');
-    return;
+    // Continue to try rotation slider setup anyway
   }
   
-  // Import modules we need for submarine speed control
+  // Import modules we need for submarine control
   import('../submarine/controls.js').then(module => {
-    const { updateMaxSpeed, setMaxSpeed } = module;
+    const { updateMaxSpeed, updateRotationParams, updateSubmarineMass } = module;
     
-    // Get the initial slider value
-    const initialValue = parseFloat(submarineSpeedSlider.value);
-    
-    // Set global max speed value for all systems to reference
-    window.currentMaxSpeed = initialValue;
-    
-    // Update the label with the initial value
-    submarineSpeedLabel.textContent = `Vitesse: ${initialValue} kn`;
-    
-    // Update submarine max speed in the physics system
-    updateMaxSpeed(initialValue);
-    
-    // Listen for changes to the slider
-    submarineSpeedSlider.addEventListener('input', () => {
-      const value = parseFloat(submarineSpeedSlider.value);
+    // --- SPEED SLIDER SETUP ---
+    if (submarineSpeedSlider && submarineSpeedLabel) {
+      // Get the initial slider value
+      const initialSpeedValue = parseFloat(submarineSpeedSlider.value);
       
-      // Update the label
-      submarineSpeedLabel.textContent = `Vitesse: ${value} kn`;
+      // Set global max speed value for all systems to reference
+      window.currentMaxSpeed = initialSpeedValue;
       
-      // Update the global max speed value
-      window.currentMaxSpeed = value;
+      // Update the label with the initial value
+      submarineSpeedLabel.textContent = `Vitesse: ${initialSpeedValue} kn`;
       
       // Update submarine max speed in the physics system
-      updateMaxSpeed(value);
+      updateMaxSpeed(initialSpeedValue);
       
-      console.log(`[GAME] Updated submarine max speed to ${value} knots`);
-    });
+      // Listen for changes to the speed slider
+      submarineSpeedSlider.addEventListener('input', () => {
+        const value = parseFloat(submarineSpeedSlider.value);
+        
+        // Update the label
+        submarineSpeedLabel.textContent = `Vitesse: ${value} kn`;
+        
+        // Update the global max speed value
+        window.currentMaxSpeed = value;
+        
+        // Update submarine max speed in the physics system
+        updateMaxSpeed(value);
+        
+        console.log(`[GAME] Updated submarine max speed to ${value} knots`);
+      });
+      
+      console.log(`[GAME] Initialized submarine speed controls with max speed: ${initialSpeedValue} knots`);
+    }
     
-    console.log(`[GAME] Initialized submarine speed controls with max speed: ${initialValue} knots`);
+    // --- ROTATION SLIDER SETUP ---
+    if (rotationSpeedSlider && rotationSpeedLabel) {
+      // Get the initial rotation speed value
+      const initialRotationValue = parseFloat(rotationSpeedSlider.value);
+      
+      // Set global rotation speed value
+      window.submarineRotationSpeed = initialRotationValue;
+      
+      // Update the label with the initial value
+      rotationSpeedLabel.textContent = `Rotation: ${initialRotationValue.toFixed(3)}`;
+      
+      // Update submarine rotation speed in the physics system
+      updateRotationParams(initialRotationValue);
+      
+      // Listen for changes to the rotation slider
+      rotationSpeedSlider.addEventListener('input', () => {
+        const value = parseFloat(rotationSpeedSlider.value);
+        
+        // Update the label
+        rotationSpeedLabel.textContent = `Rotation: ${value.toFixed(3)}`;
+        
+        // Update the global rotation speed value
+        window.submarineRotationSpeed = value;
+        
+        // Update submarine rotation speed in the physics system
+        updateRotationParams(value);
+        
+        console.log(`[GAME] Updated submarine rotation speed to ${value}`);
+      });
+      
+      console.log(`[GAME] Initialized submarine rotation controls with speed: ${initialRotationValue}`);
+    } else {
+      console.warn('[GAME] Submarine rotation slider elements not found');
+    }
+    
+    // --- MASS/INERTIA SLIDER SETUP ---
+    const massSlider = document.getElementById('submarine-mass-slider');
+    const massLabel = document.getElementById('submarine-mass-label');
+    
+    if (massSlider && massLabel) {
+      // Get the initial mass value
+      const initialMassValue = parseFloat(massSlider.value);
+      
+      // Set global mass value
+      window.submarineMass = initialMassValue;
+      
+      // Update the label with the initial value
+      massLabel.textContent = `Masse: ${initialMassValue.toFixed(1)}`;
+      
+      // Update submarine mass in the physics system
+      updateSubmarineMass(initialMassValue);
+      
+      // Listen for changes to the mass slider
+      massSlider.addEventListener('input', () => {
+        const value = parseFloat(massSlider.value);
+        
+        // Update the label
+        massLabel.textContent = `Masse: ${value.toFixed(1)}`;
+        
+        // Update the global mass value
+        window.submarineMass = value;
+        
+        // Update submarine mass in the physics system
+        updateSubmarineMass(value);
+        
+        console.log(`[GAME] Updated submarine mass to ${value}`);
+      });
+      
+      console.log(`[GAME] Initialized submarine mass controls with value: ${initialMassValue}`);
+    } else {
+      console.warn('[GAME] Submarine mass slider elements not found');
+    }
   }).catch(error => {
-    console.error('[GAME] Error initializing submarine speed controls:', error);
+    console.error('[GAME] Error initializing submarine controls:', error);
   });
 }
 

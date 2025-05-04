@@ -101,6 +101,7 @@ function hideAllUIElements() {
 function initMenuPanels() {
   initMenus([
     {btnId: 'game-settings-toggle', panelId: 'game-settings-panel'},
+    {btnId: 'submarine-settings-toggle', panelId: 'submarine-settings-panel'},
     {btnId: 'slider-toggle', panelId: 'slider-panel'},
     {btnId: 'visibility-toggle', panelId: 'visibility-panel'},
     {btnId: 'light-settings-toggle', panelId: 'light-settings-panel'},
@@ -378,24 +379,32 @@ function setupMinimapButtons() {
     // Fix button positioning
     fixMinimapButtonStyling();
     
-    // Add click handler for zoom in (with dynamic step size)
+    // Add click handler for zoom in (fixed 500 unit steps)
     minimapZoomIn.onclick = () => {
-      // Calculate zoom step dynamically based on current zoom level
-      const zoomStep = getZoomStep(minimapZoom);
-      // Apply zoom, making sure not to go below minimum
-      const newZoom = Math.max(MINIMAP_ZOOM_MIN, minimapZoom - zoomStep);
-      console.log(`[UI] Minimap zoom in: ${minimapZoom} -> ${newZoom} (step: ${zoomStep})`);
-      setMinimapZoom(newZoom);
+      // Always use 500 as step size
+      const zoomStep = 500;
+      // Get the current zoom value from the module
+      import('./minimap.js').then(module => {
+        // Apply zoom, will be bounded by min/max in setMinimapZoom
+        const currentZoom = module.minimapZoom;
+        const newZoom = currentZoom - zoomStep;
+        console.log(`[UI] Minimap zoom in: ${currentZoom} -> ${newZoom} (step: ${zoomStep})`);
+        setMinimapZoom(newZoom);
+      });
     };
     
-    // Add click handler for zoom out (with dynamic step size)
+    // Add click handler for zoom out (fixed 500 unit steps)
     minimapZoomOut.onclick = () => {
-      // Calculate zoom step dynamically based on current zoom level
-      const zoomStep = getZoomStep(minimapZoom);
-      // Apply zoom, making sure not to exceed maximum
-      const newZoom = Math.min(MINIMAP_ZOOM_MAX, minimapZoom + zoomStep);
-      console.log(`[UI] Minimap zoom out: ${minimapZoom} -> ${newZoom} (step: ${zoomStep})`);
-      setMinimapZoom(newZoom);
+      // Always use 500 as step size
+      const zoomStep = 500;
+      // Get the current zoom value from the module
+      import('./minimap.js').then(module => {
+        // Apply zoom, will be bounded by min/max in setMinimapZoom
+        const currentZoom = module.minimapZoom;
+        const newZoom = currentZoom + zoomStep;
+        console.log(`[UI] Minimap zoom out: ${currentZoom} -> ${newZoom} (step: ${zoomStep})`);
+        setMinimapZoom(newZoom);
+      });
     };
     
     // Keep track of rotation state
