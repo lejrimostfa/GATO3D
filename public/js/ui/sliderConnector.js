@@ -2,8 +2,6 @@
 // Script de reconnexion des sliders aux fonctions d'origine
 // Ce fichier fixe les sliders déconnectés après la refactorisation
 
-import { setCameraFollowParams } from '../camera/followCamera.js';
-
 /**
  * Réinitialise les connexions entre les sliders et les fonctions qui doivent être appelées
  * quand les valeurs changent. Cette fonction corrige le problème des sliders déconnectés.
@@ -11,71 +9,26 @@ import { setCameraFollowParams } from '../camera/followCamera.js';
 export function reconnectSliders() {
   console.log('[UI:SliderConnector] Reconnecting sliders to their handler functions...');
   
-  // 1. Sliders caméra
-  connectCameraSliders();
+  // Note: La gestion des sliders caméra est maintenant entièrement gérée par le module cameraControls.js
+  // et son initCameraSliders() qui est appelé automatiquement au démarrage
   
-  // 2. Sliders vagues
+  // 1. Sliders vagues
   connectWaveSliders();
   
-  // 3. Sliders du sous-marin (vitesse, rotation, masse)
+  // 2. Sliders du sous-marin (vitesse, rotation, masse)
   connectSubmarineSliders();
   
-  // 4. Sliders d'éclairage
+  // 3. Sliders d'éclairage
   connectLightingSliders();
   
-  // 5. Autres sliders
+  // 4. Autres sliders
   connectMiscSliders();
   
   console.log('[UI:SliderConnector] All sliders reconnected successfully');
 }
 
-/**
- * Connecte les sliders de caméra à la fonction setCameraFollowParams
- */
-function connectCameraSliders() {
-  // Récupérer les références des nouveaux sliders de caméra
-  const distanceSlider = document.getElementById('camera-distance-slider');
-  const heightSlider = document.getElementById('camera-height-slider');
-  const smoothnessSlider = document.getElementById('camera-smoothness-slider');
-  
-  // Récupérer les éléments d'affichage des valeurs
-  const distanceValue = document.getElementById('camera-distance-value');
-  const heightValue = document.getElementById('camera-height-value');
-  const smoothnessValue = document.getElementById('camera-smoothness-value');
-  
-  // Vérifier que les sliders existent
-  if (!distanceSlider || !heightSlider || !smoothnessSlider) {
-    console.warn('[UI:Camera] Certains sliders de caméra sont manquants. Utilisation des valeurs par défaut.');
-    setCameraFollowParams(250, 0.005, 60);
-    return;
-  }
-  
-  // Fonction de mise à jour commune pour tous les sliders
-  const updateCameraParams = () => {
-    const distance = parseFloat(distanceSlider.value);
-    const height = parseFloat(heightSlider.value);
-    const smoothness = parseFloat(smoothnessSlider.value);
-    
-    // Mettre à jour les valeurs affichées
-    if (distanceValue) distanceValue.textContent = distance;
-    if (heightValue) heightValue.textContent = height;
-    if (smoothnessValue) smoothnessValue.textContent = smoothness;
-    
-    // Appliquer les paramètres de caméra
-    setCameraFollowParams(distance, smoothness, height);
-    console.log(`[UI:Camera] Updated camera params: distance=${distance}, smoothness=${smoothness}, height=${height}`);
-  };
-  
-  // Connecter les listeners d'événements
-  distanceSlider.addEventListener('input', updateCameraParams);
-  heightSlider.addEventListener('input', updateCameraParams);
-  smoothnessSlider.addEventListener('input', updateCameraParams);
-  
-  // Initialisation avec les valeurs actuelles
-  updateCameraParams();
-  
-  console.log('[UI:Camera] Camera sliders connected successfully');
-}
+// Note: La fonction connectCameraSliders() a été supprimée car elle créait un doublon avec le système dans cameraControls.js
+// La gestion des contrôles caméra est maintenant entièrement centralisée dans le module ui/controls/cameraControls.js
 
 /**
  * Connecte les sliders de vagues à leurs fonctions appropriées
