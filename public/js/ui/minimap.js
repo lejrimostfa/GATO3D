@@ -129,8 +129,36 @@ export function initMinimap() {
   console.log('[MINIMAP] Minimap initialized successfully');
 }
 
+// Met à jour l'opacité du sous-marin en fonction de sa profondeur
+function updateSubmarineOpacity(submarine) {
+  if (!submarine) return;
+  
+  // Récupérer la position Y (profondeur) du sous-marin
+  const depth = -submarine.position.y; // Convertir en positif pour la profondeur
+  
+  // Calculer l'opacité en fonction de la profondeur
+  // Pleine opacité à la surface (y = 0), transparence maximale à -100 units
+  const maxDepth = 100; // Profondeur maximale pour l'effet de transparence
+  const opacity = Math.max(0.3, 1 - (depth / maxDepth));
+  
+  // Appliquer l'opacité à tous les meshes du sous-marin
+  submarine.traverse((child) => {
+    if (child.isMesh) {
+      if (!child.material.originalOpacity) {
+        child.material.originalOpacity = child.material.opacity;
+      }
+      child.material.transparent = true;
+      child.material.opacity = opacity;
+      child.material.needsUpdate = true;
+    }
+  });
+}
+
 export function updateMinimap(scene, playerSubmarine, cameraFrustumHelper) {
   if (!minimapRenderer || !minimapCamera || !playerSubmarine) return;
+  
+  // Mettre à jour l'opacité du sous-marin
+  updateSubmarineOpacity(playerSubmarine);
   // Centre géométrique du sous-marin pour la mini-map
   let center = playerSubmarine.localToWorld(new THREE.Vector3(0, 0, 0));
   minimapCamera.top = minimapZoom / 2;
@@ -167,7 +195,18 @@ export function updateMinimap(scene, playerSubmarine, cameraFrustumHelper) {
     cameraFrustumHelper.visible = true;
     cameraFrustumHelper.update();
   }
+  // Sauvegarder l'état du fog
+  const originalFog = scene.fog;
+  
+  // Désactiver le fog pour le rendu de la minimap
+  scene.fog = null;
+  
+  // Rendu de la minimap
   minimapRenderer.clear();
   minimapRenderer.render(scene, minimapCamera);
+  
+  // Restaurer le fog
+  scene.fog = originalFog;
+  
   if (cameraFrustumHelper) cameraFrustumHelper.visible = false;
 }
