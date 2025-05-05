@@ -1,0 +1,11 @@
+Model Information:
+* title:	Samidare destroyer
+* source:	https://sketchfab.com/3d-models/samidare-destroyer-b37939147c854e61857f5b248f9efd29
+* author:	everlasting17th (https://sketchfab.com/everlastinggrey)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Samidare destroyer" (https://sketchfab.com/3d-models/samidare-destroyer-b37939147c854e61857f5b248f9efd29) by everlasting17th (https://sketchfab.com/everlastinggrey) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

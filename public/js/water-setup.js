@@ -64,20 +64,46 @@ export function setupSkyAndWater(scene, renderer, camera) {
   }
   
   // Load the water normal texture with higher resolution and repeat
-  const waterNormalTexture = new THREE.TextureLoader().load(
-    '/textures/waternormals.jpg',
-    tex => {
-      // Set repeat wrapping for infinite tiling
-      tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-      // Increase the repeat factor for more detail
-      tex.repeat.set(20, 20);
-      tex.flipY = false; // Required to avoid WebGL errors with 3D textures
-      // Set anisotropy for better texture quality at grazing angles
-      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-    },
-    undefined,
-    err => console.warn('Water normals not found:', err)
-  );
+  // Utiliser plusieurs chemins possibles pour la texture (pour compatibilité GitHub Pages)
+  const texturePaths = [
+    './textures/waternormals.jpg',           // Chemin relatif (préféré)
+    '../textures/waternormals.jpg',          // Autre chemin relatif possible
+    '/textures/waternormals.jpg',            // Chemin absolu depuis la racine
+    'https://threejs.org/examples/textures/waternormals.jpg' // Fallback externe
+  ];
+  
+  // Fonction pour essayer de charger la texture avec différents chemins
+  function tryLoadTexture(paths, index = 0) {
+    if (index >= paths.length) {
+      console.error('❌ Tous les chemins de texture ont échoué!');
+      return new THREE.Texture(); // Texture vide comme dernier recours
+    }
+    
+    console.log(`[WATER] Tentative de chargement de la texture: ${paths[index]}`);
+    
+    return new THREE.TextureLoader().load(
+      paths[index],
+      tex => {
+        console.log(`✅ Texture d'eau chargée avec succès depuis: ${paths[index]}`);
+        // Set repeat wrapping for infinite tiling
+        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+        // Increase the repeat factor for more detail
+        tex.repeat.set(20, 20);
+        tex.flipY = false; // Required to avoid WebGL errors with 3D textures
+        // Set anisotropy for better texture quality at grazing angles
+        tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      },
+      undefined,
+      err => {
+        console.warn(`❌ Échec du chargement de la texture depuis ${paths[index]}:`, err);
+        // Essayer le chemin suivant
+        return tryLoadTexture(paths, index + 1);
+      }
+    );
+  }
+  
+  // Essayer de charger la texture avec tous les chemins possibles
+  const waterNormalTexture = tryLoadTexture(texturePaths);
   
   // Create water with improved parameters
   const water = new Water(waterGeometry, {

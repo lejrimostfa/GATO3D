@@ -1,0 +1,11 @@
+Model Information:
+* title:	USS LASSEN DDG-82 Class Destroyer
+* source:	https://sketchfab.com/3d-models/uss-lassen-ddg-82-class-destroyer-cc78bce67427444bbcdb0b6b2fa31d40
+* author:	Muhamad Mirza Arrafi (https://sketchfab.com/nazidefenseforceofficial)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "USS LASSEN DDG-82 Class Destroyer" (https://sketchfab.com/3d-models/uss-lassen-ddg-82-class-destroyer-cc78bce67427444bbcdb0b6b2fa31d40) by Muhamad Mirza Arrafi (https://sketchfab.com/nazidefenseforceofficial) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
