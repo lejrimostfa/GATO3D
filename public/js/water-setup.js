@@ -1,5 +1,3 @@
-
-
 // public/js/water-setup.js
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
 import { Water } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Water.js';
@@ -352,8 +350,30 @@ export function updateSun(sceneHandles, hour) {
   const { sky, water, sun, sunSphere, renderer, nightSky } = sceneHandles;
   
   // Calcul de la position du soleil
-  let phi = (hour <= 12) ? Math.PI * (1 - hour / 12) : Math.PI * ((hour - 12) / 12);
-  const theta = THREE.MathUtils.degToRad(180);
+  const timeFraction = hour / 24;
+  
+  // Phi (élévation): 0 à PI (haut en bas)
+  let phi;
+  if (hour < 6 || hour > 18) {
+    // Nuit: soleil sous l'horizon
+    phi = Math.PI / 2 + Math.PI * 0.1; // Légèrement sous l'horizon
+  } else {
+    // Jour: de l'horizon (PI/2) au zénith (0) puis retour à l'horizon (PI/2)
+    const dayProgress = (hour - 6) / 12; // 0 (6h) à 1 (18h)
+    phi = Math.PI / 2 - Math.sin(dayProgress * Math.PI) * (Math.PI / 2);
+  }
+  
+  // Theta (azimuth): 0 à 2*PI (Est -> Sud -> Ouest -> Nord)
+  // On veut Est (PI/2) au lever (6h) et Ouest (3*PI/2) au coucher (18h)
+  let theta;
+  if (hour >= 6 && hour <= 18) {
+    // Jour: de PI/2 à 3*PI/2
+    theta = Math.PI/2 + (hour - 6) / 12 * Math.PI;
+  } else {
+    // Nuit: on continue la rotation pour être cohérent (facultatif visuellement)
+    theta = hour > 18 ? (3*Math.PI/2 + (hour - 18) / 6 * Math.PI / 2) : (Math.PI/2 - (6 - hour) / 6 * Math.PI / 2);
+    theta %= (2 * Math.PI); // Garder dans [0, 2*PI]
+  }
   
   // Mise à jour de la position du soleil
   if (sun && sun.setFromSphericalCoords) {
@@ -375,7 +395,7 @@ export function updateSun(sceneHandles, hour) {
   
   // Calcul de l'heure normalisée pour la nuit (0 = midi, 1 = minuit)
   let nightFactor;
-  if (hour >= 18 || hour <= 6) {
+  if (hour >= 18 || hour < 6) {
     // Nuit (18h-6h)
     nightFactor = hour >= 18 ? (hour - 18) / 6 : 1 - hour / 6;
   } else {
@@ -390,43 +410,43 @@ export function updateSun(sceneHandles, hour) {
   }
   
   if (sky && nightSky) {
-    // Gestion du ciel étoilé
+    // Gestion du ciel étoilé et transition
     if (hour >= 19 || hour < 5) {
       // Nuit complète (19h-5h)
       sky.visible = false;
       nightSky.visible = true;
       nightSky.material.opacity = 1;
-      if (renderer) renderer.setClearColor(0x000011);
+      if (renderer) renderer.setClearColor(0x000011, 1);
     } else if (hour >= 5 && hour < 6) {
-      // Transition aube (5h-6h)
-      const t = (hour - 5);
-      sky.visible = true;
+      // Transition Aube (5h-6h)
+      const t = hour - 5; // 0 à 1
+      sky.visible = true; // Le ciel de jour devient visible
       nightSky.visible = true;
-      nightSky.material.opacity = 1 - t;
+      nightSky.material.opacity = 1 - t; // Fade out étoiles
       if (renderer) {
         const dayColor = new THREE.Color(0x87ceeb);
         const nightColor = new THREE.Color(0x000011);
         const transitionColor = new THREE.Color().lerpColors(nightColor, dayColor, t);
-        renderer.setClearColor(transitionColor);
+        renderer.setClearColor(transitionColor, 1);
       }
     } else if (hour >= 18 && hour < 19) {
-      // Transition crépuscule (18h-19h)
-      const t = (hour - 18);
-      sky.visible = true;
+      // Transition Crépuscule (18h-19h)
+      const t = hour - 18; // 0 à 1
+      sky.visible = true; // Le ciel de jour reste visible pendant la transition
       nightSky.visible = true;
-      nightSky.material.opacity = t;
+      nightSky.material.opacity = t; // Fade in étoiles
       if (renderer) {
         const dayColor = new THREE.Color(0x87ceeb);
         const nightColor = new THREE.Color(0x000011);
         const transitionColor = new THREE.Color().lerpColors(dayColor, nightColor, t);
-        renderer.setClearColor(transitionColor);
+        renderer.setClearColor(transitionColor, 1);
       }
     } else {
-      // Jour (6h-18h)
+      // Jour complet (6h-18h)
       sky.visible = true;
       nightSky.visible = false;
       nightSky.material.opacity = 0;
-      if (renderer) renderer.setClearColor(0x87ceeb);
+      if (renderer) renderer.setClearColor(0x87ceeb, 1);
     }
   }
 }

@@ -29,6 +29,20 @@
   - Reduced speed-based turning resistance for more responsive steering
   - More gradual deceleration when stopping for realistic inertia
 
+### [2025-05-05] Day/Night Cycle Improvements
+- **Realistic Sun Path**
+  - Sun now follows a natural East-West trajectory
+  - Sunrise at 6:00 AM and sunset at 6:00 PM
+  - Smooth elevation arc from horizon to zenith
+- **Smooth Star Transition**
+  - Star sky fades in/out over one hour (5:00-6:00 AM/PM)
+  - Progressive opacity change for natural transitions
+  - Smooth color gradient from day to night
+- **Camera and Sky Synchronization**
+  - Sky spheres follow camera position for infinite effect
+  - Proper distance management for visibility
+  - Real-time sky updates with camera movement
+
 ### [2025-05-05] Terrain & Water Surface Improvements
 - **Terrain Generation**
   - Implemented a large-scale ocean floor matching the water surface dimensions
