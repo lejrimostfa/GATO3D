@@ -48,7 +48,7 @@ const MODELS = [
 
 // Fonction pour tester le chargement de tous les modèles
 export function testAllModels() {
-  console.log('[MODEL_TESTER] Starting to test all available models');
+  // console.log('[MODEL_TESTER] Starting to test all available models');
   
   if (!scene) {
     console.error('[MODEL_TESTER] Scene not available, cannot test models');
@@ -63,7 +63,7 @@ export function testAllModels() {
   
   // Fonction pour charger un modèle
   function loadModel(model, index) {
-    console.log(`[MODEL_TESTER] Testing model ${index+1}/${MODELS.length}: ${model.name}`);
+    // console.log(`[MODEL_TESTER] Testing model ${index+1}/${MODELS.length}: ${model.name}`);
     
     // Créer un marqueur pour la position du modèle
     const markerGeometry = new THREE.BoxGeometry(10, 10, 10);
@@ -125,7 +125,7 @@ export function testAllModels() {
       (gltf) => {
         // Modèle chargé avec succès
         const loadTime = Date.now() - startTime;
-        console.log(`[MODEL_TESTER] Success: ${model.name} loaded in ${loadTime}ms`);
+        // console.log(`[MODEL_TESTER] Success: ${model.name} loaded in ${loadTime}ms`);
         
         // Configurer le modèle
         const modelObject = gltf.scene;
@@ -169,7 +169,7 @@ export function testAllModels() {
         // Progression du chargement
         if (xhr.lengthComputable) {
           const percentComplete = (xhr.loaded / xhr.total) * 100;
-          console.log(`[MODEL_TESTER] Loading ${model.name}: ${Math.round(percentComplete)}%`);
+          // console.log(`[MODEL_TESTER] Loading ${model.name}: ${Math.round(percentComplete)}%`);
           
           // Mettre à jour le texte avec la progression
           textDiv.innerHTML = `${index+1}: ${model.name} (${Math.round(percentComplete)}%)`;
@@ -220,7 +220,7 @@ export function testAllModels() {
   
   // Afficher un résumé après le chargement de tous les modèles
   setTimeout(() => {
-    console.log('[MODEL_TESTER] Test results:');
+    // console.log('[MODEL_TESTER] Test results:');
     console.table(results.map(r => ({
       name: r.name,
       success: r.success,

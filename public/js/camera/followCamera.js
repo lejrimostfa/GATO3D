@@ -42,13 +42,13 @@ export function initCameraFollow(scene) {
       scene.userData.camera.near = 1;
       scene.userData.camera.far = 12000; // Ajusté pour voir le ciel nocturne
       scene.userData.camera.updateProjectionMatrix();
-      console.log('[CAMERA] Camera parameters updated:', {
-        near: scene.userData.camera.near,
-        far: scene.userData.camera.far
-      });
+      // console.log('[CAMERA] Camera parameters updated:', {
+      //   near: scene.userData.camera.near,
+      //   far: scene.userData.camera.far
+      // });
     }
     
-    console.log('[CAMERA] Camera follow system initialized with debug cube');
+    // console.log('[CAMERA] Camera follow system initialized with debug cube');
     return cameraTargetCube;
   } catch (error) {
     console.error('[CAMERA] Error initializing camera follow system:', error);

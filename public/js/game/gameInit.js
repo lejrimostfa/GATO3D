@@ -9,7 +9,7 @@ import { initTimeManager, updateGameTime } from '../time/timeManager.js';
 import { initCameraFollow } from '../camera/followCamera.js';
 import { initMinimap } from '../ui/minimap.js';
 import { initSettings } from '../ui/settings.js';
-import { initUnderwaterEffects } from '../effects/underwater.js';
+import { initUnderwaterEffects, setFogParameters } from '../effects/underwater.js';
 import { initSkyEffects } from '../effects/skyEffects.js';
 import { initAnimationLoop } from '../animation/animateLoop.js';
 import { initFpsCounter } from '../ui/fpsCounter.js';
@@ -29,7 +29,7 @@ export let playerSubmarine = null;
  * @param {Function} onComplete - Callback when initialization is complete
  */
 export function initGame(onComplete) {
-  console.log('[GAME] Initializing game systems');
+  // console.log('[GAME] Initializing game systems');
   
   // Initialize renderer
   const rendererInitialized = initRenderer();
@@ -52,13 +52,13 @@ export function initGame(onComplete) {
   // Load the game level and continue initialization
   loadGameLevel(() => {
     // Initialize time management with default day duration
-    console.log('[GAME] Initializing time manager...');
+    // console.log('[GAME] Initializing time manager...');
     initTimeManager(120);
     
     // Forcer une mise à jour initiale du soleil
     const { currentGameHour } = updateGameTime();
     if (sceneHandles) {
-      console.log('[GAME] Initial game hour:', currentGameHour);
+      // console.log('[GAME] Initial game hour:', currentGameHour);
       updateSun(sceneHandles, currentGameHour);
     } else {
       console.warn('[GAME] sceneHandles non disponible pour la mise à jour initiale du soleil');
@@ -87,7 +87,7 @@ function initRenderer() {
   }
   
   try {
-    console.log('[GAME] Creating WebGL renderer with canvas:', canvas);
+    // console.log('[GAME] Creating WebGL renderer with canvas:', canvas);
     
     renderer = new THREE.WebGLRenderer({ 
       antialias: true, 
@@ -103,7 +103,7 @@ function initRenderer() {
     
     // Set initial size
     renderer.setSize(window.innerWidth, window.innerHeight);
-    console.log('[GAME] Renderer initialized successfully');
+    // console.log('[GAME] Renderer initialized successfully');
     
     return true;
   } catch (error) {
@@ -158,10 +158,10 @@ function initSubmarineSpeedControls() {
         // Update submarine max speed in the physics system
         updateMaxSpeed(value);
         
-        console.log(`[GAME] Updated submarine max speed to ${value} knots`);
+        // console.log(`[GAME] Updated submarine max speed to ${value} knots`);
       });
       
-      console.log(`[GAME] Initialized submarine speed controls with max speed: ${initialSpeedValue} knots`);
+      // console.log(`[GAME] Initialized submarine speed controls with max speed: ${initialSpeedValue} knots`);
     }
     
     // --- ROTATION SLIDER SETUP ---
@@ -191,10 +191,10 @@ function initSubmarineSpeedControls() {
         // Update submarine rotation speed in the physics system
         updateRotationParams(value);
         
-        console.log(`[GAME] Updated submarine rotation speed to ${value}`);
+        // console.log(`[GAME] Updated submarine rotation speed to ${value}`);
       });
       
-      console.log(`[GAME] Initialized submarine rotation controls with speed: ${initialRotationValue}`);
+      // console.log(`[GAME] Initialized submarine rotation controls with speed: ${initialRotationValue}`);
     } else {
       console.warn('[GAME] Submarine rotation slider elements not found');
     }
@@ -229,10 +229,10 @@ function initSubmarineSpeedControls() {
         // Update submarine mass in the physics system
         updateSubmarineMass(value);
         
-        console.log(`[GAME] Updated submarine mass to ${value}`);
+        // console.log(`[GAME] Updated submarine mass to ${value}`);
       });
       
-      console.log(`[GAME] Initialized submarine mass controls with value: ${initialMassValue}`);
+      // console.log(`[GAME] Initialized submarine mass controls with value: ${initialMassValue}`);
     } else {
       console.warn('[GAME] Submarine mass slider elements not found');
     }
@@ -246,7 +246,7 @@ function initSubmarineSpeedControls() {
  */
 function preloadWaveControls() {
   import('../ocean/waveControls.js').then(waveModule => {
-    console.log('[GAME] Wave controls module loaded');
+    // console.log('[GAME] Wave controls module loaded');
     window.waveControlsModule = waveModule;
   });
 }
@@ -261,9 +261,9 @@ function loadGameLevel(onComplete) {
     return;
   }
   
-  console.log('[GAME] Loading initial level...');
+  // console.log('[GAME] Loading initial level...');
   loadLevel('level1', renderer, levelData => {
-    console.log('[GAME] Level loaded:', levelData);
+    // console.log('[GAME] Level loaded:', levelData);
     
     // Check if we're in an error state
     if (levelData.isErrorState) {
@@ -283,17 +283,17 @@ function loadGameLevel(onComplete) {
     
     // Ensure sceneHandles exists and update global reference
     if (!objects.sceneHandles || !objects.sceneHandles.sun || !objects.sceneHandles.sky) {
-      console.log('[GAME] Setting up sky and water components...');
+      // console.log('[GAME] Setting up sky and water components...');
       const newSceneHandles = setupSkyAndWater(scene, renderer, camera);
       sceneHandles = { ...newSceneHandles };
       objects.sceneHandles = sceneHandles;
     } else {
-      console.log('[GAME] Using existing scene handles');
+      // console.log('[GAME] Using existing scene handles');
       sceneHandles = objects.sceneHandles;
     }
     
-    console.log('[GAME] Scene handles:', Object.keys(sceneHandles));
-    console.log('[GAME] Global scene and camera references updated');
+    // console.log('[GAME] Scene handles:', Object.keys(sceneHandles));
+    // console.log('[GAME] Global scene and camera references updated');
     
     // Save key references to window for access by other components
     window.mainCamera = camera;
@@ -311,7 +311,7 @@ function loadGameLevel(onComplete) {
     
     // Create ambient light if not available
     if (!sceneHandles || !sceneHandles.ambientLight) {
-      console.log('[GAME] Creating ambient light for underwater effects');
+      // console.log('[GAME] Creating ambient light for underwater effects');
       const ambientLight = new THREE.AmbientLight(0x555555);
       scene.add(ambientLight);
       
@@ -327,6 +327,15 @@ function loadGameLevel(onComplete) {
       initUnderwaterEffects(scene, sceneHandles.ambientLight);
     }
     
+    // Ensure underwater effects module uses the same default fog
+    const defaultFogColor = 0x808080; // Update to gray
+    const defaultFogDensity = 0.00001; // Further decrease density
+    setFogParameters({ 
+      defaultColor: defaultFogColor, 
+      defaultDensity: defaultFogDensity 
+    });
+    // console.log('[GAME] Updated underwater default fog:', { color: defaultFogColor.toString(16), density: defaultFogDensity });
+
     // Load the submarine model
     loadSubmarine(scene, submarine => {
       // Store reference and enable updates
@@ -340,7 +349,7 @@ function loadGameLevel(onComplete) {
       const forward = new THREE.Vector3(0, 0, 1);
       playerSubmarine.userData.forward = forward;
       
-      console.log('[GAME] Submarine model loaded successfully and connected to camera', playerSubmarine);
+      // console.log('[GAME] Submarine model loaded successfully and connected to camera', playerSubmarine);
       
       // Initialize systems that depend on the submarine
       initSubmarineBasedSystems();
@@ -384,7 +393,7 @@ function initSubmarineBasedSystems() {
   
   try {
     // Initialize camera follow system
-    console.log('[GAME] Initializing camera follow system with scene:', !!scene);
+    // console.log('[GAME] Initializing camera follow system with scene:', !!scene);
     initCameraFollow(scene);
     
     // Initialize minimap
@@ -408,7 +417,7 @@ function initUIComponents() {
   
   // Initialize visibility panel with scene objects
   import('../ui/visibility.js').then(({ initVisibilityPanel }) => {
-    console.log('[GAME] Initializing visibility panel');
+    // console.log('[GAME] Initializing visibility panel');
     const visibilityManager = initVisibilityPanel(scene);
     
     // Add important objects if panel was initialized
@@ -458,7 +467,7 @@ function addObjectsToVisibilityPanel(visibilityManager) {
 function initWaveControls() {
   // 1. D'abord, configurer les contrôles standard des vagues
   import('../ocean/waveControls.js').then(({ setWaveAmplitude, setWaveDirection, setWaterTransparency, setWaterReflections, setWaterRefractions, updateWaterMaterial }) => {
-    console.log('[GAME] Setting up wave control sliders');
+    // console.log('[GAME] Setting up wave control sliders');
     const { 
       waveAmplitudeSlider, waveAmplitudeLabel,
       waveDirectionSlider, waveDirectionLabel
@@ -506,7 +515,7 @@ function initWaveControls() {
   });
   
   // 2. CONFIGURER LE SLIDER DE RÉSISTANCE DE L'EAU (DRAG)
-  console.log('[GAME] Setting up water resistance slider');
+  // console.log('[GAME] Setting up water resistance slider');
   const waterResistanceSlider = document.getElementById('water-resistance-slider');
   const waterResistanceLabel = document.getElementById('water-resistance-label');
   
@@ -519,7 +528,7 @@ function initWaveControls() {
         return;
       }
       
-      console.log('[GAME] Successfully imported updateWaterResistance function');
+      // console.log('[GAME] Successfully imported updateWaterResistance function');
       
       // Ajouter l'écouteur d'événement pour le slider
       waterResistanceSlider.addEventListener('input', () => {
@@ -529,7 +538,7 @@ function initWaveControls() {
         // Mettre à jour la résistance dans le système physique
         updateWaterResistance(resistance);
         
-        console.log(`[GAME] Updated water resistance to: ${resistance}`);
+        // console.log(`[GAME] Updated water resistance to: ${resistance}`);
       });
       
       // Déclencher l'événement pour appliquer les paramètres initiaux
@@ -542,7 +551,7 @@ function initWaveControls() {
   }
 
   // 3. CONFIGURER LE SLIDER DE TRANSPARENCE DE L'EAU
-  console.log('[GAME] Setting up water transparency slider');
+  // console.log('[GAME] Setting up water transparency slider');
   const waterTransparencySlider = document.getElementById('water-transparency-slider');
   const waterTransparencyLabel = document.getElementById('water-transparency-label');
 
@@ -555,7 +564,7 @@ function initWaveControls() {
         return;
       }
       
-      console.log('[GAME] Successfully imported setWaterTransparency function');
+      // console.log('[GAME] Successfully imported setWaterTransparency function');
       
       // Ajouter l'écouteur d'événement pour le slider
       waterTransparencySlider.addEventListener('input', () => {
@@ -570,7 +579,7 @@ function initWaveControls() {
           updateWaterMaterial(sceneHandles.water);
         }
         
-        console.log(`[GAME] Updated water transparency to: ${transparency}`);
+        // console.log(`[GAME] Updated water transparency to: ${transparency}`);
       });
       
       // Déclencher l'événement pour appliquer les paramètres initiaux
@@ -583,7 +592,7 @@ function initWaveControls() {
   }
   
   // 4. CONFIGURER LE SLIDER DE RÉFLEXIONS DE L'EAU
-  console.log('[GAME] Setting up water reflections slider');
+  // console.log('[GAME] Setting up water reflections slider');
   const waterReflectionsSlider = document.getElementById('water-reflections-slider');
   const waterReflectionsLabel = document.getElementById('water-reflections-label');
   
@@ -609,7 +618,7 @@ function initWaveControls() {
           updateWaterMaterial(sceneHandles.water);
         }
         
-        console.log(`[GAME] Updated water reflections to: ${reflections}`);
+        // console.log(`[GAME] Updated water reflections to: ${reflections}`);
       });
       
       // Déclencher l'événement pour appliquer les paramètres initiaux
@@ -622,7 +631,7 @@ function initWaveControls() {
   }
   
   // 5. CONFIGURER LE SLIDER DE RÉFRACTIONS DE L'EAU
-  console.log('[GAME] Setting up water refractions slider');
+  // console.log('[GAME] Setting up water refractions slider');
   const waterRefractionsSlider = document.getElementById('water-refractions-slider');
   const waterRefractionsLabel = document.getElementById('water-refractions-label');
   
@@ -648,7 +657,7 @@ function initWaveControls() {
           updateWaterMaterial(sceneHandles.water);
         }
         
-        console.log(`[GAME] Updated water refractions to: ${refractions}`);
+        // console.log(`[GAME] Updated water refractions to: ${refractions}`);
       });
       
       // Déclencher l'événement pour appliquer les paramètres initiaux

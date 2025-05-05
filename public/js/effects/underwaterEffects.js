@@ -28,7 +28,7 @@ let originalLights = new Map(); // Pour stocker l'intensité et la couleur origi
  * @param {Object} waterSurface - L'objet eau avec sa position y
  */
 export function initUnderwaterEffects(scene, camera, renderer, waterSurface) {
-  console.log('[EFFECTS] Initializing underwater effects system');
+  // console.log('[EFFECTS] Initializing underwater effects system');
   
   // Stocker les valeurs originales pour pouvoir les restaurer
   if (scene.fog) {
@@ -64,17 +64,17 @@ export function initUnderwaterEffects(scene, camera, renderer, waterSurface) {
     isUnderwater = checkUnderwaterState(camera, waterSurface);
   }
   
-  console.log('[EFFECTS] Underwater effects system initialized with:');
-  console.log(`- Blur intensity: ${underwaterParams.blurIntensity}`);
-  console.log(`- Fog density: ${underwaterParams.fogDensity}`);
-  console.log(`- Distortion intensity: ${underwaterParams.distortionIntensity}`);
+  // console.log('[EFFECTS] Underwater effects system initialized with:');
+  // console.log(`- Blur intensity: ${underwaterParams.blurIntensity}`);
+  // console.log(`- Fog density: ${underwaterParams.fogDensity}`);
+  // console.log(`- Distortion intensity: ${underwaterParams.distortionIntensity}`);
   
   return {
     underwaterParams,
     isUnderwater: () => isUnderwater,
     setEnabled: (enabled) => {
       underwaterEffectsEnabled = enabled;
-      console.log(`[EFFECTS] Underwater effects ${enabled ? 'enabled' : 'disabled'}`);
+      // console.log(`[EFFECTS] Underwater effects ${enabled ? 'enabled' : 'disabled'}`);
     }
   };
 }
@@ -111,8 +111,8 @@ export function updateUnderwaterEffects(scene, deltaTime = 0.016) {
     // Afficher l'état dans la console à chaque changement
     if (newUnderwater !== isUnderwater) {
       isUnderwater = newUnderwater;
-      console.log(`[EFFECTS] Camera position Y: ${camera.position.y.toFixed(2)}, Water level: ${waterLevel.toFixed(2)}`);
-      console.log(`[EFFECTS] Camera is now ${isUnderwater ? 'UNDERWATER' : 'ABOVE WATER'} !!`);
+      // console.log(`[EFFECTS] Camera position Y: ${camera.position.y.toFixed(2)}, Water level: ${waterLevel.toFixed(2)}`);
+      // console.log(`[EFFECTS] Camera is now ${isUnderwater ? 'UNDERWATER' : 'ABOVE WATER'} !!`);
     }
   }
   
@@ -193,7 +193,7 @@ function checkUnderwaterState(camera, waterSurface) {
  */
 export function setUnderwaterBlur(intensity) {
   underwaterParams.blurIntensity = Math.max(0, Math.min(1, intensity));
-  console.log(`[EFFECTS] Underwater blur set to ${underwaterParams.blurIntensity.toFixed(2)}`);
+  // console.log(`[EFFECTS] Underwater blur set to ${underwaterParams.blurIntensity.toFixed(2)}`);
   return underwaterParams.blurIntensity;
 }
 
@@ -203,7 +203,7 @@ export function setUnderwaterBlur(intensity) {
  */
 export function setUnderwaterFog(density) {
   underwaterParams.fogDensity = Math.max(0, Math.min(0.1, density));
-  console.log(`[EFFECTS] Underwater fog density set to ${underwaterParams.fogDensity.toFixed(3)}`);
+  // console.log(`[EFFECTS] Underwater fog density set to ${underwaterParams.fogDensity.toFixed(3)}`);
   return underwaterParams.fogDensity;
 }
 
@@ -213,6 +213,6 @@ export function setUnderwaterFog(density) {
  */
 export function setUnderwaterDistortion(intensity) {
   underwaterParams.distortionIntensity = Math.max(0, Math.min(1, intensity));
-  console.log(`[EFFECTS] Underwater distortion set to ${underwaterParams.distortionIntensity.toFixed(2)}`);
+  // console.log(`[EFFECTS] Underwater distortion set to ${underwaterParams.distortionIntensity.toFixed(2)}`);
   return underwaterParams.distortionIntensity;
 }

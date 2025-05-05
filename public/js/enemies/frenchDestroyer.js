@@ -16,7 +16,7 @@ const DESTROYER_CONFIG = {
 
 // Fonction pour charger et positionner un destroyer français devant le sous-marin
 export function loadFrenchDestroyers(submarinePosition = null) {
-  console.log('[DESTROYER] Loading French destroyer model directly in front of submarine');
+  // console.log('[DESTROYER] Loading French destroyer model directly in front of submarine');
   
   if (!scene) {
     console.error('[DESTROYER] Scene not available, cannot load destroyer');
@@ -48,7 +48,7 @@ export function loadFrenchDestroyers(submarinePosition = null) {
     destroyerPosition = defaultPosition;
   }
   
-  console.log('[DESTROYER] Calculated position:', destroyerPosition);
+  // console.log('[DESTROYER] Calculated position:', destroyerPosition);
   
   // Créer un marqueur temporaire (cube rouge) à la position
   const markerGeometry = new THREE.BoxGeometry(5, 5, 15);
@@ -58,7 +58,7 @@ export function loadFrenchDestroyers(submarinePosition = null) {
   marker.rotation.y = destroyerRotation;
   scene.add(marker);
   
-  console.log(`[DESTROYER] Added marker at position (${destroyerPosition.x.toFixed(1)}, ${destroyerPosition.y.toFixed(1)}, ${destroyerPosition.z.toFixed(1)})`);
+  // console.log(`[DESTROYER] Added marker at position (${destroyerPosition.x.toFixed(1)}, ${destroyerPosition.y.toFixed(1)}, ${destroyerPosition.z.toFixed(1)})`);
   
   // Créer un loader GLTF
   const loader = new GLTFLoader();
@@ -93,7 +93,7 @@ export function loadFrenchDestroyers(submarinePosition = null) {
       // Supprimer le marqueur temporaire
       scene.remove(marker);
       
-      console.log(`[DESTROYER] Successfully loaded destroyer at (${destroyerPosition.x.toFixed(1)}, ${destroyerPosition.y.toFixed(1)}, ${destroyerPosition.z.toFixed(1)})`);
+      // console.log(`[DESTROYER] Successfully loaded destroyer at (${destroyerPosition.x.toFixed(1)}, ${destroyerPosition.y.toFixed(1)}, ${destroyerPosition.z.toFixed(1)})`);
       
       // Ajouter des lumières pour mieux voir le modèle
       const spotLight = new THREE.SpotLight(0xffffff, 1);
@@ -109,7 +109,7 @@ export function loadFrenchDestroyers(submarinePosition = null) {
       // Progression du chargement
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
-        console.log(`[DESTROYER] Loading destroyer: ${Math.round(percentComplete)}%`);
+        // console.log(`[DESTROYER] Loading destroyer: ${Math.round(percentComplete)}%`);
       }
     },
     (error) => {

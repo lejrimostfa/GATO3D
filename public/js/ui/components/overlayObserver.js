@@ -7,7 +7,7 @@ import { showAllUIElements } from './visibility.js';
  * Setup MutationObserver to watch overlay visibility changes
  */
 export function setupOverlayObserver() {
-  console.log('[UI:Overlay] Setting up overlay visibility observer');
+  // console.log('[UI:Overlay] Setting up overlay visibility observer');
   
   const overlay = document.getElementById('overlay');
   if (!overlay) {
@@ -34,7 +34,7 @@ export function setupOverlayObserver() {
           overlay.classList.contains('dismissed');
         
         if (overlayHidden) {
-          console.log('[UI:Overlay] Overlay dismissed, showing UI elements');
+          // console.log('[UI:Overlay] Overlay dismissed, showing UI elements');
           observer.disconnect(); // Stop observing once overlay is dismissed
           showAllUIElements();
         }
@@ -48,5 +48,5 @@ export function setupOverlayObserver() {
     attributeFilter: ['style', 'class']
   });
   
-  console.log('[UI:Overlay] Overlay observer setup complete');
+  // console.log('[UI:Overlay] Overlay observer setup complete');
 }

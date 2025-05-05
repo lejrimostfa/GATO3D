@@ -85,7 +85,7 @@ let lastUpdateTime = Date.now();
  */
 export function updateWaterMaterial(water) {
   if (!water || !water.material || !water.material.uniforms) {
-    console.log('[DEBUG] Water material not found or incomplete');
+    // console.log('[DEBUG] Water material not found or incomplete');
     return;
   }
   
@@ -97,7 +97,7 @@ export function updateWaterMaterial(water) {
   // Advance wave time based on amplitude (higher waves move faster)
   waveTime += deltaTime * (0.5 + waveAmplitude * 0.3);
   
-  console.log(`[DEBUG] Updating 3D waves: Amplitude=${waveAmplitude}, Direction=${waveDirection}°, Transparency=${waterTransparency.toFixed(1)}, Time=${waveTime.toFixed(2)}`);
+  // console.log(`[DEBUG] Updating 3D waves: Amplitude=${waveAmplitude}, Direction=${waveDirection}°, Transparency=${waterTransparency.toFixed(1)}, Time=${waveTime.toFixed(2)}`);
   
   // Basic material adjustments
   // Apply wave amplitude to the water distortion scale
@@ -128,9 +128,9 @@ export function updateWaterMaterial(water) {
       // Assurer que le matériau est marqué comme transparent
       water.material.transparent = true;
       
-      console.log(`[DEBUG] Updated water transparency: alpha=${alphaValue.toFixed(2)}, transparency=${waterTransparency.toFixed(2)}`);
+      // console.log(`[DEBUG] Updated water transparency: alpha=${alphaValue.toFixed(2)}, transparency=${waterTransparency.toFixed(2)}`);
     } else {
-      console.log('[DEBUG] Water material does not have alpha uniform, trying opacity');
+      // console.log('[DEBUG] Water material does not have alpha uniform, trying opacity');
       // Tenter d'utiliser l'approche standard d'opacité comme plan B
       water.material.transparent = true;
       water.material.opacity = 1.0 - (waterTransparency * 0.8);
@@ -139,7 +139,7 @@ export function updateWaterMaterial(water) {
     // Appliquer les réflexions de l'eau (en utilisant le bon uniform)
     if (water.material.uniforms['reflectivity']) {
       water.material.uniforms['reflectivity'].value = waterReflections;
-      console.log(`[DEBUG] Updated water reflections: ${waterReflections.toFixed(2)}`);
+      // console.log(`[DEBUG] Updated water reflections: ${waterReflections.toFixed(2)}`);
     }
     
     // Appliquer les réfractions de l'eau
@@ -148,7 +148,7 @@ export function updateWaterMaterial(water) {
       // On doit donc l'inverser par rapport à notre slider (slider à 1.0 = réfraction forte)
       const refractionValue = 0.5 - (waterRefractions * 0.48);
       water.material.uniforms['refractionRatio'].value = refractionValue;
-      console.log(`[DEBUG] Updated water refractions: ratio=${refractionValue.toFixed(2)}, value=${waterRefractions.toFixed(2)}`);
+      // console.log(`[DEBUG] Updated water refractions: ratio=${refractionValue.toFixed(2)}, value=${waterRefractions.toFixed(2)}`);
     }
   }
   
@@ -159,9 +159,9 @@ export function updateWaterMaterial(water) {
   if (water.updateWaves && typeof water.updateWaves === 'function') {
     // Call the custom wave update function we defined in water-setup.js
     water.updateWaves(waveAmplitude, waveDirection, waveTime);
-    console.log('[DEBUG] Updated 3D wave geometry');
+    // console.log('[DEBUG] Updated 3D wave geometry');
   } else {
-    console.log('[DEBUG] No updateWaves function found on water object');
+    // console.log('[DEBUG] No updateWaves function found on water object');
   }
   
   return {

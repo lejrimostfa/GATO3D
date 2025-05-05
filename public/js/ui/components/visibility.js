@@ -12,11 +12,11 @@ export function hideAllUIElements(forceHide = false) {
   if (!forceHide) {
     const overlay = document.getElementById('overlay');
     if (overlay && (overlay.style.display !== 'none' && overlay.style.display !== '')) {
-      console.log('[UI:Visibility] Skipping hide UI while overlay is active');
+      // console.log('[UI:Visibility] Skipping hide UI while overlay is active');
       return;
     }
   }
-  console.log('[UI:Visibility] Hiding all UI elements initially');
+  // console.log('[UI:Visibility] Hiding all UI elements initially');
   
   // Get UI elements
   const { 
@@ -67,7 +67,7 @@ export function hideAllUIElements(forceHide = false) {
     minimapArea.style.display = 'none';
   }
   
-  console.log('[UI:Visibility] All UI elements are now hidden until overlay is closed');
+  // console.log('[UI:Visibility] All UI elements are now hidden until overlay is closed');
 }
 
 /**
@@ -77,10 +77,10 @@ export function showAllUIElements() {
   // Ne pas exécuter si cette fonction est appelée au chargement initial et que l'overlay est visible
   const overlay = document.getElementById('overlay');
   if (overlay && overlay.style.display !== 'none') {
-    console.log('[UI:Visibility] Skipping show UI while overlay is active');
+    // console.log('[UI:Visibility] Skipping show UI while overlay is active');
     return;
   }
-  console.log('[UI:Visibility] Showing all UI elements');
+  // console.log('[UI:Visibility] Showing all UI elements');
   
   // Get UI elements
   const { 
@@ -133,7 +133,7 @@ export function showAllUIElements() {
     }
   });
   
-  console.log('[UI:Visibility] All UI elements are now visible');
+  // console.log('[UI:Visibility] All UI elements are now visible');
 }
 
 /**

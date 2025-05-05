@@ -29,7 +29,7 @@ const SHIP_CONFIG = {
 // Classe pour gérer un navire individuel
 class EnemyShip {
   constructor(scene, position, shipManager) {
-    console.log('[ENEMY] Creating new ship at position:', position);
+    // console.log('[ENEMY] Creating new ship at position:', position);
     this.scene = scene;
     this.shipManager = shipManager;
     this.position = position || new THREE.Vector3(0, SHIP_CONFIG.waterLevel, 0);
@@ -59,7 +59,7 @@ class EnemyShip {
   }
   
   loadModel() {
-    console.log('[ENEMY] Loading ship model from path:', SHIP_CONFIG.modelPath);
+    // console.log('[ENEMY] Loading ship model from path:', SHIP_CONFIG.modelPath);
     const loader = new GLTFLoader();
     
     loader.load(
@@ -76,13 +76,13 @@ class EnemyShip {
         this.scene.add(this.model);
         this.loaded = true;
         
-        console.log('[ENEMY] Ship model loaded successfully');
+        // console.log('[ENEMY] Ship model loaded successfully');
       },
       (xhr) => {
         // Progression du chargement
         if (xhr.lengthComputable) {
           const percentComplete = (xhr.loaded / xhr.total) * 100;
-          console.log(`[ENEMY] Ship model loading: ${Math.round(percentComplete)}%`);
+          // console.log(`[ENEMY] Ship model loading: ${Math.round(percentComplete)}%`);
         }
       },
       (error) => {
@@ -154,7 +154,7 @@ class EnemyShip {
     if (newState !== this.state) {
       this.state = newState;
       this.lastStateChange = now;
-      console.log(`[ENEMY] Ship changed state to: ${this.state}`);
+      // console.log(`[ENEMY] Ship changed state to: ${this.state}`);
     }
   }
   
@@ -243,7 +243,7 @@ class EnemyShip {
     if (this.model && this.scene) {
       this.scene.remove(this.model);
       this.active = false;
-      console.log('[ENEMY] Ship removed from scene');
+      // console.log('[ENEMY] Ship removed from scene');
     }
   }
 }
@@ -259,15 +259,15 @@ export class ShipManager {
   }
   
   initialize() {
-    console.log('[ENEMY] Initializing ship manager');
+    // console.log('[ENEMY] Initializing ship manager');
     // Spawn initial ships
     const ship = this.spawnShip();
-    console.log('[ENEMY] Initial ship spawned:', ship);
+    // console.log('[ENEMY] Initial ship spawned:', ship);
     
     // Spawn a ship at a fixed position for testing
     const testPosition = new THREE.Vector3(100, SHIP_CONFIG.waterLevel, 100);
     const testShip = this.spawnShip(testPosition);
-    console.log('[ENEMY] Test ship spawned at fixed position:', testPosition);
+    // console.log('[ENEMY] Test ship spawned at fixed position:', testPosition);
   }
   
   spawnShip(forcedPosition = null) {
@@ -305,7 +305,7 @@ export class ShipManager {
     const ship = new EnemyShip(this.scene, position, this);
     this.ships.push(ship);
     
-    console.log(`[ENEMY] Spawned new ship at (${position.x.toFixed(0)}, ${position.z.toFixed(0)}), total: ${this.ships.length}`);
+    // console.log(`[ENEMY] Spawned new ship at (${position.x.toFixed(0)}, ${position.z.toFixed(0)}), total: ${this.ships.length}`);
     
     return ship;
   }
@@ -341,7 +341,7 @@ export class ShipManager {
       ship.remove();
     }
     this.ships = [];
-    console.log('[ENEMY] All ships removed');
+    // console.log('[ENEMY] All ships removed');
   }
   
   // Obtenir les positions de tous les navires (utile pour le radar)

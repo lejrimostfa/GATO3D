@@ -32,7 +32,7 @@ export function loadSubmarine(scene, onLoaded) {
 
     // Helper function to create a fallback submarine model
     const createFallbackSubmarine = () => {
-        console.log('[SUBMARINE] Creating fallback submarine model');
+        // console.log('[SUBMARINE] Creating fallback submarine model');
         
         // Main body
         const bodyGeometry = new THREE.CapsuleGeometry(5, 20, 8, 16);
@@ -96,7 +96,7 @@ export function loadSubmarine(scene, onLoaded) {
                 ];
                 
                 // Try loading from first path
-                console.log(`[SUBMARINE] Attempting to load model from ${modelPaths[0]}`);
+                // console.log(`[SUBMARINE] Attempting to load model from ${modelPaths[0]}`);
                 
                 let currentPathIndex = 0;
                 const tryNextPath = () => {
@@ -109,7 +109,7 @@ export function loadSubmarine(scene, onLoaded) {
                     }
                     
                     const currentPath = modelPaths[currentPathIndex];
-                    console.log(`[SUBMARINE] Trying path ${currentPathIndex + 1}/${modelPaths.length}: ${currentPath}`);
+                    // console.log(`[SUBMARINE] Trying path ${currentPathIndex + 1}/${modelPaths.length}: ${currentPath}`);
                     
                     loader.load(
                         currentPath,
@@ -128,14 +128,14 @@ export function loadSubmarine(scene, onLoaded) {
                             });
                             
                             pivot.add(sub);
-                            console.log(`[SUBMARINE] Model loaded successfully from ${currentPath}`);
+                            // console.log(`[SUBMARINE] Model loaded successfully from ${currentPath}`);
                             resolve(pivot);
                         },
                         (progressEvent) => {
                             // Loading progress
                             if (progressEvent.lengthComputable) {
                                 const percent = (progressEvent.loaded / progressEvent.total) * 100;
-                                console.log(`[SUBMARINE] Loading progress (${currentPath}): ${percent.toFixed(2)}%`);
+                                // console.log(`[SUBMARINE] Loading progress (${currentPath}): ${percent.toFixed(2)}%`);
                             }
                         },
                         (error) => {

@@ -7,6 +7,12 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 // Import the modular physics system
 import { defaultPhysics, updatePhysics, currentVelocity, maxSpeed, setMaxSpeed } from './physics.js';
 
+// Import terrain height function
+import { getTerrainHeightAt } from '../ocean/terrain.js';
+
+// Import keys from centralized input manager
+import { keys } from '../input/inputManager.js';
+
 // --- PALIER SPEED CONTROL ---
 // Target speed (palier), step size, and min/max (in knots or m/s as needed)
 let targetSpeed = 0;
@@ -44,15 +50,9 @@ window.addEventListener('keydown', e => {
       window.elements.submarineSpeedLabel.textContent = `Cible: ${knots.toFixed(1)} kn`;
     }
     // For debug
-    console.log(`[PALIER] Nouvelle cible: ${targetSpeed.toFixed(3)} m/s`);
+    // console.log(`[PALIER] Nouvelle cible: ${targetSpeed.toFixed(3)} m/s`);
   }
 });
-
-// Import keys from centralized input manager
-import { keys } from '../input/inputManager.js';
-
-// Export core values for backward compatibility
-export { currentVelocity, maxSpeed, setMaxSpeed };
 
 /**
  * Set rotation parameters for the submarine
@@ -67,7 +67,7 @@ export function updateRotationParams(speed, damping = null) {
   window.submarineRotationSpeed = speed;
   if (damping !== null) window.submarineRotationDamping = damping;
   
-  console.log(`[SUBMARINE] Updated rotation params - speed: ${speed}, damping: ${damping || 'unchanged'}`);
+  // console.log(`[SUBMARINE] Updated rotation params - speed: ${speed}, damping: ${damping || 'unchanged'}`);
 }
 
 /**
@@ -87,7 +87,7 @@ export function updateSubmarineMass(mass) {
     // Store value globally
     window.submarineMass = mass;
     
-    console.log(`[SUBMARINE] Updated mass to ${mass} (momentum factor: ${defaultPhysics.momentumFactor.toFixed(2)})`);
+    // console.log(`[SUBMARINE] Updated mass to ${mass} (momentum factor: ${defaultPhysics.momentumFactor.toFixed(2)})`);
   } else {
     console.warn('[SUBMARINE] Cannot update mass: physics system not initialized');
   }
@@ -110,7 +110,7 @@ export function updateWaterResistance(resistance) {
     const prevDebug = defaultPhysics.debug;
     defaultPhysics.debug = true;
     
-    console.log(`[SUBMARINE] Updated water resistance to ${resistance}`);
+    // console.log(`[SUBMARINE] Updated water resistance to ${resistance}`);
     
     // Désactiver le mode debug après le premier log
     setTimeout(() => { defaultPhysics.debug = prevDebug; }, 500);
@@ -155,7 +155,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
   // DIVE BRAKE: When pressing down (W) at high speeds, disable forward input to allow deceleration
   if (downPressed && currentVelocityPct > 0.5) {
     effectiveForward = false;
-    console.log('[CONTROLS] Dive brake activated - forward disabled');
+    // console.log('[CONTROLS] Dive brake activated - forward disabled');
   }
   
   // REVERSE BRAKE: When at high forward speeds, pressing backward (S) acts as a pure brake
@@ -165,7 +165,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
     // This lets natural drag slow the submarine down much faster
     effectiveForward = false;
     effectiveBackward = false;
-    console.log('[CONTROLS] Reverse brake activated - natural drag increased');
+    // console.log('[CONTROLS] Reverse brake activated - natural drag increased');
   }
   
   // Create the input object for the physics system with our modified inputs
@@ -244,32 +244,38 @@ export function updatePlayerSubmarine(playerSubmarine) {
       
       // Log seulement occasionnellement pour éviter de spammer la console
       if (Math.random() < 0.01) {
-        console.log('[COLLISION] Submarine position:', {
-          x: submarineWorldPosition.x.toFixed(2),
-          y: submarineWorldPosition.y.toFixed(2),
-          z: submarineWorldPosition.z.toFixed(2)
-        });
+        // console.log('[COLLISION] Submarine position:', {
+        //   x: submarineWorldPosition.x.toFixed(2),
+        //   y: submarineWorldPosition.y.toFixed(2),
+        //   z: submarineWorldPosition.z.toFixed(2)
+        // });
       }
       
       // Vérifier la collision avec chaque obstacle
       for (const obstacle of window.scene.obstacles) {
-        if (obstacle.isCollidable && obstacle.checkCollision) {
-          if (obstacle.checkCollision(submarineWorldPosition)) {
-            // En cas de collision, empêcher toute descente
-            if (verticalMovement <= 0) {
-              verticalMovement = 0;
-              // Remonter pour éviter de rester bloqué dans le sol
-              sub.position.y += 5;
-              console.log('[SUBMARINE] Collision avec le terrain - Remonte de 5 unités');
+        // --- New Terrain Collision Check ---
+        if (obstacle.name === 'terrain') { // Check if it's the terrain group
+            const collisionMargin = 5; // Margin like before
+            const terrainHeight = getTerrainHeightAt(submarineWorldPosition.x, submarineWorldPosition.z);
+            if (submarineWorldPosition.y < terrainHeight + collisionMargin) {
+                // console.log(`[TERRAIN COLLISION] Submarine Y: ${submarineWorldPosition.y.toFixed(1)}, Terrain Height: ${terrainHeight.toFixed(1)}`);
+                playerSubmarine.position.copy(previousPosition); // Revert position
+                currentVelocity.multiplyScalar(0); // Stop movement
+                // Optional: Apply damage or other effects
+                break; // Stop checking other obstacles if terrain collision detected
             }
-            
-            // Réduire fortement la vitesse horizontale (effet de frottement avec le sol)
-            movement.velocity *= 0.5;
+        } else if (obstacle.isCollidable && obstacle.checkCollision) {
+          // --- Keep check for other potential obstacles using the old method ---
+          if (obstacle.checkCollision(submarineWorldPosition)) {
+            // console.log('[COLLISION] Collision détectée avec un obstacle:', obstacle.name || 'Unnamed obstacle');
+            playerSubmarine.position.copy(previousPosition); // Revenir à la position précédente
+            currentVelocity.multiplyScalar(0); // Arrêter le mouvement
+            break; // Sortir de la boucle si collision détectée
           }
         }
       }
     } else {
-      console.log('[WARNING] Pas d\'obstacles définis dans la scène');
+      // console.log('[WARNING] Pas d\'obstacles définis dans la scène');
     }
   }
   
@@ -300,7 +306,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
       combinedVelocity = Math.min(combinedVelocity, horizontalComponent * 0.8);
     }
     
-    console.log(`[CONTROLS] Forced diving brake: ${horizontalComponent.toFixed(3)} -> ${combinedVelocity.toFixed(3)}`);
+    // console.log(`[CONTROLS] Forced diving brake: ${horizontalComponent.toFixed(3)} -> ${combinedVelocity.toFixed(3)}`);
   } 
   // Upward movement - slight acceleration (unchanged)
   else if (verticalMovement > 0) {
@@ -314,8 +320,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
     // Cap total velocity to prevent exceeding max
     combinedVelocity = Math.min(1.0, horizontalComponent + weightedVertical);
     
-    console.log(`[CONTROLS] Ascending: ${combinedVelocity.toFixed(3)} ` +
-               `(h: ${horizontalComponent.toFixed(3)}, v: ${weightedVertical.toFixed(3)})`);
+    // console.log(`[CONTROLS] Ascending: ${combinedVelocity.toFixed(3)} (h: ${horizontalComponent.toFixed(3)}, v: ${weightedVertical.toFixed(3)})`);
   } 
   // No vertical movement
   else {
@@ -337,4 +342,3 @@ export function updatePlayerSubmarine(playerSubmarine) {
 // If this logic grows, move all palier-related code (targetSpeed, step, clamp, conversion, UI) to a new module:
 // e.g. submarine/palierSpeed.js
 // This keeps controls.js focused only on glue logic and not business rules.
-

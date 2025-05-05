@@ -10,6 +10,7 @@ import { drawClockFace, drawTime } from '../ui/clock.js';
 import { updateDepthHud } from '../ui/hud.js';
 import { updateSun } from '../water-setup.js';
 import { updateRayleighEffect } from '../effects/skyEffects.js';
+import { updateTerrainGrid } from '../ocean/terrain.js'; // Import terrain update function
 // Import centralized key management
 import { keys } from '../input/inputManager.js';
 
@@ -124,7 +125,7 @@ function animate() {
   
   // Update sun position based on time
   if (sceneHandles && sceneHandles.sun && sceneHandles.sky && sceneHandles.nightSky) {
-    console.log('[ANIMATION] Updating sun position for hour:', currentGameHour);
+    // console.log('[ANIMATION] Updating sun position for hour:', currentGameHour);
     updateSun(sceneHandles, currentGameHour);
   } else {
     console.warn('[ANIMATION] Missing required components for sun update');
@@ -133,6 +134,11 @@ function animate() {
   // Update camera following submarine
   if (playerSubmarine && camera) {
     updateFollowCamera(camera, playerSubmarine);
+  }
+  
+  // Update terrain grid based on camera position
+  if (camera) {
+    updateTerrainGrid(camera);
   }
   
   // Update underwater effects

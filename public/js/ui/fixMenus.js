@@ -1,6 +1,6 @@
 // Script pour réparer tous les menus immédiatement
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('[FixMenus] Applying emergency fix to all menu panels');
+  // console.log('[FixMenus] Applying emergency fix to all menu panels');
   
   // Liste de tous les identifiants de panneaux connus
   const panelIds = [
@@ -77,5 +77,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
   
-  console.log('[FixMenus] All menu panels repaired');
+  // console.log('[FixMenus] All menu panels repaired');
 });

@@ -86,12 +86,12 @@ export function getElement(id) {
  * @returns {boolean} - True if all critical elements were found
  */
 export function initDOMElements() {
-  console.log('[DOM] Initializing DOM elements...');
+  // console.log('[DOM] Initializing DOM elements...');
   
   // First, ensure the gameCanvas is assigned directly (it's our most critical element)
   const gameCanvas = document.getElementById('gameCanvas');
   if (gameCanvas) {
-    console.log('[DOM] Found gameCanvas directly');
+    // console.log('[DOM] Found gameCanvas directly');
     elements.gameCanvas = gameCanvas;
   }
   
@@ -105,7 +105,7 @@ export function initDOMElements() {
   
   // Log results
   const foundCount = Object.entries(elements).filter(([k, v]) => v !== null).length;
-  console.log(`[DOM] Elements initialized: ${foundCount}/${Object.keys(elements).length}`);
+  // console.log(`[DOM] Elements initialized: ${foundCount}/${Object.keys(elements).length}`);
   
   // Check critical elements
   const criticalElements = [
@@ -114,7 +114,7 @@ export function initDOMElements() {
   
   // Debug output for critical elements
   criticalElements.forEach(id => {
-    console.log(`[DOM] Critical element '${id}': ${elements[id] ? 'FOUND ✓' : 'MISSING ✗'}`);
+    // console.log(`[DOM] Critical element '${id}': ${elements[id] ? 'FOUND ✓' : 'MISSING ✗'}`);
   });
   
   const missingCritical = criticalElements.filter(id => !elements[id]);

@@ -15,7 +15,7 @@ export function fixCompassPosition() {
   
   // Si toujours pas trouvé, tenter de créer l'élément dans le minimap
   if (!compass) {
-    console.log('[UI:Minimap] Compass not found, creating it');
+    // console.log('[UI:Minimap] Compass not found, creating it');
     const minimapContainer = document.querySelector('.minimap-container');
     if (minimapContainer) {
       compass = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -46,7 +46,7 @@ export function fixCompassPosition() {
     return;
   }
   
-  console.log('[UI:Minimap] Fixing compass positioning');
+  // console.log('[UI:Minimap] Fixing compass positioning');
   
   // Define compass size as a percentage of the minimap or fixed value
   const compassSize = 40;

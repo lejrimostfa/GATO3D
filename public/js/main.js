@@ -1,6 +1,6 @@
 // GATO3D - Main Entry Point
 // Fully modular architecture
-console.log('main.js loaded - fully modular version');
+// console.log('main.js loaded - fully modular version');
 
 // Import modular system components
 import { initDOMElements, elements } from './ui/domElements.js';
@@ -11,7 +11,7 @@ import { initResponsiveUI } from './ui/responsiveUI.js';
 
 // Application entry point
 (function() {
-  console.log('[MAIN] Starting GATO3D application');
+  // console.log('[MAIN] Starting GATO3D application');
   
   // Ensure the DOM is fully loaded before initializing
   if (document.readyState === 'loading') {
@@ -25,14 +25,14 @@ import { initResponsiveUI } from './ui/responsiveUI.js';
    * Initialize the application with proper sequencing
    */
   function initializeApplication() {
-    console.log('[MAIN] DOM loaded, initializing components');
+    // console.log('[MAIN] DOM loaded, initializing components');
     
     // Directly access the game canvas to ensure it exists
     const gameCanvas = document.getElementById('gameCanvas');
     
     if (!gameCanvas) {
       console.error('[MAIN] Critical element gameCanvas not found on page');
-      console.log('[MAIN] Attempting to reinitialize in 100ms...');
+      // console.log('[MAIN] Attempting to reinitialize in 100ms...');
       
       // Try again after a short delay (sometimes the DOM isn't fully ready)
       setTimeout(initializeApplication, 100);
@@ -58,7 +58,7 @@ import { initResponsiveUI } from './ui/responsiveUI.js';
     initGame(() => {
       // Step 5: Initialize responsive UI handling after game is loaded
       initResponsiveUI();
-      console.log('[MAIN] Application fully initialized');
+      // console.log('[MAIN] Application fully initialized');
     });
   }
   

@@ -7,7 +7,7 @@ import { scene } from '../game/gameInit.js';
 
 // Fonction pour ajouter un navire de test directement dans la scène
 export function addTestShip() {
-  console.log('[DEBUG] Adding test ship directly to scene');
+  // console.log('[DEBUG] Adding test ship directly to scene');
   
   if (!scene) {
     console.error('[DEBUG] Scene not available, cannot add test ship');
@@ -20,13 +20,13 @@ export function addTestShip() {
   const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
   cube.position.set(100, 25, 100); // Position à la surface de l'eau
   scene.add(cube);
-  console.log('[DEBUG] Added red cube marker at position (100, 25, 100)');
+  // console.log('[DEBUG] Added red cube marker at position (100, 25, 100)');
   
   // Charger le modèle du navire
   const loader = new GLTFLoader();
   const modelPath = './models/french_destroyer_la_bourdonnais/scene.gltf';
   
-  console.log('[DEBUG] Loading ship model from:', modelPath);
+  // console.log('[DEBUG] Loading ship model from:', modelPath);
   
   loader.load(
     modelPath,
@@ -39,13 +39,13 @@ export function addTestShip() {
       
       // Ajouter à la scène
       scene.add(shipModel);
-      console.log('[DEBUG] Ship model loaded successfully and added to scene');
+      // console.log('[DEBUG] Ship model loaded successfully and added to scene');
     },
     (xhr) => {
       // Progression du chargement
       if (xhr.lengthComputable) {
         const percentComplete = (xhr.loaded / xhr.total) * 100;
-        console.log(`[DEBUG] Ship model loading: ${Math.round(percentComplete)}%`);
+        // console.log(`[DEBUG] Ship model loading: ${Math.round(percentComplete)}%`);
       }
     },
     (error) => {
@@ -59,5 +59,5 @@ export function addTestShip() {
   const simpleShip = new THREE.Mesh(shipGeometry, shipMaterial);
   simpleShip.position.set(150, 21.5, 150); // Position à la surface de l'eau
   scene.add(simpleShip);
-  console.log('[DEBUG] Added simple ship at position (150, 21.5, 150)');
+  // console.log('[DEBUG] Added simple ship at position (150, 21.5, 150)');
 }

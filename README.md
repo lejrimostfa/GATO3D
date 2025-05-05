@@ -10,6 +10,13 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
+### [2025-06-XX] Console Log Refactor
+- **Console.log Statements Commented Out**
+  - Commented out all `console.log` statements across UI, enemy, level, ocean, input, and editor files.
+  - Affected files include: `ui/controls/cameraControls.js`, `ui/minimap/minimapManager.js`, `ui/minimap/minimapEvents.js`, `ui/minimap/minimapButtons.js`, `ui/minimap/minimapLayout.js`, `ui/minimap/compass.js`, `ui/uiManager.js`, `ui/domElements.js`, `ui/controls/sliders.js`, `ui/components/overlayObserver.js`, `ui/components/visibility.js`, `ui/fixMenus.js`, `enemies/frenchDestroyer.js`, `enemies/simpleShip.js`, `enemies/detailedShip.js`, `enemies/shipDebug.js`, `enemies/modelTester.js`, `levels/levelManager.js`, `levels/level1.js`, `ocean/waveControls.js`, `input/inputManager.js`, `editor.js`, and more.
+  - Purpose: Reduce console spam during gameplay while preserving logs for future debugging. No functional code was removed.
+
+
 ### [2025-05-05] Submarine Speed Control & Help System
 - **Stepped Speed Control (Palier)**
   - Implemented a stepped speed control system that allows for precise speed adjustments
@@ -392,6 +399,40 @@ When adding new UI controls:
 4. Follow consistent parameter order in related function calls
 5. Provide detailed console logs for debugging
 
+## 🛠️ Problems & Solutions
+
+### Problem: Excessive Console Spam
+- **Solution:** Commented out all `console.log` statements in gameplay and UI files to keep the console clean. Logs are preserved for future debugging by simply uncommenting as needed.
+
+### Problem: UI Control Connection Redundancy
+- **Solution:** Standardized the connection of sliders and buttons via both module-specific initializers and a central connector module. Ensured all controls are connected and avoid redundant code.
+
+### Problem: Inconsistent Parameter Order
+- **Solution:** Refactored all related functions (e.g., camera controls) to use a consistent parameter order and added validation/fallbacks for missing elements.
+
+### Problem: DOM Element Reference Fragility
+- **Solution:** Switched to direct DOM queries for UI controls to increase resilience to dynamic UI changes.
+
+---
+
+## 🤖 AI Integration Guide
+
+While AI is not yet fully integrated, the GATO3D project is designed with future AI features in mind. Planned uses include:
+- Automated debugging (e.g., detecting UI/logic errors, suggesting fixes)
+- Gameplay assistance (AI-driven hints, adaptive difficulty)
+- Procedural content generation (levels, missions)
+- Intelligent user feedback analysis
+
+### How to Prepare for AI Integration
+1. **Modularize logic:** Keep game logic and UI modular for easy AI hooks.
+2. **Document interfaces:** Clearly document APIs and data flows.
+3. **Expose debug endpoints:** Provide hooks for AI agents to read/write game state.
+4. **Plan for privacy/security:** Ensure sensitive data is handled appropriately.
+
+*Stay tuned for future updates as AI features are integrated!*
+
+---
+
 ## Development Status
 
 ✅ **Completed**
@@ -430,11 +471,28 @@ When adding new UI controls:
 - Polish UI/UX (feedback, accessibilité, animations)
 - Refactoring & documentation continue
 
-🔜 **Next Steps**
-- Ajout logique gameplay (objectifs, scoring)
-- Tests unitaires et validation multi-plateforme
-- Intégration multijoueur (WebRTC)
-- Tutoriels et guides contributeurs
+## 📈 Project Plan
+
+### ✅ Completed
+- Unified top bar for all menu buttons
+- Modularization of JS code (minimap, clock, HUD, panels, lighting/atmosphere)
+- Realistic submarine physics and controls
+- Dynamic day/night cycle
+- Responsive and accessible UI
+- Robust collision and terrain system
+- Node.js server base operational
+
+### 🚧 In Progress
+- Migration of lighting sliders to `lighting.js`
+- UI/UX polish (feedback, accessibility, animations)
+- Refactoring & continuous documentation
+
+### 🔜 Next Steps
+- Gameplay logic (objectives, scoring)
+- Unit testing and multi-platform validation
+- Multiplayer integration (WebRTC)
+- Contributor tutorials and guides
+- Future AI-powered features (debugging, gameplay assistance)
 
 ## License
 

@@ -5,7 +5,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 import { scene } from '../game/gameInit.js';
 
 export function createDetailedWarship(submarinePosition) {
-  console.log('[DETAILED_SHIP] Creating detailed warship with native Three.js');
+  // console.log('[DETAILED_SHIP] Creating detailed warship with native Three.js');
   
   if (!scene) {
     console.error('[DETAILED_SHIP] Scene not available');
@@ -35,7 +35,7 @@ export function createDetailedWarship(submarinePosition) {
     shipRotation = submarineRotationY + Math.PI;
   }
   
-  console.log('[DETAILED_SHIP] Creating warship at position:', shipPosition);
+  // console.log('[DETAILED_SHIP] Creating warship at position:', shipPosition);
   
   // Créer un groupe pour le navire
   const shipGroup = new THREE.Group();
@@ -209,7 +209,7 @@ export function createDetailedWarship(submarinePosition) {
   spotLight.castShadow = true;
   scene.add(spotLight);
   
-  console.log('[DETAILED_SHIP] Warship created successfully');
+  // console.log('[DETAILED_SHIP] Warship created successfully');
   
   // Retourner le groupe pour pouvoir le manipuler plus tard
   return shipGroup;

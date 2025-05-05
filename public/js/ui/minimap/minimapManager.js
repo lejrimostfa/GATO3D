@@ -11,7 +11,7 @@ import { elements, getElement } from '../domElements.js';
  * Initialize all minimap components
  */
 export function initMinimap() {
-  console.log('[UI:Minimap] Initializing minimap components');
+  // console.log('[UI:Minimap] Initializing minimap components');
   
   // Assurer que tous les éléments de minimap sont correctement référencés
   // Récupérer directement les éléments sans passer par elements qui peut être incomplet
@@ -26,10 +26,10 @@ export function initMinimap() {
     return;
   }
   
-  console.log('[UI:Minimap] Elements: minimap=' + (elements.minimap ? 'OK' : 'missing') + 
-              ', zoom-in=' + (elements.minimapZoomIn ? 'OK' : 'missing') + 
-              ', zoom-out=' + (elements.minimapZoomOut ? 'OK' : 'missing') + 
-              ', rotation=' + (elements.minimapRotationToggle ? 'OK' : 'missing'));
+  // console.log('[UI:Minimap] Elements: minimap=' + (elements.minimap ? 'OK' : 'missing') + 
+  //             ', zoom-in=' + (elements.minimapZoomIn ? 'OK' : 'missing') + 
+  //             ', zoom-out=' + (elements.minimapZoomOut ? 'OK' : 'missing') + 
+  //             ', rotation=' + (elements.minimapRotationToggle ? 'OK' : 'missing'));
   
   // Configurer le conteneur et le layout de la minimap
   fixMinimapContainerLayout();
@@ -45,7 +45,7 @@ export function initMinimap() {
   
   // Configurer le gestionnaire d'événements pour l'adaptation responsive
   window.addEventListener('resize', () => {
-    console.log('[UI:Minimap] Window resize detected, adjusting minimap components');
+    // console.log('[UI:Minimap] Window resize detected, adjusting minimap components');
     fixMinimapContainerLayout();
     fixCompassPosition();
     fixMinimapButtonStyling();
@@ -54,5 +54,5 @@ export function initMinimap() {
   // Configurer les écouteurs d'événements pour connecter les boutons à la minimap.js principale
   setupMinimapEventListeners();
   
-  console.log('[UI:Minimap] Minimap initialization complete');
+  // console.log('[UI:Minimap] Minimap initialization complete');
 }

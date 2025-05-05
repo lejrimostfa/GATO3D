@@ -16,7 +16,7 @@ export function loadLevel(levelName, renderer, onLoaded) {
   }
   
   try {
-    console.log(`[LEVEL] Loading level '${levelName}'...`);
+    // console.log(`[LEVEL] Loading level '${levelName}'...`);
     
     import(`./${levelName}.js`)
       .then(module => {
@@ -38,7 +38,7 @@ export function loadLevel(levelName, renderer, onLoaded) {
           
           const { scene, camera, objects = {} } = result;
           
-          console.log(`[LEVEL] Level '${levelName}' loaded successfully`);
+          // console.log(`[LEVEL] Level '${levelName}' loaded successfully`);
           
           // Pass level data to callback
           if (onLoaded && typeof onLoaded === 'function') {

@@ -7,7 +7,7 @@
  * quand les valeurs changent. Cette fonction corrige le problème des sliders déconnectés.
  */
 export function reconnectSliders() {
-  console.log('[UI:SliderConnector] Reconnecting sliders to their handler functions...');
+  // console.log('[UI:SliderConnector] Reconnecting sliders to their handler functions...');
   
   // Note: La gestion des sliders caméra est maintenant entièrement gérée par le module cameraControls.js
   // et son initCameraSliders() qui est appelé automatiquement au démarrage
@@ -27,7 +27,7 @@ export function reconnectSliders() {
   // 5. Autres sliders
   connectMiscSliders();
   
-  console.log('[UI:SliderConnector] All sliders reconnected successfully');
+  // console.log('[UI:SliderConnector] All sliders reconnected successfully');
 }
 
 // Note: La fonction connectCameraSliders() a été supprimée car elle créait un doublon avec le système dans cameraControls.js
@@ -56,7 +56,7 @@ function connectWaveSliders() {
           amplitudeLabel.textContent = `Amplitude: ${amplitude.toFixed(1)}`;
         }
         
-        console.log(`[UI:Ocean] Updated wave amplitude: ${amplitude}`);
+        // console.log(`[UI:Ocean] Updated wave amplitude: ${amplitude}`);
       });
       
       // Déclencher l'événement initialement
@@ -76,7 +76,7 @@ function connectWaveSliders() {
           directionLabel.textContent = `Direction: ${direction}°`;
         }
         
-        console.log(`[UI:Ocean] Updated wave direction: ${direction}°`);
+        // console.log(`[UI:Ocean] Updated wave direction: ${direction}°`);
       });
       
       // Déclencher l'événement initialement
@@ -96,7 +96,7 @@ function connectWaveSliders() {
           transparencyLabel.textContent = `Transparence: ${transparency.toFixed(1)}`;
         }
         
-        console.log(`[UI:Ocean] Updated water transparency: ${transparency}`);
+        // console.log(`[UI:Ocean] Updated water transparency: ${transparency}`);
       });
       
       // Déclencher l'événement initialement
@@ -131,7 +131,7 @@ function connectWaterResistanceSlider() {
           resistanceLabel.textContent = `Résistance: ${resistance.toFixed(1)}`;
         }
         
-        console.log(`[UI:Ocean] Updated water resistance to ${resistance}`);
+        // console.log(`[UI:Ocean] Updated water resistance to ${resistance}`);
       });
       
       // Déclencher l'événement initialement
@@ -177,7 +177,7 @@ function connectSubmarineSliders() {
           speedometer.style.transform = `rotate(${angle}deg)`;
         }
         
-        console.log(`[UI:Submarine] Updated submarine max speed: ${value} knots`);
+        // console.log(`[UI:Submarine] Updated submarine max speed: ${value} knots`);
       });
       // Application initiale
       submarineSpeedSlider.dispatchEvent(new Event('input'));
@@ -196,7 +196,7 @@ function connectSubmarineSliders() {
           rotationLabel.textContent = `Rotation Speed: ${value.toFixed(2)}`;
         }
         
-        console.log(`[UI:Submarine] Updated submarine rotation speed: ${value}`);
+        // console.log(`[UI:Submarine] Updated submarine rotation speed: ${value}`);
       });
       // Application initiale
       rotationSpeedSlider.dispatchEvent(new Event('input'));
@@ -224,7 +224,7 @@ function connectSubmarineSliders() {
           massLabel.textContent = `Masse: ${value.toFixed(1)}`;
         }
         
-        console.log(`[UI:Submarine] Updated submarine mass: ${value}`);
+        // console.log(`[UI:Submarine] Updated submarine mass: ${value}`);
       });
       // Application initiale
       massSlider.dispatchEvent(new Event('input'));
@@ -246,7 +246,7 @@ function connectLightingSliders() {
       sunSlider.addEventListener('input', () => {
         const value = parseFloat(sunSlider.value);
         setSunIntensity(value);
-        console.log(`[UI:Light] Updated sun intensity: ${value}`);
+        // console.log(`[UI:Light] Updated sun intensity: ${value}`);
       });
       // Application initiale
       sunSlider.dispatchEvent(new Event('input'));
@@ -259,7 +259,7 @@ function connectLightingSliders() {
       exposureSlider.addEventListener('input', () => {
         const value = parseFloat(exposureSlider.value);
         renderer.toneMappingExposure = value;
-        console.log(`[UI:Light] Updated exposure: ${value}`);
+        // console.log(`[UI:Light] Updated exposure: ${value}`);
       });
       // Application initiale
       exposureSlider.dispatchEvent(new Event('input'));
@@ -285,7 +285,7 @@ function connectLightingSliders() {
           rayleighText.textContent = value.toFixed(2);
         }
         
-        console.log(`[UI:Light] Updated rayleigh: ${value}`);
+        // console.log(`[UI:Light] Updated rayleigh: ${value}`);
       });
       // Application initiale
       rayleighSlider.dispatchEvent(new Event('input'));
@@ -312,7 +312,7 @@ function connectLightingSliders() {
           directionalLightLabel.textContent = `Directional Light: ${value.toFixed(2)}`;
         }
         
-        console.log(`[UI:Light] Updated directional light intensity: ${value}`);
+        // console.log(`[UI:Light] Updated directional light intensity: ${value}`);
       });
       // Application initiale
       directionalLightSlider.dispatchEvent(new Event('input'));

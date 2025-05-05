@@ -5,7 +5,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 import { scene } from '../game/gameInit.js';
 
 export function createSimpleShips() {
-  console.log('[SIMPLE_SHIP] Creating simple ships with native Three.js');
+  // console.log('[SIMPLE_SHIP] Creating simple ships with native Three.js');
   
   if (!scene) {
     console.error('[SIMPLE_SHIP] Scene not available');
@@ -99,7 +99,7 @@ export function createSimpleShips() {
     scene.add(shipCopy);
     ships.push(shipCopy);
     
-    console.log(`[SIMPLE_SHIP] Created ship ${index+1} at position (${pos.x}, ${waterLevel}, ${pos.z})`);
+    // console.log(`[SIMPLE_SHIP] Created ship ${index+1} at position (${pos.x}, ${waterLevel}, ${pos.z})`);
   });
   
   // Retourner les navires pour pouvoir les animer plus tard

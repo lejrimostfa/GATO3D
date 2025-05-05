@@ -205,7 +205,7 @@ export class SubmarinePhysics {
       acceleration = (this.config.forwardAcceleration * accelerationFactor * dragMultiplier) / this.momentumFactor;
       
       if (this.debug) {
-        console.log(`[PHYSICS] V_ratio: ${velocityRatio.toFixed(2)}, R_factor: ${resistanceFactor.toFixed(2)}, Drag_mult: ${dragMultiplier.toFixed(2)}`);
+        // console.log(`[PHYSICS] V_ratio: ${velocityRatio.toFixed(2)}, R_factor: ${resistanceFactor.toFixed(2)}, Drag_mult: ${dragMultiplier.toFixed(2)}`);
       }
       
       // Boost de réponse rapide - ajoute un boost immédiat basé sur le changement d'entrée
@@ -244,7 +244,7 @@ export class SubmarinePhysics {
       acceleration = (-this.config.backwardAcceleration * accelerationFactor * dragMultiplier) / this.momentumFactor;
       
       if (this.debug) {
-        console.log(`[PHYSICS] Backward - V_ratio: ${velocityRatio.toFixed(2)}, Drag_mult: ${dragMultiplier.toFixed(2)}`);
+        // console.log(`[PHYSICS] Backward - V_ratio: ${velocityRatio.toFixed(2)}, Drag_mult: ${dragMultiplier.toFixed(2)}`);
       }
       
       // Boost de réponse rapide - ajoute un boost immédiat basé sur le changement d'entrée
@@ -277,7 +277,7 @@ export class SubmarinePhysics {
     this.velocity += acceleration * responseMultiplier;
     
     if (this.debug) {
-      console.log(`[PHYSICS] Response multiplier: ${responseMultiplier.toFixed(4)} at resistance ${this.config.waterResistance.toFixed(2)}`);
+      // console.log(`[PHYSICS] Response multiplier: ${responseMultiplier.toFixed(4)} at resistance ${this.config.waterResistance.toFixed(2)}`);
     }
     
     // Ensure we don't overshoot target
@@ -288,8 +288,8 @@ export class SubmarinePhysics {
     
     // Log debug info if enabled
     if (this.debug) {
-      console.log(`Velocity: ${this.velocity.toFixed(4)}, Target: ${this.targetVelocity.toFixed(4)}, ` + 
-                 `Mass: ${this.momentumFactor.toFixed(2)}, Water Resistance: ${this.config.waterResistance.toFixed(2)}`);
+      // console.log(`Velocity: ${this.velocity.toFixed(4)}, Target: ${this.targetVelocity.toFixed(4)}, ` + 
+      //           `Mass: ${this.momentumFactor.toFixed(2)}, Water Resistance: ${this.config.waterResistance.toFixed(2)}`);
     }
   }
   
@@ -308,7 +308,7 @@ export class SubmarinePhysics {
     if (input.right) rotation -= this.config.rotationSpeed * rotationFactor;
     
     if (this.debug) {
-      console.log(`[PHYSICS] Rotation factor: ${rotationFactor.toFixed(4)} at resistance ${this.config.waterResistance.toFixed(2)}`);
+      // console.log(`[PHYSICS] Rotation factor: ${rotationFactor.toFixed(4)} at resistance ${this.config.waterResistance.toFixed(2)}`);
     }
     
     // Adjust rotation based on current speed

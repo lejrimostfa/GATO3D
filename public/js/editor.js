@@ -306,7 +306,7 @@ function loadSelectedModel() {
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
     // Log de debug
-    console.log('BoundingBox:', box, 'center:', center, 'size:', size, 'maxDim:', maxDim);
+    // console.log('BoundingBox:', box, 'center:', center, 'size:', size, 'maxDim:', maxDim);
     if (maxDim < 1e-3) {
       infoMsg.textContent = 'Modèle chargé mais taille nulle ou très petite : invisible. Vérifiez le fichier GLTF.';
       console.warn('Modèle chargé mais taille nulle ou très petite.');
@@ -321,11 +321,11 @@ function loadSelectedModel() {
     // Log arborescence
     function logHierarchy(obj, depth = 0) {
       let pad = ' '.repeat(depth*2);
-      console.log(pad + (obj.name || obj.type), obj);
+      // console.log(pad + (obj.name || obj.type), obj);
       if (obj.children) obj.children.forEach(child => logHierarchy(child, depth+1));
     }
     logHierarchy(currentModelRoot);
-    console.log('Modèle chargé:', modelSelect.value, currentModelRoot);
+    // console.log('Modèle chargé:', modelSelect.value, currentModelRoot);
     // Sauvegarde du centre et rayon pour le compass
     modelCenter.copy(center);
     modelRadius = maxDim;

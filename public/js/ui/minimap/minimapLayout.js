@@ -17,7 +17,7 @@ export function fixMinimapContainerLayout() {
     return;
   }
   
-  console.log('[UI:Minimap] Fixing minimap container layout');
+  // console.log('[UI:Minimap] Fixing minimap container layout');
   
   // Setup proper container styling (but don't change visibility yet)
   minimapContainer.style.position = 'relative';
@@ -66,7 +66,7 @@ export function fixMinimapButtonStyling() {
   const minimapSize = minimap.width || 200;
   const btnSize = Math.max(24, minimapSize * 0.18);
   
-  console.log(`[UI:Minimap] Fixing minimap button styling: map size=${minimapSize}, btn size=${btnSize}`);
+  // console.log(`[UI:Minimap] Fixing minimap button styling: map size=${minimapSize}, btn size=${btnSize}`);
   
   // Style zoom buttons
   if (minimapZoomIn && minimapZoomOut) {

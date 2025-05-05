@@ -8,7 +8,7 @@ import { setCameraFollowParams } from '../../camera/followCamera.js';
  * Initialize camera control sliders
  */
 export function initCameraSliders() {
-  console.log('[UI:Camera] Initializing camera control sliders');
+  // console.log('[UI:Camera] Initializing camera control sliders');
   
   // Utiliser les nouveaux ID de sliders que nous avons ajoutés dans l'HTML
   const distanceSlider = document.getElementById('camera-distance-slider');
@@ -34,7 +34,7 @@ export function initCameraSliders() {
   // Appliquer les paramètres initiaux de la caméra
   updateCameraUIControls();
   
-  console.log('[UI:Camera] Camera sliders initialized successfully');
+  // console.log('[UI:Camera] Camera sliders initialized successfully');
 }
 
 /**
@@ -64,7 +64,7 @@ export function updateCameraUIControls() {
   updateSliderLabels();
   
   // Log des nouvelles valeurs
-  console.log(`[UI:Camera] Updated: distance=${distance}, height=${height}, smoothness=${smoothness}`);
+  // console.log(`[UI:Camera] Updated: distance=${distance}, height=${height}, smoothness=${smoothness}`);
 }
 
 /**

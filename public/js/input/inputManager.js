@@ -11,7 +11,7 @@ export const keys = {};
  * Initialize the input management system
  */
 export function initInputManager() {
-  console.log('[INPUT] Initializing input manager');
+  // console.log('[INPUT] Initializing input manager');
   
   // Set up keyboard events
   setupKeyboardEvents();

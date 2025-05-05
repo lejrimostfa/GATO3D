@@ -27,7 +27,7 @@ export function setMinimapZoom(val) {
   
   // Ensure zoom is always between min and max
   minimapZoom = Math.max(MINIMAP_ZOOM_MIN, Math.min(roundedVal, MINIMAP_ZOOM_MAX));
-  console.log(`[MINIMAP] Zoom set to ${minimapZoom} (rounded from ${val})`);
+  // console.log(`[MINIMAP] Zoom set to ${minimapZoom} (rounded from ${val})`);
 }
 
 export let minimapRotating = false;
@@ -44,7 +44,7 @@ export function setMinimapRotating(val, playerSubmarine = null) {
 
 
 export function initMinimap() {
-  console.log('[MINIMAP] Initializing minimap');
+  // console.log('[MINIMAP] Initializing minimap');
   
   const minimapCanvas = document.getElementById('minimap');
   if (!minimapCanvas) {
@@ -61,7 +61,7 @@ export function initMinimap() {
   minimapCanvas.height = size;
   minimapRenderer.setClearColor(0x111122, 1);
   
-  console.log(`[MINIMAP] Set size to ${size}x${size}`);
+  // console.log(`[MINIMAP] Set size to ${size}x${size}`);
   
   // Fix minimap rotation toggle button position
   const minimapContainer = document.querySelector('.minimap-container');
@@ -126,7 +126,7 @@ export function initMinimap() {
   // Explicitly disable the main camera layer to make sure the sun sphere is not visible
   minimapCamera.layers.disable(LAYERS.MAIN_CAMERA);
   
-  console.log('[MINIMAP] Minimap initialized successfully');
+  // console.log('[MINIMAP] Minimap initialized successfully');
 }
 
 // Met à jour l'opacité du sous-marin en fonction de sa profondeur

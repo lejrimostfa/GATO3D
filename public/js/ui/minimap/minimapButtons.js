@@ -38,9 +38,9 @@ export function setupMinimapButtons() {
     return;
   }
   
-  console.log('[UI:Minimap] All minimap elements found, setting up button handlers');
+  // console.log('[UI:Minimap] All minimap elements found, setting up button handlers');
   
-  console.log('[UI:Minimap] Setting up minimap buttons');
+  // console.log('[UI:Minimap] Setting up minimap buttons');
   
   // Initialize minimap zoom with default values
   let minimapZoom = 2000;
@@ -55,7 +55,7 @@ export function setupMinimapButtons() {
   // Add click handler for zoom in (fixed 500 unit steps)
   minimapZoomIn.onclick = () => {
     minimapZoom = Math.max(500, minimapZoom - 500);
-    console.log(`[UI:Minimap] Zoom in: ${minimapZoom} units`);
+    // console.log(`[UI:Minimap] Zoom in: ${minimapZoom} units`);
     
     // Dispatch custom event to notify the minimap renderer
     window.dispatchEvent(new CustomEvent('minimap-zoom-change', {
@@ -66,7 +66,7 @@ export function setupMinimapButtons() {
   // Add click handler for zoom out (fixed 500 unit steps)
   minimapZoomOut.onclick = () => {
     minimapZoom = Math.min(5000, minimapZoom + 500);
-    console.log(`[UI:Minimap] Zoom out: ${minimapZoom} units`);
+    // console.log(`[UI:Minimap] Zoom out: ${minimapZoom} units`);
     
     // Dispatch custom event to notify the minimap renderer
     window.dispatchEvent(new CustomEvent('minimap-zoom-change', {
@@ -77,7 +77,7 @@ export function setupMinimapButtons() {
   // Add click handler for rotation toggle
   minimapRotationToggle.onclick = () => {
     isRotating = !isRotating;
-    console.log(`[UI:Minimap] Rotation mode: ${isRotating ? 'auto-rotate' : 'fixed north'}`);
+    // console.log(`[UI:Minimap] Rotation mode: ${isRotating ? 'auto-rotate' : 'fixed north'}`);
     
     // Update button display
     minimapRotationToggle.innerHTML = isRotating ? '🔄' : '🧭';

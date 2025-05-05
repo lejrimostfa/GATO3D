@@ -3,7 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 import { Water } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Water.js';
 import { Sky } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Sky.js';
 import { initLighting } from './lighting.js';
-import { createOceanFloor } from './ocean/terrain.js';
+import { createTerrainGrid } from './ocean/terrain.js';
 
 // Define layer constants
 export const LAYERS = {
@@ -18,17 +18,17 @@ export function setupSkyAndWater(scene, renderer, camera) {
     return null;
   }
   
-  console.log('[SETUP] Initializing sky and water with:', {
-    scene: scene instanceof THREE.Scene,
-    renderer: renderer instanceof THREE.WebGLRenderer,
-    camera: camera instanceof THREE.Camera
-  });
+  // console.log('[SETUP] Initializing sky and water with:', {
+  //   scene: scene instanceof THREE.Scene,
+  //   renderer: renderer instanceof THREE.WebGLRenderer,
+  //   camera: camera instanceof THREE.Camera
+  // });
   // Centralise la création des lumières et du ciel
   const { sunLight, ambientLight, sky, sun } = initLighting(scene);
   
   // Charger la texture du ciel nocturne
   const nightSkyTexture = new THREE.TextureLoader().load('./textures/sky/NightSkyHDRI001_4K-TONEMAPPED.jpg', (texture) => {
-    console.log('Texture du ciel nocturne chargée avec succès');
+    // console.log('Texture du ciel nocturne chargée avec succès');
     texture.mapping = THREE.EquirectangularReflectionMapping;
     texture.encoding = THREE.sRGBEncoding;
     texture.minFilter = THREE.LinearFilter;
@@ -36,7 +36,7 @@ export function setupSkyAndWater(scene, renderer, camera) {
   });
   
   // Créer une sphère pour le ciel nocturne adaptée à la distance de rendu
-  const nightSkyGeometry = new THREE.SphereGeometry(10000, 64, 64);
+  const nightSkyGeometry = new THREE.SphereGeometry(50000, 64, 64);
   const nightSkyMaterial = new THREE.MeshBasicMaterial({
     map: nightSkyTexture,
     side: THREE.BackSide,
@@ -49,7 +49,8 @@ export function setupSkyAndWater(scene, renderer, camera) {
 
   // S'assurer que la caméra peut voir le ciel
   if (camera) {
-    camera.far = Math.max(camera.far, 15000);
+    camera.far = Math.max(camera.far, 60000); // Increased from 15000 to 60000
+    camera.updateProjectionMatrix(); // Important: Update camera after changing far plane
   }
 
   // Fonction pour faire suivre les sphères du ciel au joueur
@@ -107,9 +108,9 @@ export function setupSkyAndWater(scene, renderer, camera) {
   sky.material.uniforms['sunPosition'].value.copy(sun);
 
 
-  console.log('[DEBUG] Creating dynamic water surface with 3D waves');
+  // console.log('[DEBUG] Creating dynamic water surface with 3D waves');
   
-  console.log('[WATER] Creating water surface at y=20');
+  // console.log('[WATER] Creating water surface at y=20');
   
   // Create a much larger water surface that extends beyond the visible area
   // Using higher vertex density (250x250) for more detailed waves
@@ -146,12 +147,12 @@ export function setupSkyAndWater(scene, renderer, camera) {
       return new THREE.Texture(); // Texture vide comme dernier recours
     }
     
-    console.log(`[WATER] Tentative de chargement de la texture: ${paths[index]}`);
+    // console.log(`[WATER] Tentative de chargement de la texture: ${paths[index]}`);
     
     return new THREE.TextureLoader().load(
       paths[index],
       tex => {
-        console.log(`✅ Texture d'eau chargée avec succès depuis: ${paths[index]}`);
+        // console.log(`✅ Texture d'eau chargée avec succès depuis: ${paths[index]}`);
         // Set repeat wrapping for infinite tiling
         tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
         // Increase the repeat factor for more detail
@@ -225,10 +226,10 @@ export function setupSkyAndWater(scene, renderer, camera) {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   }
   
-  console.log('[WATER] Water material configuration:', {
-    waterColor: water.material.uniforms.waterColor.value.getHexString(),
-    distortionScale: water.material.uniforms.distortionScale.value
-  });
+  // console.log('[WATER] Water material configuration:', {
+  //   waterColor: water.material.uniforms.waterColor.value.getHexString(),
+  //   distortionScale: water.material.uniforms.distortionScale.value
+  // });
   
   // Add custom uniforms for our wave system
   water.material.uniforms.waveAmplitude = { value: waveAmplitude };
@@ -281,11 +282,15 @@ export function setupSkyAndWater(scene, renderer, camera) {
   scene.add(water);
   water.position.y = 20;
   
-  // Add mild fog for atmosphere
+  // Créer le terrain avec la nouvelle fonction
+  const terrainGroup = createTerrainGrid(scene);
+
+  // Appliquer le brouillard pour l'effet atmosphérique
   if (!scene.fog) {
-    scene.fog = new THREE.FogExp2(0xbfd1e5, 0.00015);
+    // console.log('[SETUP] Setting scene fog');
+    scene.fog = new THREE.FogExp2(0x808080, 0.00001); // Further decrease density
   }
-  
+
   // Ajuster les paramètres de rendu de l'eau
   water.material.transparent = true;
   water.material.opacity = 0.8;
@@ -305,40 +310,24 @@ export function setupSkyAndWater(scene, renderer, camera) {
   water.material.uniforms.waterColor.value.setHex(0x0077be); // Bleu plus vif
   water.material.uniforms.sunColor.value.setHex(0xffffff); // Soleil plus brillant
   
-  // Récupérer la taille de la surface d'eau
-  const waterSize = 50000; // Identique à la taille définie pour waterGeometry
-  const waterSegments = 250; // Identique à la résolution de waterGeometry
-  
-  // Ajouter le fond marin (mêmes dimensions que l'eau)
-  console.log('[SETUP] Creating ocean floor matching water dimensions...');
-  const oceanFloor = createOceanFloor(scene, {
-    size: waterSize,     // Même taille que la surface d'eau
-    segments: waterSegments, // Même résolution que l'eau
-    depth: -100,        // Profondeur fixée à -100 comme demandé
-    maxHeight: 60       // Réduit pour un relief plus doux
-  });
-  
   // Vérifier la configuration
-  console.log('[SETUP] Ocean floor configuration:', {
-    position: oceanFloor.position.toArray(),
-    rotation: oceanFloor.rotation.toArray(),
-    scale: oceanFloor.scale.toArray(),
-    isCollidable: oceanFloor.isCollidable
-  });
+  // console.log('[SETUP] Ocean floor configuration:', {
+  //   position: terrainGroup.position.toArray(),
+  //   rotation: terrainGroup.rotation.toArray(),
+  //   scale: terrainGroup.scale.toArray(),
+  //   isCollidable: terrainGroup.isCollidable
+  // });
   
   // Ajouter le terrain comme obstacle dans la scène
   if (!scene.obstacles) scene.obstacles = [];
-  scene.obstacles.push(oceanFloor);
+  scene.obstacles.push(terrainGroup);
   
   // S'assurer que la scène est accessible globalement pour la détection de collision
   window.scene = scene;  // CRUCIAL pour que le système de collision fonctionne
-  console.log('[SETUP] Scene attached to window.scene with obstacles:', scene.obstacles.length);
+  // console.log('[SETUP] Scene attached to window.scene with obstacles:', scene.obstacles.length);
   
-  // Ajuster les paramètres de brouillard pour une meilleure visibilité
-  scene.fog.density = 0.0002;
-
-  // Retourne les éléments principaux + sunSphere + oceanFloor + nightSky
-  return { water, sky, sun, sunLight, renderer, sunSphere, oceanFloor, nightSky };
+  // Retourne les éléments principaux + terrainGroup
+  return { water, sky, sun, sunLight, renderer, sunSphere, terrainGroup, nightSky, ambientLight };
 }
 
 export function updateSun(sceneHandles, hour) {

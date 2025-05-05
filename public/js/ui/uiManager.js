@@ -20,7 +20,7 @@ let depthMeterInstance = null;
  * @param {Function} onComplete - Callback when all UI is initialized
  */
 export function initUI(onComplete) {
-  console.log('[UI] Initializing UI components');
+  // console.log('[UI] Initializing UI components');
   
   // Initialize DOM element cache
   initDOMElements();
@@ -103,7 +103,7 @@ function initClockUI() {
     // Stocker la taille comme variable globale pour l'utiliser dans le speedomètre
     window.uiComponentSize = uiComponentSize;
     
-    console.log(`[UI:Clock] Initialized with size ${uiComponentSize}px`);
+    // console.log(`[UI:Clock] Initialized with size ${uiComponentSize}px`);
     
     // Draw initial clock
     drawClockFace(clockCtx, clockCanvas.width / 2);
@@ -116,7 +116,7 @@ function initClockUI() {
  */
 function initSpeedometer() {
   import('./speedometer.js').then(module => {
-    console.log('[UI] Initializing speedometer');
+    // console.log('[UI] Initializing speedometer');
     speedometerInstance = module.initSpeedometer();
     
     // Start updating speedometer with submarine velocity and target speed
@@ -181,7 +181,7 @@ function initSpeedometer() {
  */
 function initDepthMeter() {
   import('./depthMeter.js').then(module => {
-    console.log('[UI] Initializing depth meter');
+    // console.log('[UI] Initializing depth meter');
     depthMeterInstance = module.initDepthMeter();
     
     // Start updating depth meter with submarine depth

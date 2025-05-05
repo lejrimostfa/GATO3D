@@ -9,7 +9,7 @@ import { setDayDuration } from '../../time/timeManager.js';
  * Initialize all slider controls with default values
  */
 export function initAllSliders() {
-  console.log('[UI:Sliders] Initializing all slider controls');
+  // console.log('[UI:Sliders] Initializing all slider controls');
   
   // Initialize camera sliders
   initCameraSliders();
@@ -21,5 +21,5 @@ export function initAllSliders() {
   
   // Add other sliders here as needed
   
-  console.log('[UI:Sliders] All sliders initialized');
+  // console.log('[UI:Sliders] All sliders initialized');
 }
