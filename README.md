@@ -82,6 +82,64 @@
 
 ---
 
+## 🐛 PROBLEMES CONNUS ET SOLUTIONS
+
+### 🌊 Problème de l'eau grise sur GitHub Pages
+
+**Symptôme :**
+L'eau apparaît comme une surface grise sur GitHub Pages mais fonctionne correctement en localhost.
+
+**Cause :**
+Le problème est lié au chargement des textures de l'eau. GitHub Pages applique des restrictions strictes sur les chemins d'accès aux ressources, ce qui peut empêcher le chargement correct des textures.
+
+**Solution :**
+1. Assurez-vous que la texture `waternormals.jpg` est présente dans le dossier `/public/textures/`
+2. Utilisez un système de chargement de texture robuste qui essaie plusieurs chemins :
+   - Chemin relatif depuis le dossier du projet
+   - Chemin absolu depuis la racine du site
+   - URL externe de secours (Three.js CDN)
+
+**Code de référence :**
+```javascript
+// Dans water-setup.js
+const texturePaths = [
+    './textures/waternormals.jpg',           // Chemin relatif (préféré)
+    '../textures/waternormals.jpg',          // Autre chemin relatif possible
+    '/textures/waternormals.jpg',            // Chemin absolu depuis la racine
+    'https://threejs.org/examples/textures/waternormals.jpg' // Fallback externe
+];
+
+function tryLoadTexture(paths, index = 0) {
+    if (index >= paths.length) {
+        console.error('❌ Tous les chemins de texture ont échoué!');
+        return new THREE.Texture();
+    }
+    
+    console.log(`[WATER] Tentative de chargement de la texture: ${paths[index]}`);
+    
+    return new THREE.TextureLoader().load(
+        paths[index],
+        tex => {
+            console.log(`✅ Texture d'eau chargée avec succès depuis: ${paths[index]}`);
+            // Configuration de la texture
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+            tex.repeat.set(20, 20);
+            tex.flipY = false;
+            tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+        },
+        undefined,
+        err => tryLoadTexture(paths, index + 1)
+    );
+}
+```
+
+**Prévention :**
+1. Toujours vérifier que les textures sont présentes dans le dépôt
+2. Utiliser des chemins relatifs plutôt que des chemins absolus
+3. Ajouter des messages de débogage pour faciliter le diagnostic
+
+---
+
 ## 🚀 PLAN DE CONTINUATION / NEXT DEVELOPMENT PLAN
 
 - **Modularisation à terminer**
