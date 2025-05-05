@@ -3,3 +3,4 @@ if you don't understand something ask me
 don't ask is user wants you to apply changes just apply them
 keep all sliders and buttons connected to their 
 suggest to add modules every time a new functionality or feature is added
+always check if there are any redundencies in variables, functions and modules so you don't create any and connect the wrong variables 

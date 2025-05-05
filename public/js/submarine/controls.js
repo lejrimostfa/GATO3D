@@ -3,6 +3,48 @@
 
 // Import the modular physics system
 import { defaultPhysics, updatePhysics, currentVelocity, maxSpeed, setMaxSpeed } from './physics.js';
+
+// --- PALIER SPEED CONTROL ---
+// Target speed (palier), step size, and min/max (in knots or m/s as needed)
+let targetSpeed = 0;
+const targetSpeedStep = 0.1; // Pas de 0.2 m/s par appui (environ 0.4 noeuds)
+
+// Utility: clamp value between min/max
+function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+
+// Expose for debug/UI
+export { targetSpeed };
+
+// Listen for keydown events to increment/decrement palier (ONE per press)
+window.addEventListener('keydown', e => {
+  const key = e.key.toLowerCase();
+  let changed = false;
+  // Récupérer les limites actuelles (pour prendre en compte les changements de maxSpeed)
+  const currentMaxSpeed = defaultPhysics.config.maxForwardSpeed;
+  const currentMinSpeed = -1 * defaultPhysics.config.maxBackwardSpeed;
+  
+  if (key === 'z' || key === 'arrowup') {
+    targetSpeed = clamp(targetSpeed + targetSpeedStep, currentMinSpeed, currentMaxSpeed);
+    changed = true;
+  } else if (key === 's' || key === 'arrowdown') {
+    targetSpeed = clamp(targetSpeed - targetSpeedStep, currentMinSpeed, currentMaxSpeed);
+    changed = true;
+  } else if (key === '0') { // La touche 0 définit le palier cible à 0 (arrêt progressif)
+    targetSpeed = 0;
+    changed = true;
+    // Note: On ne modifie pas directement la vitesse, on laisse la physique gérer le ralentissement
+  }
+  if (changed) {
+    // Optionally update UI here
+    if (window.elements && window.elements.submarineSpeedLabel) {
+      const knots = targetSpeed * 1.94384;
+      window.elements.submarineSpeedLabel.textContent = `Cible: ${knots.toFixed(1)} kn`;
+    }
+    // For debug
+    console.log(`[PALIER] Nouvelle cible: ${targetSpeed.toFixed(3)} m/s`);
+  }
+});
+
 // Import keys from centralized input manager
 import { keys } from '../input/inputManager.js';
 
@@ -125,14 +167,23 @@ export function updatePlayerSubmarine(playerSubmarine) {
   
   // Create the input object for the physics system with our modified inputs
   const input = {
-    forward: effectiveForward,
-    backward: effectiveBackward,
+    forward: false, // ignore direct forward/backward, use palier
+    backward: false,
     left: Boolean(keys['q'] || keys['arrowleft']),
     right: Boolean(keys['d'] || keys['arrowright']),
     up: upPressed,
-    down: downPressed
+    down: downPressed,
+    // Pass palier to physics
+    palierTargetSpeed: targetSpeed
   };
   
+  // --- PALIER: Set physics target velocity directly ---
+  if (defaultPhysics) {
+    // Définir la vitesse cible dans le système physique
+    // La physique s'occupera de ralentir progressivement
+    defaultPhysics.targetVelocity = targetSpeed;
+  }
+
   // Update physics and get movement parameters
   // Using the shared physics instance to ensure currentVelocity is updated
   const movement = updatePhysics(input);
@@ -235,6 +286,13 @@ export function updatePlayerSubmarine(playerSubmarine) {
     maxSpeed: maxSpeed,
     // Include full movement data for advanced use
     movement: movement,
-    verticalMovement: verticalMovement
+    verticalMovement: verticalMovement,
+    targetSpeed: targetSpeed // Expose palier for UI or debug
   };
 }
+
+// --- SUGGESTED: MODULARIZE PALIER LOGIC ---
+// If this logic grows, move all palier-related code (targetSpeed, step, clamp, conversion, UI) to a new module:
+// e.g. submarine/palierSpeed.js
+// This keeps controls.js focused only on glue logic and not business rules.
+

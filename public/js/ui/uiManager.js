@@ -9,6 +9,7 @@ import { initUIVisibility, hideAllUIElements } from './components/visibility.js'
 import { setupOverlayObserver } from './components/overlayObserver.js';
 import { initAllSliders } from './controls/sliders.js';
 import { initMinimap } from './minimap/minimapManager.js';
+import { initHelpOverlay } from './helpOverlay.js';
 
 // UI state variables
 let speedometerInstance = null;
@@ -47,6 +48,9 @@ export function initUI(onComplete) {
   initSpeedometer();
   initDepthMeter(); // Ajout du depth meter
   initMinimap();
+  
+  // Initialiser l'overlay d'aide (bouton "?") - toujours visible
+  initHelpOverlay();
   
   // Initialize HUD visibility
   updateHudVisibility();
@@ -115,8 +119,10 @@ function initSpeedometer() {
     console.log('[UI] Initializing speedometer');
     speedometerInstance = module.initSpeedometer();
     
-    // Start updating speedometer with submarine velocity
+    // Start updating speedometer with submarine velocity and target speed
     import('../submarine/controls.js').then(submarineModule => {
+      // Import targetSpeed (palier) from controls
+      const { targetSpeed } = submarineModule;
       // Cache for submarine instance
       let submarineInstance = null;
       
@@ -141,8 +147,12 @@ function initSpeedometer() {
           // Make sure velocity is clamped to a valid range
           velocity = Math.min(1.0, Math.max(0, velocity));
           
-          // Update speedometer with velocity and current max speed
-          speedometerInstance.update(velocity, displayMaxSpeed);
+          // Get normalized target speed for the second needle (palier)
+          // Convert targetSpeed to 0-1 range for the speedometer
+          const normalizedTargetSpeed = Math.abs(submarineModule.targetSpeed) / displayMaxSpeed;
+          
+          // Update speedometer with velocity, current max speed, and target velocity (palier)
+          speedometerInstance.update(velocity, displayMaxSpeed, normalizedTargetSpeed);
         }
         
         // Try to get latest submarine update

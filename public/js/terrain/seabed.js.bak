@@ -1,0 +1,209 @@
+// seabed.js - Fond marin avec variations topographiques
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js'\;
+
+// Configuration du fond marin
+const seabedConfig = {
+  // Dimensions
+  width: 8000,           // Largeur
+  length: 8000,          // Longueur
+  segments: 100,         // Résolution du maillage
+  
+  // Profondeur
+  minDepth: -1000,      // Zone la plus profonde
+  maxDepth: -220,       // Zone la moins profonde
+  
+  // Aspect visuel
+  baseColor: 0x2277aa,  // Couleur de base (bleu plus vif)
+  deepColor: 0x001133,  // Couleur des fosses profondes
+  shallowColor: 0xaabbcc // Couleur des hauts-fonds
+};
+
+/**
+ * Crée un fond marin avec des variations topographiques
+ * Implémentation simplifiée et optimisée pour assurer la visibilité
+ */
+export function createSeabed(scene) {
+  console.log('[TERRAIN] Generating seabed terrain with simplified approach...');
+  
+  // Créer une géométrie de terrain de base
+  const geometry = new THREE.PlaneGeometry(
+    seabedConfig.width,
+    seabedConfig.length,
+    seabedConfig.segments,
+    seabedConfig.segments
+  );
+  
+  // Tableau pour stocker les couleurs
+  const colors = [];
+  
+  // Position de chaque vertex
+  const vertices = geometry.attributes.position.array;
+  
+  // Créer une grille de hauteurs mathématique simple mais visible
+  for (let i = 0; i < vertices.length; i += 3) {
+    const x = vertices[i];
+    const z = vertices[i + 2];
+    
+    // Calculer la hauteur avec des formules mathématiques simples mais visuellement intéressantes
+    // Plusieurs sinusoïdes à différentes fréquences + quelques montagnes sous-marines
+    const height1 = Math.sin(x * 0.01) * Math.cos(z * 0.01) * 200;  // Grandes ondulations
+    const height2 = Math.sin(x * 0.05) * Math.cos(z * 0.03) * 50;   // Ondulations moyennes
+    const height3 = Math.sin(x * 0.002 + z * 0.002) * 400;         // Très grandes formes
+    
+    // Ajouter quelques montagnes sous-marines
+    let mountainHeight = 0;
+    
+    // Créer 5 montagnes sous-marines à des positions spécifiques
+    const mountains = [
+      { x: 1000, z: 500, height: 600, radius: 800 },
+      { x: -800, z: -1200, height: 500, radius: 600 },
+      { x: -200, z: 1500, height: 400, radius: 700 },
+      { x: 2000, z: -500, height: 700, radius: 900 },
+      { x: -1500, z: 200, height: 550, radius: 750 }
+    ];
+    
+    // Calculer l'influence de chaque montagne
+    for (const mountain of mountains) {
+      const dx = x - mountain.x;
+      const dz = z - mountain.z;
+      const distance = Math.sqrt(dx * dx + dz * dz);
+      
+      if (distance < mountain.radius) {
+        // Formule de montagne en cloche
+        const normalizedDist = distance / mountain.radius;
+        const peak = Math.cos(normalizedDist * Math.PI / 2) * mountain.height;
+        mountainHeight += peak;
+      }
+    }
+    
+    // Ajouter aussi quelques tranchées/fosses océaniques
+    const trenches = [
+      { x: 0, z: 0, depth: 500, width: 1000, length: 4000, angle: Math.PI / 6 }
+    ];
+    
+    let trenchDepth = 0;
+    
+    for (const trench of trenches) {
+      // Transformation pour orienter la tranchée selon son angle
+      const rotatedX = Math.cos(trench.angle) * (x - trench.x) - Math.sin(trench.angle) * (z - trench.z);
+      const rotatedZ = Math.sin(trench.angle) * (x - trench.x) + Math.cos(trench.angle) * (z - trench.z);
+      
+      // Vérifier si le point est dans la tranchée
+      if (Math.abs(rotatedX) < trench.width / 2 && Math.abs(rotatedZ) < trench.length / 2) {
+        // Plus profond au centre de la tranchée
+        const normalizedX = rotatedX / (trench.width / 2);
+        const normalizedZ = rotatedZ / (trench.length / 2);
+        trenchDepth = -trench.depth * (1 - Math.abs(normalizedX) * 0.8) * (1 - Math.abs(normalizedZ) * 0.5);
+      }
+    }
+    
+    // Combiner toutes les contributions
+    const totalHeight = height1 + height2 + height3 + mountainHeight + trenchDepth;
+    
+    // Limiter à la plage de profondeur demandée
+    const finalHeight = Math.max(seabedConfig.minDepth, Math.min(seabedConfig.maxDepth, totalHeight));
+    vertices[i + 1] = finalHeight;
+    
+    // Calculer la couleur en fonction de la profondeur
+    const baseColor = new THREE.Color(seabedConfig.baseColor);
+    const deepColor = new THREE.Color(seabedConfig.deepColor);
+    const shallowColor = new THREE.Color(seabedConfig.shallowColor);
+    
+    // Normaliser la hauteur entre 0 et 1
+    const normalizedHeight = (finalHeight - seabedConfig.minDepth) / 
+                            (seabedConfig.maxDepth - seabedConfig.minDepth);
+    
+    // Créer un dégradé de couleur basé sur la profondeur
+    let color;
+    if (normalizedHeight < 0.3) {
+      // Zones profondes
+      color = deepColor.clone().lerp(baseColor, normalizedHeight / 0.3);
+    } else if (normalizedHeight > 0.7) {
+      // Zones hautes
+      color = baseColor.clone().lerp(shallowColor, (normalizedHeight - 0.7) / 0.3);
+    } else {
+      // Zones intermédiaires
+      color = baseColor.clone();
+    }
+    
+    // Ajouter des variations aléatoires subtiles
+    color.r += (Math.random() * 0.1 - 0.05);
+    color.g += (Math.random() * 0.1 - 0.05);
+    color.b += (Math.random() * 0.1 - 0.05);
+    
+    // Ajouter la couleur
+    colors.push(color.r, color.g, color.b);
+  }
+  
+  // Mettre à jour la géométrie
+  geometry.attributes.position.needsUpdate = true;
+  
+  // Ajouter les couleurs à la géométrie
+  geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  
+  // Recalculer les normales pour l'éclairage
+  geometry.computeVertexNormals();
+  
+  // Créer un matériau avec une lumière émissive pour être visible même en profondeur
+  const material = new THREE.MeshLambertMaterial({
+    color: 0xffffff,
+    emissive: 0x112244,
+    emissiveIntensity: 0.2,
+    vertexColors: true,
+    side: THREE.DoubleSide,
+    wireframe: false
+  });
+  
+  // Créer le mesh
+  const seabed = new THREE.Mesh(geometry, material);
+  
+  // Positionner le terrain
+  seabed.rotation.x = -Math.PI / 2;  // Horizontal
+  seabed.position.y = -100;  // Sous le niveau de l'eau (eau à y=20)
+  seabed.position.x = 0;
+  seabed.position.z = 0;
+  
+  // Identification
+  seabed.name = 'seabed';
+  seabed.userData.type = 'terrain';
+  seabed.userData.isSeabed = true;
+  
+  // Ombres
+  seabed.receiveShadow = true;
+  
+  console.log('[TERRAIN] Seabed created and positioned at y=', seabed.position.y);
+  
+  // Ajouter à la scène
+  scene.add(seabed);
+  
+  return seabed;
+}
+
+/**
+ * Obtient la hauteur du fond marin à une position donnée
+ */
+export function getSeabedHeight(seabed, x, z) {
+  if (!seabed) return seabedConfig.minDepth;
+  
+  // Utiliser un raycasting pour trouver la hauteur
+  const raycaster = new THREE.Raycaster();
+  raycaster.set(
+    new THREE.Vector3(x, 500, z),
+    new THREE.Vector3(0, -1, 0)
+  );
+  
+  const intersects = raycaster.intersectObject(seabed);
+  
+  if (intersects.length > 0) {
+    return intersects[0].point.y;
+  }
+  
+  return seabedConfig.minDepth;
+}
+
+/**
+ * Met à jour le fond marin si nécessaire
+ */
+export function updateSeabed(seabed) {
+  // Fonctionnalité future pour les animations du fond marin
+}

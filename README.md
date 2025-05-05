@@ -10,6 +10,25 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
+### [2025-05-05] Submarine Speed Control & Help System
+- **Stepped Speed Control (Palier)**
+  - Implemented a stepped speed control system that allows for precise speed adjustments
+  - Added key controls for incrementing/decrementing target speed (Z/↑ and S/↓)
+  - Added "0" key to set target speed to zero (gradual stop with inertia)
+  - Submarine now accelerates/decelerates smoothly toward the target speed
+- **Enhanced Speedometer**
+  - Added a second orange needle to show target speed (palier)
+  - Improved speed display with real-time updates in knots
+  - Visual distinction between current speed (white) and target speed (orange)
+- **Help System**
+  - Added a "?" button in the top-left corner showing keyboard controls on hover
+  - Interactive layout toggle between AZERTY and QWERTY keyboard layouts
+  - Auto-hiding after 2 seconds or when clicking elsewhere
+- **Improved Submarine Handling**
+  - Enhanced turning capability at high speeds for better control
+  - Reduced speed-based turning resistance for more responsive steering
+  - More gradual deceleration when stopping for realistic inertia
+
 ### [2025-05-05] Submarine Control UI Overhaul & Settings Panels
 - **Unified Top Bar UI**
   - All menu buttons are now organized into a single top bar, positioned at the top right for easy access.
@@ -304,6 +323,8 @@ When adding new UI controls:
   - Realistic submarine movement with momentum and inertia
   - Special braking systems (dive brake, reverse brake) for intuitive control
   - Proper velocity calculation with combined horizontal and vertical movement
+  - Stepped speed control (palier) with visual feedback on speedometer
+  - Improved turning mechanics at high speeds
   - Realistic maximum speed (10 knots) with adjustable slider
 - **Minimap & UI Improvements**
   - Dynamic zoom controls based on current zoom level

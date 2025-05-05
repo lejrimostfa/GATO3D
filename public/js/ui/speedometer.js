@@ -19,12 +19,13 @@ export function initSpeedometer() {
   
   return {
     /**
-     * Update the speedometer with a new velocity value
+     * Update the speedometer with a new velocity value and target velocity
      * @param {number} velocity - Current velocity (0-1 range)
      * @param {number} maxSpeed - Maximum speed in knots (for graduations)
+     * @param {number} targetVelocity - Target velocity (palier) in 0-1 range
      */
-    update: (velocity, maxSpeed = 300) => {
-      drawSpeedometer(speedCtx, speedCanvas.width / 2, speedCanvas.height / 2, velocity, maxSpeed);
+    update: (velocity, maxSpeed = 300, targetVelocity = null) => {
+      drawSpeedometer(speedCtx, speedCanvas.width / 2, speedCanvas.height / 2, velocity, maxSpeed, targetVelocity);
     }
   };
 }
@@ -48,14 +49,15 @@ function updateSpeedometer(velocity, maxSpeedValue) {
 }
 
 /**
- * Draw the speedometer with the given velocity
+ * Draw the speedometer with the given velocity and target velocity
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {number} centerX - Center X of the speedometer
  * @param {number} centerY - Center Y of the speedometer
  * @param {number} velocity - normalized speed value between 0 and 1
  * @param {number} maxSpeedValue - The maximum speed in knots (for speedometer graduation)
+ * @param {number} targetVelocity - Target velocity (palier) in 0-1 range
  */
-function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue) {
+function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue, targetVelocity = null) {
   // Store the canvas for future reference
   speedometerCanvas = ctx.canvas;
   
@@ -154,6 +156,36 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue) {
   ctx.lineWidth = 2;
   ctx.stroke();
   
+  // Draw target velocity needle (palier) if provided
+  if (targetVelocity !== null) {
+    const targetNeedleLength = radius - 35; // Slightly shorter than main needle
+    const targetNeedleAngle = Math.PI * 0.75 + targetVelocity * Math.PI * 1.5;
+    const targetNeedleX = centerX + Math.cos(targetNeedleAngle) * targetNeedleLength;
+    const targetNeedleY = centerY + Math.sin(targetNeedleAngle) * targetNeedleLength;
+    
+    // Shadow for target needle
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(targetNeedleX, targetNeedleY);
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    
+    // Target needle (orange)
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(targetNeedleX, targetNeedleY);
+    ctx.strokeStyle = '#ff7700'; // Orange for target velocity
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    
+    // Small dot at the end of target needle
+    ctx.beginPath();
+    ctx.arc(targetNeedleX, targetNeedleY, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff7700';
+    ctx.fill();
+  }
+  
   // Draw the center cap
   ctx.beginPath();
   ctx.arc(centerX, centerY, 12, 0, Math.PI * 2); // Larger center cap
@@ -174,7 +206,16 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue) {
   const velocityKnots = (velocity * maxKnots).toFixed(1);
   ctx.fillText(`${velocityKnots} kn`, centerX, centerY + 30); // Position ajustée pour la nouvelle taille
   
+  // Display target velocity if provided
+  if (targetVelocity !== null) {
+    const targetKnots = (targetVelocity * maxKnots).toFixed(1);
+    ctx.font = 'bold 14px monospace';
+    ctx.fillStyle = '#ff7700'; // Orange to match target needle
+    ctx.fillText(`Cible: ${targetKnots} kn`, centerX, centerY + 50);
+  }
+  
   // Draw smaller unit label
   ctx.font = '14px monospace'; // Taille réduite 
-  ctx.fillText('SPEED', centerX, centerY + 55); // Position ajustée pour la nouvelle taille
+  ctx.fillStyle = '#0f0';
+  ctx.fillText('SPEED', centerX, centerY + 70); // Position ajustée pour la nouvelle taille
 }

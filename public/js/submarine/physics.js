@@ -14,8 +14,8 @@ export class SubmarinePhysics {
     // Configuration
     this.config = {
       // Maximum speeds - much lower default for more realistic submarine movement
-      maxForwardSpeed: options.maxForwardSpeed || 0.1, // Equivalent to 10 knots
-      maxBackwardSpeed: options.maxBackwardSpeed || 0.1, // Set equal to forward speed
+      maxForwardSpeed: options.maxForwardSpeed || 10, // 10 m/s (environ 20 noeuds, ajustable)
+      maxBackwardSpeed: options.maxBackwardSpeed || 10, // Set equal to forward speed
       
       // Acceleration values (per frame) - much faster now
       forwardAcceleration: options.forwardAcceleration || 0.005,  // 6.25x faster
@@ -81,8 +81,13 @@ export class SubmarinePhysics {
    * @returns {Object} - Movement values to apply
    */
   update(input) {
-    // Calculate target velocity based on input
-    this._updateTargetVelocity(input);
+    // PALIER: If input.palierTargetSpeed is defined, use it as target velocity
+    if (typeof input.palierTargetSpeed === 'number') {
+      this.targetVelocity = input.palierTargetSpeed;
+    } else {
+      // Fallback: Calculate target velocity based on input
+      this._updateTargetVelocity(input);
+    }
     
     // Apply inertia and physics to current velocity
     this._updateCurrentVelocity();
@@ -156,10 +161,15 @@ export class SubmarinePhysics {
     if (this.targetVelocity === 0) {
       // Coasting to stop - apply drag
       // La masse affecte la décélération - plus le sous-marin est lourd, plus il met du temps à s'arrêter
-      // La résistance de l'eau augmente le facteur de freinage (effet amplifié de 3x pour être plus perceptible)
-      const dragFactor = (1.2 * Math.pow(this.config.waterResistance, 2)) / this.momentumFactor;
+      // La résistance de l'eau augmente le facteur de freinage
+      // Réduction significative du facteur de freinage pour un arrêt plus progressif
+      const dragFactor = (0.3 * Math.pow(this.config.waterResistance, 2)) / this.momentumFactor;
       
-      acceleration = (this.config.dragDeceleration * dragFactor) * Math.sign(velocityDiff);
+      // Réduire encore plus la décélération quand la vitesse est déjà faible
+      const velocityRatio = Math.abs(this.velocity / this.config.maxForwardSpeed);
+      const slowdownFactor = Math.max(0.2, velocityRatio); // Plus lent à basse vitesse
+      
+      acceleration = (this.config.dragDeceleration * dragFactor * slowdownFactor) * Math.sign(velocityDiff);
     } else if (velocityDiff > 0) {
       // Accélération vers l'avant (ou décélération depuis l'arrière)
       const progressToMax = Math.abs(this.velocity / this.config.maxForwardSpeed);
@@ -306,12 +316,14 @@ export class SubmarinePhysics {
     if (rotation !== 0 && Math.abs(this.velocity) > 0.01) {
       // La masse et la résistance de l'eau réduisent la capacité à tourner à haute vitesse
       const massSpeedEffect = 0.7 * Math.min(1.0, Math.sqrt(this.momentumFactor * this.config.waterResistance) * 0.5);
-      const speedFactor = 1.0 - (Math.abs(this.velocity) / this.config.maxForwardSpeed) * massSpeedEffect;
+      let speedFactor = 1.0 - (Math.abs(this.velocity) / this.config.maxForwardSpeed) * massSpeedEffect;
+      speedFactor = Math.max(0.35, speedFactor); // Ne descend jamais sous 0.35 pour garder du contrôle
       rotation *= speedFactor;
       
       // Appliquer une résistance hydrodynamique supplémentaire proportionnelle à la vitesse
-      // Plus on va vite, plus les virages sont larges et difficiles
-      const speedResistance = 1.0 - Math.min(0.7, Math.pow(Math.abs(this.velocity) / this.config.maxForwardSpeed, 2) * this.config.waterResistance * 0.5);
+      // Plus on va vite, plus les virages sont larges et difficiles (mais moins qu'avant)
+      let speedResistance = 1.0 - Math.min(0.35, Math.pow(Math.abs(this.velocity) / this.config.maxForwardSpeed, 2) * this.config.waterResistance * 0.25);
+      speedResistance = Math.max(0.9, speedResistance); // Ne descend jamais sous 0.9 (était 0.35)
       rotation *= speedResistance;
       
       // If moving backward, turning behaves differently (reverse steering)
