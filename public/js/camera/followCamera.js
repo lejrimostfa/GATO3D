@@ -9,9 +9,9 @@ const cameraState = {
   _rotDampingStart: null,
   _rotDampingDuration: 0,
   _lastXZ: { x: 0, z: 0, rot: 0 },
-  damping: 0.005,
-  distance: 250,
-  altitude: 60
+  damping: 0.001,
+  distance: 150,
+  altitude: 30
 };
 
 // Camera target visualization

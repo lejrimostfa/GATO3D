@@ -41,8 +41,8 @@ export class SubmarinePhysics {
     // Derived values
     this.momentumFactor = 1.0 + (this.config.mass * 0.5);
     
-    // Debug mode - activer pour voir les effets de la résistance dans la console
-    this.debug = options.debug || true;
+    // Debug flag
+    this.debug = false;
   }
   
   /**
