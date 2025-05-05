@@ -104,6 +104,11 @@ function animate() {
   if (playerSubmarine) {
     updatePlayerSubmarine(playerSubmarine);
     // updateDepthHud(playerSubmarine); // Remplacé par le depth-o-meter
+    
+    // Mettre à jour la position de la lumière d'ombre pour suivre le sous-marin
+    if (window.updateShadowLight) {
+      window.updateShadowLight(playerSubmarine);
+    }
   }
   
   // Update FPS counter

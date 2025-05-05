@@ -129,38 +129,90 @@ export function createOceanFloor(scene, options = {}) {
     const material = new THREE.MeshStandardMaterial({
         map: colorTexture,                // Texture principale
         normalMap: normalTexture,         // Normal map pour les détails 3D
-        normalScale: new THREE.Vector2(1.5, 1.5), // Intensité de la normal map
+        normalScale: new THREE.Vector2(1.0, 1.0), // Intensité réduite de la normal map
         aoMap: aoTexture,                 // Occlusion ambiante
-        aoMapIntensity: 1.0,             // Intensité de l'occlusion
+        aoMapIntensity: 0.5,             // Intensité réduite de l'occlusion
         displacementMap: displacementTexture, // Déplacement
-        displacementScale: 20.0,          // Échelle du déplacement
-        displacementBias: -10.0,          // Décalage du déplacement
+        displacementScale: 10.0,          // Échelle réduite du déplacement
+        displacementBias: -5.0,           // Décalage réduit du déplacement
         roughnessMap: roughnessTexture,   // Rugosité
-        roughness: 0.8,
-        metalness: 0.1,
-        side: THREE.DoubleSide,
+        roughness: 0.6,                   // Rugosité réduite
+        metalness: 0.05,                  // Métallicité réduite
+        side: THREE.FrontSide,            // Optimisation du rendu
         flatShading: false
     });
 
     // Ajouter les coordonnées UV2 pour l'occlusion ambiante
     geometry.setAttribute('uv2', geometry.attributes.uv);
 
-    // Ajouter une lumière directionnelle supplémentaire avec ombres
-    const terrainLight = new THREE.DirectionalLight(0xffffff, 1.5);
-    terrainLight.position.set(0, 1000, 0);
+    // Créer une seule lumière directionnelle puissante
+    const light = new THREE.DirectionalLight(0xffffff, 1.0);
+    light.name = 'submarineShadowLight';
     
-    // Configurer les ombres pour la lumière
-    terrainLight.castShadow = true;
-    terrainLight.shadow.mapSize.width = 2048;
-    terrainLight.shadow.mapSize.height = 2048;
-    terrainLight.shadow.camera.near = 0.1;
-    terrainLight.shadow.camera.far = 2000;
-    terrainLight.shadow.camera.left = -500;
-    terrainLight.shadow.camera.right = 500;
-    terrainLight.shadow.camera.top = 500;
-    terrainLight.shadow.camera.bottom = -500;
+    // Positionner la lumière au-dessus
+    light.position.set(0, 2000, 0);
+    light.target.position.set(0, 0, 0);
     
-    scene.add(terrainLight);
+    // Configurer les ombres
+    light.castShadow = true;
+    light.shadow.mapSize.width = 8192; // Résolution maximale
+    light.shadow.mapSize.height = 8192;
+    
+    // Paramètres de la caméra d'ombre
+    light.shadow.camera.near = 100;
+    light.shadow.camera.far = 4000;
+    
+    // Zone d'ombre très large
+    const shadowSize = 3000;
+    light.shadow.camera.left = -shadowSize;
+    light.shadow.camera.right = shadowSize;
+    light.shadow.camera.top = shadowSize;
+    light.shadow.camera.bottom = -shadowSize;
+    
+    // Optimisation des ombres
+    light.shadow.bias = -0.0001;
+    light.shadow.normalBias = 0.001;
+    light.shadow.radius = 1.5;
+    
+    // Créer un groupe pour la lumière et sa cible
+    const lightGroup = new THREE.Group();
+    lightGroup.name = 'submarineLightGroup';
+    
+    // Ajouter la lumière et sa cible au groupe
+    lightGroup.add(light);
+    lightGroup.add(light.target);
+    
+    // Ajouter le groupe à la scène
+    scene.add(lightGroup);
+    
+    // Helper pour debug (décommenter pour visualiser)
+    // const helper = new THREE.CameraHelper(light.shadow.camera);
+    // scene.add(helper);
+    
+    // Fonction pour mettre à jour la position de la lumière
+    function updateShadowLight(submarine) {
+        if (!submarine) return;
+        
+        // Obtenir la position du sous-marin
+        const submarinePos = submarine.position;
+        
+        // Déplacer le groupe pour suivre le sous-marin
+        lightGroup.position.set(
+            submarinePos.x,
+            0,
+            submarinePos.z
+        );
+        
+        // Maintenir la lumière directement au-dessus du sous-marin
+        light.position.set(0, 2000, 0);
+        light.target.position.set(0, 0, 0);
+        
+        // Mettre à jour la matrice de projection
+        light.shadow.camera.updateProjectionMatrix();
+    }
+    
+    // Exporter la fonction de mise à jour
+    window.updateShadowLight = updateShadowLight;
     
     // Créer le mesh
     const oceanFloor = new THREE.Mesh(geometry, material);
