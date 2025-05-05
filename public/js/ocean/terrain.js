@@ -22,24 +22,50 @@ export function createOceanFloor(scene, options = {}) {
     // Générer un terrain 3D avec plusieurs couches de bruit
     const vertices = geometry.attributes.position.array;
     
-    // Paramètres de bruit pour différentes échelles (fréquence réduite pour un terrain plus lisse)
+    // Paramètres de bruit pour différentes échelles
     const scales = [
         { scale: 0.005, amplitude: 1.0 },   // Grandes formations à basse fréquence
         { scale: 0.01, amplitude: 0.3 },    // Collines moyennes moins prononcées
         { scale: 0.02, amplitude: 0.1 }     // Petits détails atténués
     ];
     
+    // Paramètres pour les îles
+    const islandCount = 5; // Nombre d'îles
+    const islandRadius = size * 0.05; // Rayon des îles
+    const islandHeight = 200; // Hauteur maximale des îles
+    
+    // Positions aléatoires pour les îles
+    const islandPositions = [];
+    for (let i = 0; i < islandCount; i++) {
+        const x = (Math.random() - 0.5) * size;
+        const z = (Math.random() - 0.5) * size;
+        islandPositions.push({ x, z });
+    }
+    
     for (let i = 0; i < vertices.length; i += 3) {
         const x = vertices[i];
         const z = vertices[i + 2];
         
-        // Combiner plusieurs couches de bruit avec une fréquence réduite
+        // Combiner plusieurs couches de bruit pour le fond marin
         let elevation = 0;
         for (const { scale, amplitude } of scales) {
             elevation += (
                 Math.sin(x * scale) * Math.cos(z * scale) +
                 Math.cos(x * scale * 0.8) * Math.sin(z * scale * 0.9)
             ) * amplitude * maxHeight;
+        }
+        
+        // Ajouter les îles
+        for (const island of islandPositions) {
+            const dx = x - island.x;
+            const dz = z - island.z;
+            const distance = Math.sqrt(dx * dx + dz * dz);
+            
+            if (distance < islandRadius) {
+                // Calculer l'élévation de l'île en fonction de la distance
+                const islandElevation = Math.max(0, 1 - distance / islandRadius);
+                elevation += islandElevation * islandHeight;
+            }
         }
         
         // Variations aléatoires plus douces
@@ -58,27 +84,89 @@ export function createOceanFloor(scene, options = {}) {
     geometry.attributes.position.needsUpdate = true;
     geometry.computeVertexNormals();
     
-    // Charger la texture du fond marin
-    const texture = new THREE.TextureLoader().load(SEAFLOOR_TEXTURE_PATH, (loadedTexture) => {
-        console.log('[TERRAIN] Texture loaded successfully');
-        // Configurer la texture pour qu'elle se répète
-        loadedTexture.wrapS = loadedTexture.wrapT = THREE.RepeatWrapping;
-        loadedTexture.repeat.set(segments/10, segments/10); // Répétition basée sur le nombre de segments
-    }, undefined, (error) => {
-        console.error('[TERRAIN] Erreur de chargement de texture:', error);
-    });
+    // Charger toutes les textures nécessaires
+    const textureLoader = new THREE.TextureLoader();
     
-    // Créer un matériau avec texture
+    // Texture principale de couleur
+    const colorTexture = textureLoader.load('./textures/Ground054_1K-PNG/Ground054_1K-PNG_Color.png', 
+        // Callback de succès
+        (texture) => {
+            console.log('Texture de couleur chargée avec succès');
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.repeat.set(segments/2, segments/2); // Augmentation de la répétition pour plus de détails
+        },
+        // Callback de progression
+        (xhr) => {
+            console.log('Chargement de la texture: ' + (xhr.loaded / xhr.total * 100) + '%');
+        },
+        // Callback d'erreur
+        (error) => {
+            console.error('Erreur lors du chargement de la texture:', error);
+        }
+    );
+    
+    // Map de normales (pour les effets 3D)
+    const normalTexture = textureLoader.load('./textures/Ground054_1K-PNG/Ground054_1K-PNG_NormalDX.png');
+    normalTexture.wrapS = normalTexture.wrapT = THREE.RepeatWrapping;
+    normalTexture.repeat.set(segments/2, segments/2); // Augmentation de la répétition pour plus de détails
+    
+    // Map d'occlusion ambiante (pour les ombres)
+    const aoTexture = textureLoader.load('./textures/Ground054_1K-PNG/Ground054_1K-PNG_AmbientOcclusion.png');
+    aoTexture.wrapS = aoTexture.wrapT = THREE.RepeatWrapping;
+    aoTexture.repeat.set(segments/2, segments/2); // Augmentation de la répétition pour plus de détails
+    
+    // Map de rugosité (pour les effets de lumière)
+    const roughnessTexture = textureLoader.load('./textures/Ground054_1K-PNG/Ground054_1K-PNG_Roughness.png');
+    roughnessTexture.wrapS = roughnessTexture.wrapT = THREE.RepeatWrapping;
+    roughnessTexture.repeat.set(segments/2, segments/2); // Augmentation de la répétition pour plus de détails
+    
+    // Charger la map de déplacement
+    const displacementTexture = textureLoader.load('/textures/Ground054_1K-PNG/Ground054_1K-PNG_Displacement.png');
+    displacementTexture.wrapS = displacementTexture.wrapT = THREE.RepeatWrapping;
+    displacementTexture.repeat.set(segments/2, segments/2); // Augmentation de la répétition pour plus de détails
+
+    // Créer un matériau avec toutes les textures
     const material = new THREE.MeshStandardMaterial({
-        map: texture,
+        map: colorTexture,                // Texture principale
+        normalMap: normalTexture,         // Normal map pour les détails 3D
+        normalScale: new THREE.Vector2(1.5, 1.5), // Intensité de la normal map
+        aoMap: aoTexture,                 // Occlusion ambiante
+        aoMapIntensity: 1.0,             // Intensité de l'occlusion
+        displacementMap: displacementTexture, // Déplacement
+        displacementScale: 20.0,          // Échelle du déplacement
+        displacementBias: -10.0,          // Décalage du déplacement
+        roughnessMap: roughnessTexture,   // Rugosité
         roughness: 0.8,
         metalness: 0.1,
         side: THREE.DoubleSide,
-        flatShading: true // Pour mieux voir le relief
+        flatShading: false
     });
+
+    // Ajouter les coordonnées UV2 pour l'occlusion ambiante
+    geometry.setAttribute('uv2', geometry.attributes.uv);
+
+    // Ajouter une lumière directionnelle supplémentaire avec ombres
+    const terrainLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    terrainLight.position.set(0, 1000, 0);
+    
+    // Configurer les ombres pour la lumière
+    terrainLight.castShadow = true;
+    terrainLight.shadow.mapSize.width = 2048;
+    terrainLight.shadow.mapSize.height = 2048;
+    terrainLight.shadow.camera.near = 0.1;
+    terrainLight.shadow.camera.far = 2000;
+    terrainLight.shadow.camera.left = -500;
+    terrainLight.shadow.camera.right = 500;
+    terrainLight.shadow.camera.top = 500;
+    terrainLight.shadow.camera.bottom = -500;
+    
+    scene.add(terrainLight);
     
     // Créer le mesh
     const oceanFloor = new THREE.Mesh(geometry, material);
+    
+    // Configurer le terrain pour recevoir les ombres
+    oceanFloor.receiveShadow = true;
     
     // Positionner le fond sous l'eau
     oceanFloor.position.y = depth;

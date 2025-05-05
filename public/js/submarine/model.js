@@ -39,6 +39,8 @@ export function loadSubmarine(scene, onLoaded) {
         const bodyMaterial = new THREE.MeshStandardMaterial({ color: 0x00ffcc, roughness: 0.5 });
         const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
         body.rotation.z = Math.PI / 2; // Rotate to align with forward direction
+        body.castShadow = true;
+        body.receiveShadow = true;
         pivot.add(body);
         
         // Conning tower (sail)
@@ -46,6 +48,8 @@ export function loadSubmarine(scene, onLoaded) {
         const towerMaterial = new THREE.MeshStandardMaterial({ color: 0x00ddbb });
         const tower = new THREE.Mesh(towerGeometry, towerMaterial);
         tower.position.set(0, 5, 0);
+        tower.castShadow = true;
+        tower.receiveShadow = true;
         pivot.add(tower);
         
         // Propeller
@@ -54,6 +58,8 @@ export function loadSubmarine(scene, onLoaded) {
         const propeller = new THREE.Mesh(propGeometry, propMaterial);
         propeller.position.set(0, 0, -12);
         propeller.rotation.x = Math.PI / 2;
+        propeller.castShadow = true;
+        propeller.receiveShadow = true;
         pivot.add(propeller);
         
         // Add some basic lighting to the fallback model
@@ -112,6 +118,15 @@ export function loadSubmarine(scene, onLoaded) {
                             const sub = gltf.scene;
                             sub.position.set(0, 0, 0);
                             sub.scale.set(0.1, 0.1, 0.1); // Scale down by factor of 10
+                            
+                            // Configurer les ombres pour le sous-marin
+                            sub.traverse((child) => {
+                                if (child.isMesh) {
+                                    child.castShadow = true;
+                                    child.receiveShadow = true;
+                                }
+                            });
+                            
                             pivot.add(sub);
                             console.log(`[SUBMARINE] Model loaded successfully from ${currentPath}`);
                             resolve(pivot);

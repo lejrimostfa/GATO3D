@@ -84,6 +84,10 @@ function initRenderer() {
       canvas: canvas
     });
     
+    // Activer les ombres
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.21;
     
