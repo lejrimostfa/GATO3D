@@ -28,17 +28,22 @@ export function createLevel(renderer) {
     throw error;
   }
   
-  // Sky/water setup
-  console.log('[LEVEL1] Setting up sky and water...');
-  const sceneHandles = setupSkyAndWater(scene, renderer, null);
-  
-  // Correction : place le soleil à midi par défaut
-  updateSun(sceneHandles, 12);
-  
   // Caméra principale
   console.log('[LEVEL1] Setting up camera...');
   const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 10000);
   camera.position.set(0, 50, 100);
+  
+  // Sky/water setup
+  console.log('[LEVEL1] Setting up sky and water...');
+  const sceneHandles = setupSkyAndWater(scene, renderer, camera);
+  
+  // Correction : place le soleil à midi par défaut
+  if (sceneHandles && sceneHandles.sun && sceneHandles.sky) {
+    console.log('[LEVEL1] Setting initial sun position...');
+    updateSun(sceneHandles, 12);
+  } else {
+    console.warn('[LEVEL1] Cannot set initial sun position: missing components');
+  }
   
   // Autres objets à ajouter ici
   console.log('[LEVEL1] Level created successfully');

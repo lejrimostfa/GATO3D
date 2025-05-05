@@ -123,8 +123,11 @@ function animate() {
   }
   
   // Update sun position based on time
-  if (sceneHandles) {
+  if (sceneHandles && sceneHandles.sun && sceneHandles.sky && sceneHandles.nightSky) {
+    console.log('[ANIMATION] Updating sun position for hour:', currentGameHour);
     updateSun(sceneHandles, currentGameHour);
+  } else {
+    console.warn('[ANIMATION] Missing required components for sun update');
   }
   
   // Update camera following submarine
@@ -163,6 +166,18 @@ function animate() {
   
   // Render the scene
   if (renderer && scene && camera) {
+    // Exécuter les fonctions du gameLoop
+    if (window.gameLoop && Array.isArray(window.gameLoop)) {
+      for (const fn of window.gameLoop) {
+        try {
+          fn();
+        } catch (error) {
+          console.error('[ANIMATION] Error in gameLoop function:', error);
+        }
+      }
+    }
+
+    // Render
     renderer.render(scene, camera);
   }
   

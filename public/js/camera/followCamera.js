@@ -37,6 +37,17 @@ export function initCameraFollow(scene) {
     scene.add(cameraTargetCube);
     cameraTargetCube.visible = false; // Hidden by default
     
+    // Configurer les paramètres de la caméra
+    if (scene.userData.camera) {
+      scene.userData.camera.near = 1;
+      scene.userData.camera.far = 12000; // Ajusté pour voir le ciel nocturne
+      scene.userData.camera.updateProjectionMatrix();
+      console.log('[CAMERA] Camera parameters updated:', {
+        near: scene.userData.camera.near,
+        far: scene.userData.camera.far
+      });
+    }
+    
     console.log('[CAMERA] Camera follow system initialized with debug cube');
     return cameraTargetCube;
   } catch (error) {

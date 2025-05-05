@@ -15,8 +15,75 @@ export const LAYERS = {
 };
 
 export function setupSkyAndWater(scene, renderer, camera) {
+  if (!scene || !renderer) {
+    console.error('[SETUP] Scene or renderer is missing');
+    return null;
+  }
+  
+  console.log('[SETUP] Initializing sky and water with:', {
+    scene: scene instanceof THREE.Scene,
+    renderer: renderer instanceof THREE.WebGLRenderer,
+    camera: camera instanceof THREE.Camera
+  });
   // Centralise la création des lumières et du ciel
   const { sunLight, ambientLight, sky, sun } = initLighting(scene);
+  
+  // Charger la texture du ciel nocturne
+  const nightSkyTexture = new THREE.TextureLoader().load('./textures/sky/NightSkyHDRI001_4K-TONEMAPPED.jpg', (texture) => {
+    console.log('Texture du ciel nocturne chargée avec succès');
+    texture.mapping = THREE.EquirectangularReflectionMapping;
+    texture.encoding = THREE.sRGBEncoding;
+    texture.minFilter = THREE.LinearFilter;
+    texture.magFilter = THREE.LinearFilter;
+  });
+  
+  // Créer une sphère pour le ciel nocturne adaptée à la distance de rendu
+  const nightSkyGeometry = new THREE.SphereGeometry(10000, 64, 64);
+  const nightSkyMaterial = new THREE.MeshBasicMaterial({
+    map: nightSkyTexture,
+    side: THREE.BackSide,
+    transparent: true,
+    opacity: 0,
+    depthWrite: false,
+    fog: false,
+    blending: THREE.AdditiveBlending
+  });
+
+  // S'assurer que la caméra peut voir le ciel
+  if (camera) {
+    camera.far = Math.max(camera.far, 15000);
+  }
+
+  // Fonction pour faire suivre les sphères du ciel au joueur
+  function updateSkyPosition() {
+    if (!camera) return;
+    
+    // Mettre à jour la position des deux sphères
+    if (sky) sky.position.copy(camera.position);
+    if (nightSky) nightSky.position.copy(camera.position);
+  }
+
+  // Ajouter la fonction à la boucle d'animation
+  if (typeof window.gameLoop === 'undefined') {
+    window.gameLoop = [];
+  }
+  window.gameLoop.push(updateSkyPosition);
+
+  // Augmenter l'intensité de la texture
+  nightSkyMaterial.map.encoding = THREE.sRGBEncoding;
+  nightSkyMaterial.map.minFilter = THREE.LinearFilter;
+  nightSkyMaterial.map.magFilter = THREE.LinearFilter;
+  nightSkyMaterial.map.generateMipmaps = false; // Éviter le flou des étoiles
+  
+
+  
+  const nightSky = new THREE.Mesh(nightSkyGeometry, nightSkyMaterial);
+  nightSky.layers.set(LAYERS.MAIN_CAMERA);
+  nightSky.renderOrder = -2; // Rendu avant le ciel de jour
+  scene.add(nightSky);
+  
+  // S'assurer que le ciel de jour est au-dessus du ciel de nuit
+  sky.renderOrder = -1;
   
   // Ajoute un mesh sphérique pour le soleil visible
   const sunSphere = new THREE.Mesh(
@@ -107,18 +174,58 @@ export function setupSkyAndWater(scene, renderer, camera) {
   // Essayer de charger la texture avec tous les chemins possibles
   const waterNormalTexture = tryLoadTexture(texturePaths);
   
+  // Créer une cubeCamera pour les réflexions
+  const cubeRenderTarget = new THREE.WebGLCubeRenderTarget(1024, {
+    format: THREE.RGBFormat,
+    generateMipmaps: true,
+    minFilter: THREE.LinearMipmapLinearFilter,
+    encoding: THREE.sRGBEncoding
+  });
+  const cubeCamera = new THREE.CubeCamera(1, 100000, cubeRenderTarget);
+  scene.add(cubeCamera);
+
   // Create water with improved parameters
   const water = new Water(waterGeometry, {
-    textureWidth: 1024,
-    textureHeight: 1024,
+    textureWidth: 2048,
+    textureHeight: 2048,
     waterNormals: waterNormalTexture,
-    alpha: 1.0,
+    alpha: 0.8,
     sunDirection: sun.clone().normalize(),
     sunColor: 0xffffff,
-    waterColor: 0x001e0f, // Couleur plus foncée pour plus de contraste
-    distortionScale: 5.0, // Plus de distorsion pour une surface plus visible
-    fog: scene.fog !== undefined
+    waterColor: 0x001e0f,
+    distortionScale: 3.0,
+    fog: scene.fog !== undefined,
+    clipBias: 0.0003,
+    reflectivity: 0.8,
+    time: 0.0
   });
+
+  // Ajouter la réflexion du ciel
+  water.material.envMap = cubeRenderTarget.texture;
+  water.material.envMapIntensity = 0.5; // Intensité de la réflexion
+
+  // Fonction pour mettre à jour les réflexions
+  function updateReflections() {
+    water.visible = false; // Cacher l'eau pendant le rendu de la réflexion
+    cubeCamera.update(renderer, scene);
+    water.visible = true;
+  }
+
+  // Ajouter updateReflections à la boucle d'animation
+  if (typeof window.gameLoop === 'undefined') {
+    window.gameLoop = [];
+  }
+  window.gameLoop.push(updateReflections);
+  
+  // Désactiver la réception d'ombres sur l'eau
+  water.receiveShadow = false;
+  water.material.shadowSide = THREE.FrontSide;
+  
+  // Ajuster les paramètres de rendu
+  if (renderer) {
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  }
   
   console.log('[WATER] Water material configuration:', {
     waterColor: water.material.uniforms.waterColor.value.getHexString(),
@@ -181,11 +288,17 @@ export function setupSkyAndWater(scene, renderer, camera) {
     scene.fog = new THREE.FogExp2(0xbfd1e5, 0.00015);
   }
   
-  // Ajuster la transparence et la réflectivité de l'eau
+  // Ajuster les paramètres de rendu de l'eau
   water.material.transparent = true;
-  water.material.opacity = 0.9; // Plus opaque
-  water.material.uniforms.distortionScale.value = 5.0;
-  water.material.uniforms.size.value = 8.0; // Taille des réflexions
+  water.material.opacity = 0.8;
+  water.material.uniforms.distortionScale.value = 3.0;
+  water.material.uniforms.size.value = 4.0;
+  water.material.uniforms.reflectivity = { value: 0.8 };
+  
+  // Paramètres pour éviter les artefacts d'ombre
+  water.material.depthWrite = false;
+  water.material.depthTest = true;
+  water.renderOrder = 1; // Assure que l'eau est rendue après les autres objets
   
   // Rendre la surface visible depuis le dessous
   water.material.side = THREE.DoubleSide; // CRUCIAL: permet de voir la surface depuis sous l'eau
@@ -226,50 +339,94 @@ export function setupSkyAndWater(scene, renderer, camera) {
   // Ajuster les paramètres de brouillard pour une meilleure visibilité
   scene.fog.density = 0.0002;
 
-  // Retourne les éléments principaux + sunSphere + oceanFloor
-  return { water, sky, sun, sunLight, renderer, sunSphere, oceanFloor };
+  // Retourne les éléments principaux + sunSphere + oceanFloor + nightSky
+  return { water, sky, sun, sunLight, renderer, sunSphere, oceanFloor, nightSky };
 }
 
 export function updateSun(sceneHandles, hour) {
-  // Lever du soleil à 6h (aucun décalage)
-  // hour = hour;
-  const { sky, water, sun, sunSphere } = sceneHandles;
-  // Compute polar angle phi from hour [0..24]
-  let phi;
-  if (hour <= 12) {
-    phi = Math.PI * (1 - hour / 12);
-  } else {
-    phi = Math.PI * ((hour - 12) / 12);
+  if (!sceneHandles || !sceneHandles.sun) {
+    console.warn('updateSun: sceneHandles ou sun manquant');
+    return;
   }
+
+  const { sky, water, sun, sunSphere, renderer, nightSky } = sceneHandles;
+  
+  // Calcul de la position du soleil
+  let phi = (hour <= 12) ? Math.PI * (1 - hour / 12) : Math.PI * ((hour - 12) / 12);
   const theta = THREE.MathUtils.degToRad(180);
-  sun.setFromSphericalCoords(1, phi, theta);
-  // Update sky
-  sky.material.uniforms['sunPosition'].value.copy(sun);
-  // Update water reflection
-  water.material.uniforms['sunDirection'].value.copy(sun.clone().normalize());
-  // Compute elevation normalized (0 at horizon, 1 at zenith)
-  const elevNorm = 1 - Math.abs(phi - Math.PI/2) / (Math.PI/2);
-  let sunColor, sunOpacity;
-  if (elevNorm > 0.5) {
-    sunColor = new THREE.Color(0xffffff);
-    sunOpacity = 0.8;
-  } else if (elevNorm > 0) {
-    const t = elevNorm * 2;
-    sunColor = new THREE.Color().lerpColors(new THREE.Color(0xff4400), new THREE.Color(0xffffff), t);
-    sunOpacity = 0.1 + 0.3 * t;
+  
+  // Mise à jour de la position du soleil
+  if (sun && sun.setFromSphericalCoords) {
+    sun.setFromSphericalCoords(1, phi, theta);
   } else {
-    sunColor = new THREE.Color(0x000022);
-    sunOpacity = 0.1;
+    console.warn('updateSun: sun.setFromSphericalCoords non disponible');
+    return;
   }
-  // Met à jour la position du disque solaire
-  if (sceneHandles.sunSphere) {
-    sceneHandles.sunSphere.position.copy(sun.clone().multiplyScalar(1000));
-    sceneHandles.sunSphere.visible = elevNorm > 0;
+  
+  // Mise à jour du ciel
+  if (sky && sky.material && sky.material.uniforms) {
+    sky.material.uniforms['sunPosition'].value.copy(sun);
   }
-  // Plus de mise à jour de sunSphere (aucun soleil visible)
-  // Night sky: change clear color if sun below horizon
-  if (elevNorm <= 0) {
-    let renderer = sceneHandles.renderer;
-    if (renderer) renderer.setClearColor(0x000011);
+  
+  // Mise à jour de l'eau
+  if (water && water.material && water.material.uniforms) {
+    water.material.uniforms['sunDirection'].value.copy(sun.clone().normalize());
+  }
+  
+  // Calcul de l'heure normalisée pour la nuit (0 = midi, 1 = minuit)
+  let nightFactor;
+  if (hour >= 18 || hour <= 6) {
+    // Nuit (18h-6h)
+    nightFactor = hour >= 18 ? (hour - 18) / 6 : 1 - hour / 6;
+  } else {
+    // Jour (6h-18h)
+    nightFactor = 0;
+  }
+  
+  // Mise à jour du disque solaire
+  if (sunSphere) {
+    sunSphere.position.copy(sun.clone().multiplyScalar(1000));
+    sunSphere.visible = hour >= 6 && hour <= 18;
+  }
+  
+  if (sky && nightSky) {
+    // Gestion du ciel étoilé
+    if (hour >= 19 || hour < 5) {
+      // Nuit complète (19h-5h)
+      sky.visible = false;
+      nightSky.visible = true;
+      nightSky.material.opacity = 1;
+      if (renderer) renderer.setClearColor(0x000011);
+    } else if (hour >= 5 && hour < 6) {
+      // Transition aube (5h-6h)
+      const t = (hour - 5);
+      sky.visible = true;
+      nightSky.visible = true;
+      nightSky.material.opacity = 1 - t;
+      if (renderer) {
+        const dayColor = new THREE.Color(0x87ceeb);
+        const nightColor = new THREE.Color(0x000011);
+        const transitionColor = new THREE.Color().lerpColors(nightColor, dayColor, t);
+        renderer.setClearColor(transitionColor);
+      }
+    } else if (hour >= 18 && hour < 19) {
+      // Transition crépuscule (18h-19h)
+      const t = (hour - 18);
+      sky.visible = true;
+      nightSky.visible = true;
+      nightSky.material.opacity = t;
+      if (renderer) {
+        const dayColor = new THREE.Color(0x87ceeb);
+        const nightColor = new THREE.Color(0x000011);
+        const transitionColor = new THREE.Color().lerpColors(dayColor, nightColor, t);
+        renderer.setClearColor(transitionColor);
+      }
+    } else {
+      // Jour (6h-18h)
+      sky.visible = true;
+      nightSky.visible = false;
+      nightSky.material.opacity = 0;
+      if (renderer) renderer.setClearColor(0x87ceeb);
+    }
   }
 }

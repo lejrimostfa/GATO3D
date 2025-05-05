@@ -2,10 +2,10 @@
 // Game initialization and core systems setup
 
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
-import { setupSkyAndWater } from '../water-setup.js';
+import { setupSkyAndWater, updateSun } from '../water-setup.js';
 import { loadSubmarine } from '../submarine/model.js';
 import { loadLevel } from '../levels/levelManager.js';
-import { initTimeManager } from '../time/timeManager.js';
+import { initTimeManager, updateGameTime } from '../time/timeManager.js';
 import { initCameraFollow } from '../camera/followCamera.js';
 import { initMinimap } from '../ui/minimap.js';
 import { initSettings } from '../ui/settings.js';
@@ -46,14 +46,24 @@ export function initGame(onComplete) {
   // Initialize FPS counter
   initFpsCounter();
   
-  // Initialize time management with default day duration
-  initTimeManager(120);
-  
   // Preload the wave controls module
   preloadWaveControls();
   
   // Load the game level and continue initialization
   loadGameLevel(() => {
+    // Initialize time management with default day duration
+    console.log('[GAME] Initializing time manager...');
+    initTimeManager(120);
+    
+    // Forcer une mise à jour initiale du soleil
+    const { currentGameHour } = updateGameTime();
+    if (sceneHandles) {
+      console.log('[GAME] Initial game hour:', currentGameHour);
+      updateSun(sceneHandles, currentGameHour);
+    } else {
+      console.warn('[GAME] sceneHandles non disponible pour la mise à jour initiale du soleil');
+    }
+    
     if (onComplete) {
       onComplete();
     }
@@ -272,8 +282,17 @@ function loadGameLevel(onComplete) {
     camera = loadedCamera;
     
     // Ensure sceneHandles exists and update global reference
-    sceneHandles = objects.sceneHandles || {};
+    if (!objects.sceneHandles || !objects.sceneHandles.sun || !objects.sceneHandles.sky) {
+      console.log('[GAME] Setting up sky and water components...');
+      const newSceneHandles = setupSkyAndWater(scene, renderer, camera);
+      sceneHandles = { ...newSceneHandles };
+      objects.sceneHandles = sceneHandles;
+    } else {
+      console.log('[GAME] Using existing scene handles');
+      sceneHandles = objects.sceneHandles;
+    }
     
+    console.log('[GAME] Scene handles:', Object.keys(sceneHandles));
     console.log('[GAME] Global scene and camera references updated');
     
     // Save key references to window for access by other components

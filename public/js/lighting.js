@@ -23,6 +23,13 @@ export function initLighting(scene) {
   scene.add(sky);
   // Soleil
   sun = new THREE.Vector3();
+  sun.setFromSphericalCoords = function(radius, phi, theta) {
+    // Conversion des coordonnées sphériques en cartésiennes
+    this.x = radius * Math.sin(phi) * Math.cos(theta);
+    this.y = radius * Math.cos(phi);
+    this.z = radius * Math.sin(phi) * Math.sin(theta);
+    return this;
+  };
   // Uniforms atmosphère
   const skyUniforms = sky.material.uniforms;
   skyUniforms['turbidity'].value = 8;
