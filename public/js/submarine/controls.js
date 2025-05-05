@@ -1,6 +1,9 @@
 // submarine/controls.js
 // Contrôles et mouvements du sous-marin pour GATO3D
 
+// Import THREE.js pour la détection de collision
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
+
 // Import the modular physics system
 import { defaultPhysics, updatePhysics, currentVelocity, maxSpeed, setMaxSpeed } from './physics.js';
 
@@ -228,6 +231,45 @@ export function updatePlayerSubmarine(playerSubmarine) {
     if (sub.position.y + playerSubmarine.position.y < surfaceY - maxDepth) {
       sub.position.y = (surfaceY - maxDepth) - playerSubmarine.position.y;
       verticalMovement = 0; // No movement at max depth
+    }
+    
+    // Détection de collision avec le fond marin
+    if (window.scene && window.scene.obstacles && window.scene.obstacles.length > 0) {
+      // Obtenir la position EXACTE dans l'espace mondial (crucial pour la détection)
+      const submarineWorldPosition = new THREE.Vector3();
+      playerSubmarine.getWorldPosition(submarineWorldPosition);
+      
+      // Ajouter l'offset de la position locale du sous-marin (sous-partie)
+      submarineWorldPosition.y += sub.position.y;
+      
+      // Log seulement occasionnellement pour éviter de spammer la console
+      if (Math.random() < 0.01) {
+        console.log('[COLLISION] Submarine position:', {
+          x: submarineWorldPosition.x.toFixed(2),
+          y: submarineWorldPosition.y.toFixed(2),
+          z: submarineWorldPosition.z.toFixed(2)
+        });
+      }
+      
+      // Vérifier la collision avec chaque obstacle
+      for (const obstacle of window.scene.obstacles) {
+        if (obstacle.isCollidable && obstacle.checkCollision) {
+          if (obstacle.checkCollision(submarineWorldPosition)) {
+            // En cas de collision, empêcher toute descente
+            if (verticalMovement <= 0) {
+              verticalMovement = 0;
+              // Remonter pour éviter de rester bloqué dans le sol
+              sub.position.y += 5;
+              console.log('[SUBMARINE] Collision avec le terrain - Remonte de 5 unités');
+            }
+            
+            // Réduire fortement la vitesse horizontale (effet de frottement avec le sol)
+            movement.velocity *= 0.5;
+          }
+        }
+      }
+    } else {
+      console.log('[WARNING] Pas d\'obstacles définis dans la scène');
     }
   }
   

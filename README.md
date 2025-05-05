@@ -29,6 +29,20 @@
   - Reduced speed-based turning resistance for more responsive steering
   - More gradual deceleration when stopping for realistic inertia
 
+### [2025-05-05] Terrain & Water Surface Improvements
+- **Terrain Generation**
+  - Implemented a large-scale ocean floor matching the water surface dimensions
+  - Added realistic terrain generation with multiple noise layers
+  - Terrain now acts as a solid obstacle for the submarine
+- **Water Surface Visibility**
+  - Fixed water surface visibility from below using THREE.DoubleSide material
+  - Added proper collision detection between submarine and terrain
+  - Terrain now has a realistic texture and smoother relief
+- **Collision System**
+  - Added robust collision detection system for the submarine
+  - Submarine cannot pass through the ocean floor
+  - Added visual feedback when colliding with terrain
+
 ### [2025-05-05] Submarine Control UI Overhaul & Settings Panels
 - **Unified Top Bar UI**
   - All menu buttons are now organized into a single top bar, positioned at the top right for easy access.

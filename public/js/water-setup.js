@@ -4,8 +4,8 @@
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
 import { Water } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Water.js';
 import { Sky } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/jsm/objects/Sky.js';
-
 import { initLighting } from './lighting.js';
+import { createOceanFloor } from './ocean/terrain.js';
 
 // Define layer constants
 export const LAYERS = {
@@ -44,13 +44,15 @@ export function setupSkyAndWater(scene, renderer, camera) {
 
   console.log('[DEBUG] Creating dynamic water surface with 3D waves');
   
+  console.log('[WATER] Creating water surface at y=20');
+  
   // Create a much larger water surface that extends beyond the visible area
   // Using higher vertex density (250x250) for more detailed waves
   const waterGeometry = new THREE.PlaneGeometry(50000, 50000, 250, 250);
   
   // Initialize wave parameters
-  let waveAmplitude = 1.0;
-  let waveFrequency = 0.05;
+  let waveAmplitude = 2.0; // Augmenté pour des vagues plus visibles
+  let waveFrequency = 0.03; // Réduit pour des vagues plus larges
   let waveTime = 0;
   
   // Create a reference to the original vertices for wave animation
@@ -107,15 +109,20 @@ export function setupSkyAndWater(scene, renderer, camera) {
   
   // Create water with improved parameters
   const water = new Water(waterGeometry, {
-    textureWidth: 1024, // Higher resolution for better detail
+    textureWidth: 1024,
     textureHeight: 1024,
     waterNormals: waterNormalTexture,
     alpha: 1.0,
     sunDirection: sun.clone().normalize(),
     sunColor: 0xffffff,
-    waterColor: 0x0066cc,
-    distortionScale: 3.7,
+    waterColor: 0x001e0f, // Couleur plus foncée pour plus de contraste
+    distortionScale: 5.0, // Plus de distorsion pour une surface plus visible
     fog: scene.fog !== undefined
+  });
+  
+  console.log('[WATER] Water material configuration:', {
+    waterColor: water.material.uniforms.waterColor.value.getHexString(),
+    distortionScale: water.material.uniforms.distortionScale.value
   });
   
   // Add custom uniforms for our wave system
@@ -168,12 +175,59 @@ export function setupSkyAndWater(scene, renderer, camera) {
   water.rotation.x = -Math.PI / 2;
   scene.add(water);
   water.position.y = 20;
+  
   // Add mild fog for atmosphere
   if (!scene.fog) {
     scene.fog = new THREE.FogExp2(0xbfd1e5, 0.00015);
   }
-  // Retourne les éléments principaux + sunSphere
-  return { water, sky, sun, sunLight, renderer, sunSphere };
+  
+  // Ajuster la transparence et la réflectivité de l'eau
+  water.material.transparent = true;
+  water.material.opacity = 0.9; // Plus opaque
+  water.material.uniforms.distortionScale.value = 5.0;
+  water.material.uniforms.size.value = 8.0; // Taille des réflexions
+  
+  // Rendre la surface visible depuis le dessous
+  water.material.side = THREE.DoubleSide; // CRUCIAL: permet de voir la surface depuis sous l'eau
+  
+  // Augmenter le contraste de la surface pour qu'elle soit plus visible par dessous
+  water.material.uniforms.waterColor.value.setHex(0x0077be); // Bleu plus vif
+  water.material.uniforms.sunColor.value.setHex(0xffffff); // Soleil plus brillant
+  
+  // Récupérer la taille de la surface d'eau
+  const waterSize = 50000; // Identique à la taille définie pour waterGeometry
+  const waterSegments = 250; // Identique à la résolution de waterGeometry
+  
+  // Ajouter le fond marin (mêmes dimensions que l'eau)
+  console.log('[SETUP] Creating ocean floor matching water dimensions...');
+  const oceanFloor = createOceanFloor(scene, {
+    size: waterSize,     // Même taille que la surface d'eau
+    segments: waterSegments, // Même résolution que l'eau
+    depth: -100,        // Profondeur fixée à -100 comme demandé
+    maxHeight: 60       // Réduit pour un relief plus doux
+  });
+  
+  // Vérifier la configuration
+  console.log('[SETUP] Ocean floor configuration:', {
+    position: oceanFloor.position.toArray(),
+    rotation: oceanFloor.rotation.toArray(),
+    scale: oceanFloor.scale.toArray(),
+    isCollidable: oceanFloor.isCollidable
+  });
+  
+  // Ajouter le terrain comme obstacle dans la scène
+  if (!scene.obstacles) scene.obstacles = [];
+  scene.obstacles.push(oceanFloor);
+  
+  // S'assurer que la scène est accessible globalement pour la détection de collision
+  window.scene = scene;  // CRUCIAL pour que le système de collision fonctionne
+  console.log('[SETUP] Scene attached to window.scene with obstacles:', scene.obstacles.length);
+  
+  // Ajuster les paramètres de brouillard pour une meilleure visibilité
+  scene.fog.density = 0.0002;
+
+  // Retourne les éléments principaux + sunSphere + oceanFloor
+  return { water, sky, sun, sunLight, renderer, sunSphere, oceanFloor };
 }
 
 export function updateSun(sceneHandles, hour) {
