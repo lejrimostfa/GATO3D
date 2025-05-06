@@ -133,6 +133,10 @@ export function updateMaxSpeed(speed) {
  */
 export function updatePlayerSubmarine(playerSubmarine) {
   if (!playerSubmarine) return;
+  
+  // Store the submarine's current position before any updates
+  // This will be used for collision detection to revert position if needed
+  const previousPosition = playerSubmarine.position.clone();
 
   // Core submarine settings
   const verticalSpeed = 0.4;
@@ -188,7 +192,9 @@ export function updatePlayerSubmarine(playerSubmarine) {
   }
 
   // Update physics and get movement parameters
-  // Using the shared physics instance to ensure currentVelocity is updated
+  // Using the shared physics instance 
+  
+  // Update physics (velocity, acceleration, forces)  
   const movement = updatePhysics(input);
   
   // Apply movements to the submarine model
@@ -260,8 +266,27 @@ export function updatePlayerSubmarine(playerSubmarine) {
             if (submarineWorldPosition.y < terrainHeight + collisionMargin) {
                 // console.log(`[TERRAIN COLLISION] Submarine Y: ${submarineWorldPosition.y.toFixed(1)}, Terrain Height: ${terrainHeight.toFixed(1)}`);
                 playerSubmarine.position.copy(previousPosition); // Revert position
-                currentVelocity.multiplyScalar(0); // Stop movement
-                // Optional: Apply damage or other effects
+                
+                // Apply an upward bounce when colliding with terrain
+                if (playerSubmarine.children && playerSubmarine.children[0]) {
+                    // Apply an immediate upward impulse to the submarine
+                    const bounceStrength = 0.8; // Adjust for desired bounce strength
+                    playerSubmarine.children[0].position.y += bounceStrength;
+                    
+                    // Reduce forward velocity but don't stop completely
+                    const brakeInput = {
+                        forward: false,
+                        backward: false,
+                        left: false,
+                        right: false,
+                        palierTargetSpeed: targetSpeed * 0.5 // Reduce speed by 50% but don't stop
+                    };
+                    
+                    // Update physics with reduced speed
+                    updatePhysics(brakeInput);
+                }
+                
+                // Optional: Add collision sound or visual effect here
                 break; // Stop checking other obstacles if terrain collision detected
             }
         } else if (obstacle.isCollidable && obstacle.checkCollision) {
@@ -269,7 +294,26 @@ export function updatePlayerSubmarine(playerSubmarine) {
           if (obstacle.checkCollision(submarineWorldPosition)) {
             // console.log('[COLLISION] Collision détectée avec un obstacle:', obstacle.name || 'Unnamed obstacle');
             playerSubmarine.position.copy(previousPosition); // Revenir à la position précédente
-            currentVelocity.multiplyScalar(0); // Arrêter le mouvement
+            
+            // Apply an upward bounce when colliding with obstacle
+            if (playerSubmarine.children && playerSubmarine.children[0]) {
+                // Apply an immediate upward impulse to the submarine
+                const bounceStrength = 0.8; // Adjust for desired bounce strength
+                playerSubmarine.children[0].position.y += bounceStrength;
+                
+                // Reduce forward velocity but don't stop completely
+                const brakeInput = {
+                    forward: false,
+                    backward: false,
+                    left: false,
+                    right: false,
+                    palierTargetSpeed: targetSpeed * 0.5 // Reduce speed by 50% but don't stop
+                };
+                
+                // Update physics with reduced speed
+                updatePhysics(brakeInput);
+            }
+            
             break; // Sortir de la boucle si collision détectée
           }
         }

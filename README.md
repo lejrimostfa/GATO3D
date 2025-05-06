@@ -10,6 +10,22 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
+### [2025-05-06] Submarine Collision Improvements
+- **Bounce Effect on Collision**
+  - Implemented a realistic bounce response when the submarine collides with terrain
+  - Submarine now bounces upward upon collision instead of stopping completely
+  - Added configurable bounce strength for fine-tuning the physics response
+  - Maintains partial forward momentum for more natural movement during collisions
+- **Collision Box Visualization**
+  - Added visual representation of the submarine's collision boundaries
+  - Implemented a semi-transparent wireframe box that shows the actual collision area
+  - Added a toggle checkbox in the submarine settings panel to show/hide the collision box
+  - Box dimensions match the actual collision detection boundaries for accurate debugging
+- **Improved Physics Integration**
+  - Enhanced compatibility between legacy collision system and modern physics API
+  - Better handling of velocity resets and position corrections during collisions
+  - Fixed critical reference errors related to physics object handling
+
 ### [2025-06-XX] Console Log Refactor
 - **Console.log Statements Commented Out**
   - Commented out all `console.log` statements across UI, enemy, level, ocean, input, and editor files.
@@ -412,6 +428,70 @@ When adding new UI controls:
 
 ### Problem: DOM Element Reference Fragility
 - **Solution:** Switched to direct DOM queries for UI controls to increase resilience to dynamic UI changes.
+
+### Problem: Submarine Stopping Abruptly on Collision
+- **Symptoms:** Submarine movement feels unnatural when hitting terrain; submarine stops completely upon collision.
+- **Technical Causes:**
+  - Collision detection resets the submarine position but doesn't provide a natural physics response
+  - Velocity is completely zeroed out upon collision instead of being redirected
+- **Solution:** Implemented a bounce effect with the following technical approach:
+  ```javascript
+  // 1. Store the submarine's position before movement
+  const previousPosition = new THREE.Vector3().copy(playerSubmarine.position);
+  
+  // 2. Apply movement and check for collision
+  moveSubmarine();
+  const collisionDetected = detectTerrainCollision(playerSubmarine);
+  
+  // 3. If collision occurs, restore previous position and apply bounce
+  if (collisionDetected) {
+    // Restore previous position
+    playerSubmarine.position.copy(previousPosition);
+    
+    // Apply upward bounce (adjust strength as needed)
+    const bounceStrength = 0.8;
+    playerSubmarine.position.y += bounceStrength;
+    
+    // Reduce forward velocity but don't zero it completely
+    defaultPhysics.velocity *= 0.5;  // Maintain partial momentum
+  }
+  ```
+
+### Problem: Difficulty Visualizing Collision Boundaries
+- **Symptoms:** Developers and testers can't see the actual collision area used for the submarine.
+- **Technical Causes:**
+  - Collision calculations use invisible bounding boxes
+  - No visual feedback for actual collision boundaries
+- **Solution:** Created a toggleable collision box visualization:
+  ```javascript
+  function addCollisionBox(submarine, dimensions) {
+    // Create wireframe geometry matching collision boundaries
+    const boxGeometry = new THREE.BoxGeometry(
+      dimensions.width,  // Match X dimension of collision detection
+      dimensions.height, // Match Y dimension of collision detection
+      dimensions.depth   // Match Z dimension of collision detection
+    );
+    
+    // Create semi-transparent wireframe material
+    const boxMaterial = new THREE.MeshBasicMaterial({
+      color: 0x00aaff,    // Blue color for visibility
+      wireframe: true,     // Show as wireframe
+      transparent: true,   // Enable transparency
+      opacity: 0.7         // Semi-transparent
+    });
+    
+    // Create and position the collision box
+    const collisionBox = new THREE.Mesh(boxGeometry, boxMaterial);
+    collisionBox.name = 'submarineCollisionBox';
+    submarine.add(collisionBox);     // Add as child of submarine
+    collisionBox.visible = false;    // Hidden by default
+    
+    // Store reference for toggling
+    window.submarineDebug = { collisionBox };
+    
+    return collisionBox;
+  }
+  ```
 
 ---
 
