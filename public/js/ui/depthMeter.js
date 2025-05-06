@@ -37,7 +37,7 @@ export function initDepthMeter() {
      * @param {number} depth - Current depth in meters
      * @param {number} maxDepth - Maximum depth in meters (for graduations)
      */
-    update: (depth, maxDepth = 500) => {
+    update: (depth, maxDepth = 1000) => {
       // Update pressure warning system
       updatePressureWarning(depth);
       

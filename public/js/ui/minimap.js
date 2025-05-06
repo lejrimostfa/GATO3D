@@ -138,7 +138,7 @@ function updateSubmarineOpacity(submarine) {
   
   // Calculer l'opacité en fonction de la profondeur
   // Pleine opacité à la surface (y = 0), transparence maximale à -100 units
-  const maxDepth = 300; // Profondeur maximale pour l'effet de transparence (increased for deeper dives)
+  const maxDepth = 1000; // Profondeur maximale pour l'effet de transparence (increased for deeper dives)
   const opacity = Math.max(0.3, 1 - (depth / maxDepth));
   
   // Appliquer l'opacité à tous les meshes du sous-marin

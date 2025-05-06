@@ -125,7 +125,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
   // Core submarine settings
   const verticalSpeed = 0.4;
   const surfaceY = 20;
-  const maxDepth = 500; // Increased maximum diving depth from 200 to 500
+  const maxDepth = 1000; // Increased maximum diving depth from 500 to 1000
   
   // Process key inputs from the centralized input manager with special brake handling
   const forwardPressed = Boolean(keys['z'] || keys['arrowup']);
