@@ -48,9 +48,10 @@ export function initUnderwaterEffects(scene, ambientLight, options = {}) {
  * @param {THREE.Scene} scene - The THREE scene
  * @param {THREE.Camera} camera - The camera to check position
  * @param {THREE.AmbientLight} ambientLight - The ambient light to modify
+ * @param {boolean} userFogEnabled - Indicates if user-controlled fog is active
  * @returns {boolean} - Whether the camera is underwater
  */
-export function updateUnderwaterEffects(scene, camera, ambientLight) {
+export function updateUnderwaterEffects(scene, camera, ambientLight, userFogEnabled = false) {
   if (!scene || !camera) return false;
   
   const isUnderwater = camera.position.y < fogSettings.surfaceLevel;
@@ -59,10 +60,12 @@ export function updateUnderwaterEffects(scene, camera, ambientLight) {
   if (isUnderwater !== fogSettings.isUnderwater) {
     if (isUnderwater) {
       // Transition to underwater effects
-      scene.fog = new THREE.FogExp2(
-        fogSettings.underwater.color, 
-        fogSettings.underwater.density
-      );
+      if (!userFogEnabled) { // Seulement si le brouillard utilisateur n'est pas actif
+        scene.fog = new THREE.FogExp2(
+          fogSettings.underwater.color, 
+          fogSettings.underwater.density
+        );
+      }
       
       if (ambientLight) {
         ambientLight.intensity = 0.18;
@@ -70,10 +73,12 @@ export function updateUnderwaterEffects(scene, camera, ambientLight) {
       }
     } else {
       // Transition to above water effects
-      scene.fog = new THREE.FogExp2(
-        fogSettings.default.color, 
-        fogSettings.default.density
-      );
+      if (!userFogEnabled) { // Seulement si le brouillard utilisateur n'est pas actif
+        scene.fog = new THREE.FogExp2(
+          fogSettings.default.color, 
+          fogSettings.default.density
+        );
+      }
       
       if (ambientLight) {
         ambientLight.intensity = 0.5;

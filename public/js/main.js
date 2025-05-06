@@ -8,6 +8,7 @@ import { initUI } from './ui/uiManager.js';
 import { initInputManager } from './input/inputManager.js';
 import { initGame } from './game/gameInit.js';
 import { initResponsiveUI } from './ui/responsiveUI.js';
+import { reconnectSliders } from './ui/sliderConnector.js';
 
 // Application entry point
 (function() {
@@ -53,6 +54,7 @@ import { initResponsiveUI } from './ui/responsiveUI.js';
     
     // Step 3: Initialize UI components
     initUI();
+    reconnectSliders();
     
     // Step 4: Initialize and start the game
     initGame(() => {

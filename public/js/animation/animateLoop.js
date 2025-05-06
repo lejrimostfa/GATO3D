@@ -11,6 +11,7 @@ import { updateDepthHud } from '../ui/hud.js';
 import { updateSun } from '../water-setup.js';
 import { updateRayleighEffect } from '../effects/skyEffects.js';
 import { updateTerrainWithSubmarine } from '../ocean/terrain.js'; // Import la nouvelle fonction de terrain avec préchargement
+import { updateWaterMaterial, getWaveParameters } from '../ocean/waveControls.js'; // Ajout de l'importation
 // Import centralized key management
 import { keys } from '../input/inputManager.js';
 
@@ -144,12 +145,14 @@ function animate() {
   
   // Update underwater effects
   if (scene && camera && sceneHandles && sceneHandles.ambientLight) {
-    updateUnderwaterEffects(scene, camera, sceneHandles.ambientLight);
+    const waveParams = getWaveParameters(); // Obtenir les paramètres actuels des vagues/brouillard
+    updateUnderwaterEffects(scene, camera, sceneHandles.ambientLight, waveParams.fogEnabled);
   }
   
   // Update water animation
   if (sceneHandles && sceneHandles.water) {
     sceneHandles.water.material.uniforms['time'].value += 1 / 60;
+    updateWaterMaterial(sceneHandles.water); // Appel de la fonction de mise à jour
   }
   
   // Update clock UI
