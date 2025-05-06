@@ -15,7 +15,7 @@ export class SubmarinePhysics {
     this.config = {
       // Maximum speeds - much lower default for more realistic submarine movement
       maxForwardSpeed: options.maxForwardSpeed || 10, // 10 m/s (environ 20 noeuds, ajustable)
-      maxBackwardSpeed: options.maxBackwardSpeed || 10, // Set equal to forward speed
+      maxBackwardSpeed: options.maxBackwardSpeed || (options.maxForwardSpeed || 10) * 0.3, // Limité à 30% de la vitesse avant
       
       // Acceleration values (per frame) - much faster now
       forwardAcceleration: options.forwardAcceleration || 0.005,  // 6.25x faster
@@ -52,8 +52,8 @@ export class SubmarinePhysics {
    */
   setMaxSpeeds(forward, backward = null) {
     this.config.maxForwardSpeed = forward;
-    // Always make backward speed equal to forward speed for consistent deceleration
-    this.config.maxBackwardSpeed = forward;
+    // Limit backward speed to 30% of forward speed
+    this.config.maxBackwardSpeed = forward * 0.3;
   }
   
   /**
@@ -368,15 +368,23 @@ function syncPhysicsToGlobals() {
   // Get the raw velocity value from the physics engine
   const rawVelocity = defaultPhysics.velocity;
   
-  // Convert to absolute value for speedometer (we just want speed magnitude)
+  // Store the sign of the velocity (positive for forward, negative for backward)
+  const velocitySign = Math.sign(rawVelocity);
+  
+  // Convert to absolute value for speedometer
   const absVelocity = Math.abs(rawVelocity);
   
   // Normalize to 0-1 range based on max forward speed
   // This is what the speedometer expects
-  currentVelocity = absVelocity / defaultPhysics.config.maxForwardSpeed;
+  // We keep the sign to indicate direction (positive = forward, negative = backward)
+  currentVelocity = (absVelocity / defaultPhysics.config.maxForwardSpeed) * velocitySign;
   
-  // Clamp to valid range to prevent any issues
-  currentVelocity = Math.min(1.0, Math.max(0.0, currentVelocity));
+  // Clamp to valid range to prevent any issues (but preserve sign)
+  if (currentVelocity > 0) {
+    currentVelocity = Math.min(1.0, currentVelocity);
+  } else {
+    currentVelocity = Math.max(-1.0, currentVelocity);
+  }
 }
 
 // Call this after each physics update

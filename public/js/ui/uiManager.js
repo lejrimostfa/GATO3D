@@ -121,8 +121,7 @@ function initSpeedometer() {
     
     // Start updating speedometer with submarine velocity and target speed
     import('../submarine/controls.js').then(submarineModule => {
-      // Import targetSpeed (palier) from controls
-      const { targetSpeed } = submarineModule;
+      // Ne pas importer targetSpeed comme une constante locale puisqu'elle peut changer
       // Cache for submarine instance
       let submarineInstance = null;
       
@@ -144,15 +143,48 @@ function initSpeedometer() {
             velocity = submarineModule.currentVelocity;
           }
           
-          // Make sure velocity is clamped to a valid range
-          velocity = Math.min(1.0, Math.max(0, velocity));
+          // Preserve the sign for direction (negative = backward, positive = forward)
+          // but clamp the absolute value to a valid range
+          if (velocity > 0) {
+            velocity = Math.min(1.0, velocity);
+          } else {
+            velocity = Math.max(-1.0, velocity);
+          }
           
           // Get normalized target speed for the second needle (palier)
           // Convert targetSpeed to 0-1 range for the speedometer
-          const normalizedTargetSpeed = Math.abs(submarineModule.targetSpeed) / displayMaxSpeed;
+          // Obtenir la valeur targetSpeed depuis l'instance de sous-marin ou utiliser une valeur de secours
+          let normalizedTargetSpeed = null;
+          
+          // Récupérer le targetSpeed depuis l'instance submarine si disponible
+          let targetSpeedValue = null;
+          if (submarineInstance && typeof submarineInstance.targetSpeed === 'number') {
+            targetSpeedValue = submarineInstance.targetSpeed;
+          } 
+          
+          // La valeur est valide et le displayMaxSpeed est supérieur à 0
+          if (targetSpeedValue !== null && !isNaN(targetSpeedValue) && displayMaxSpeed > 0) {
+            // Preserve the sign to indicate direction (negative for backward)
+            const targetSpeedSign = Math.sign(targetSpeedValue);
+            // Normalize the absolute value
+            const normalizedAbsValue = Math.abs(targetSpeedValue) / displayMaxSpeed;
+            // Apply the sign to keep direction information
+            normalizedTargetSpeed = normalizedAbsValue * targetSpeedSign;
+            
+            // Ensure the normalized value is within valid range but preserve sign
+            if (normalizedTargetSpeed > 0) {
+              normalizedTargetSpeed = Math.min(1.0, normalizedTargetSpeed);
+            } else {
+              normalizedTargetSpeed = Math.max(-1.0, normalizedTargetSpeed);
+            }
+            
+            // Pour le debug
+            console.log(`[SPEEDOMETER] Target speed: ${targetSpeedValue}, Normalized: ${normalizedTargetSpeed}`);
+          }
           
           // Update speedometer with velocity, current max speed, and target velocity (palier)
-          speedometerInstance.update(velocity, displayMaxSpeed, normalizedTargetSpeed);
+          // Only pass normalizedTargetSpeed if it's a valid number
+          speedometerInstance.update(velocity, Math.max(0.1, displayMaxSpeed), normalizedTargetSpeed);
         }
         
         // Try to get latest submarine update

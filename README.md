@@ -10,6 +10,14 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
+### [2025-05-06] Speedometer & Submarine Collision Improvements
+- **Speedometer Target Speed Fix**
+  - Fixed issue where target speed needle (palier) was not displaying in the speedometer
+  - Resolved "Cible: NaN" display problem by properly handling variable references between modules
+  - Improved variable access between submarine controls and UI components
+  - Added validation to ensure target speed values are always numeric and properly normalized
+  - Enhanced error handling for edge cases (zero max speed, invalid target values)
+
 ### [2025-05-06] Submarine Collision Improvements
 - **Bounce Effect on Collision**
   - Implemented a realistic bounce response when the submarine collides with terrain
@@ -482,6 +490,30 @@ When adding new UI controls:
   ```
 
 ---
+
+## 🔧 Technical Notes & Architecture
+
+### Module Dependencies & Variable Sharing
+
+The GATO3D codebase uses a modular architecture with careful management of shared variables between modules. Here are some important patterns and potential pitfalls:
+
+#### Speedometer & Target Speed System
+
+**Architecture:**
+- `palierSpeed.js`: Defines and exports the core `targetSpeed` variable and related functions
+- `controls.js`: Imports `targetSpeed` from palierSpeed.js and uses it for submarine controls
+- `uiManager.js`: Needs to access the current `targetSpeed` to display it in the speedometer
+
+**Problem Solved:**
+- The speedometer was showing "Cible: NaN" and not displaying the target speed needle
+- Root cause: Incorrect variable access between modules - trying to access `submarineModule.targetSpeed` directly
+- Solution: Get `targetSpeed` from the submarine instance object returned by `updatePlayerSubmarine()` which contains the correct value
+
+**Best Practices:**
+- When working with shared state across modules, prefer passing complete objects rather than individual variables
+- Always validate numeric values before calculations (check for NaN, null, undefined)
+- Use defensive programming with fallback values when dealing with cross-module dependencies
+- Add debug logging for critical values that affect UI components
 
 ## 🤖 AI Integration Guide
 

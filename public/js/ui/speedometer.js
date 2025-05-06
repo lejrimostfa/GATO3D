@@ -53,9 +53,9 @@ function updateSpeedometer(velocity, maxSpeedValue) {
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {number} centerX - Center X of the speedometer
  * @param {number} centerY - Center Y of the speedometer
- * @param {number} velocity - normalized speed value between 0 and 1
+ * @param {number} velocity - normalized speed value between -1 and 1 (negative for backward)
  * @param {number} maxSpeedValue - The maximum speed in knots (for speedometer graduation)
- * @param {number} targetVelocity - Target velocity (palier) in 0-1 range
+ * @param {number} targetVelocity - Target velocity (palier) in -1 to 1 range
  */
 function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue, targetVelocity = null) {
   // Store the canvas for future reference
@@ -117,17 +117,19 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue, targetV
   }
   
   // Draw the velocity gauge (from 0 to velocity)
+  // Get the absolute velocity for gauge drawing
+  const absVelocity = Math.abs(velocity);
   // Scale to 270 degrees (from PI*0.75 to PI*2.25)
-  const angle = Math.PI * 0.75 + velocity * Math.PI * 1.5;
+  const angle = Math.PI * 0.75 + absVelocity * Math.PI * 1.5;
   ctx.beginPath();
   ctx.arc(centerX, centerY, gaugeRadius, Math.PI * 0.75, angle);
   
   // Gradient color from green (slow) to red (fast)
   let gaugeColor;
-  if (velocity < 0.5) {
-    gaugeColor = `rgba(0, ${Math.round(255 * (1 - velocity * 2))}, ${Math.round(255 * (1 - velocity))}, 0.8)`;
+  if (absVelocity < 0.5) {
+    gaugeColor = `rgba(0, ${Math.round(255 * (1 - absVelocity * 2))}, ${Math.round(255 * (1 - absVelocity))}, 0.8)`;
   } else {
-    gaugeColor = `rgba(${Math.round(255 * (velocity - 0.5) * 2)}, ${Math.round(255 * (1 - velocity))}, 0, 0.8)`;
+    gaugeColor = `rgba(${Math.round(255 * (absVelocity - 0.5) * 2)}, ${Math.round(255 * (1 - absVelocity))}, 0, 0.8)`;
   }
   
   ctx.strokeStyle = gaugeColor;
@@ -136,7 +138,7 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue, targetV
   
   // Draw the needle with shadow for better visibility
   const needleLength = radius - 25;
-  const needleAngle = Math.PI * 0.75 + velocity * Math.PI * 1.5;
+  const needleAngle = Math.PI * 0.75 + absVelocity * Math.PI * 1.5;
   const needleX = centerX + Math.cos(needleAngle) * needleLength;
   const needleY = centerY + Math.sin(needleAngle) * needleLength;
   
@@ -158,8 +160,9 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue, targetV
   
   // Draw target velocity needle (palier) if provided
   if (targetVelocity !== null) {
+    const absTargetVelocity = Math.abs(targetVelocity);
     const targetNeedleLength = radius - 35; // Slightly shorter than main needle
-    const targetNeedleAngle = Math.PI * 0.75 + targetVelocity * Math.PI * 1.5;
+    const targetNeedleAngle = Math.PI * 0.75 + absTargetVelocity * Math.PI * 1.5;
     const targetNeedleX = centerX + Math.cos(targetNeedleAngle) * targetNeedleLength;
     const targetNeedleY = centerY + Math.sin(targetNeedleAngle) * targetNeedleLength;
     
@@ -201,9 +204,13 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue, targetV
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
   
-  // Display as absolute value (knots) with one decimal point
-  // Convert normalized velocity (0-1) to nautical speed
+  // Display with sign (negative for backward) with one decimal point
+  // Convert normalized velocity (-1 to 1) to nautical speed
   const velocityKnots = (velocity * maxKnots).toFixed(1);
+  // Change color to blue for backward movement
+  if (velocity < 0) {
+    ctx.fillStyle = '#00aaff'; // Blue for backward
+  }
   ctx.fillText(`${velocityKnots} kn`, centerX, centerY + 30); // Position ajustée pour la nouvelle taille
   
   // Display target velocity if provided
@@ -211,7 +218,9 @@ function drawSpeedometer(ctx, centerX, centerY, velocity, maxSpeedValue, targetV
     const targetKnots = (targetVelocity * maxKnots).toFixed(1);
     ctx.font = 'bold 14px monospace';
     ctx.fillStyle = '#ff7700'; // Orange to match target needle
-    ctx.fillText(`Cible: ${targetKnots} kn`, centerX, centerY + 50);
+    // Add direction indicator for target speed
+    const directionText = targetVelocity < 0 ? '(arrière)' : '';
+    ctx.fillText(`Cible: ${targetKnots} kn ${directionText}`, centerX, centerY + 50);
   }
   
   // Draw smaller unit label
