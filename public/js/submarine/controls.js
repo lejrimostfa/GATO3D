@@ -14,43 +14,27 @@ import { getTerrainHeightAt } from '../ocean/terrain.js';
 import { keys } from '../input/inputManager.js';
 
 // --- PALIER SPEED CONTROL ---
-// Target speed (palier), step size, and min/max (in knots or m/s as needed)
-let targetSpeed = 0;
-const targetSpeedStep = 0.1; // Pas de 0.2 m/s par appui (environ 0.4 noeuds)
-
-// Utility: clamp value between min/max
-function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
-
-// Expose for debug/UI
-export { targetSpeed };
+import { targetSpeed, targetSpeedStep, clamp, setTargetSpeed, updateSpeedLabel } from './palierSpeed.js';
 
 // Listen for keydown events to increment/decrement palier (ONE per press)
 window.addEventListener('keydown', e => {
   const key = e.key.toLowerCase();
   let changed = false;
-  // Récupérer les limites actuelles (pour prendre en compte les changements de maxSpeed)
   const currentMaxSpeed = defaultPhysics.config.maxForwardSpeed;
   const currentMinSpeed = -1 * defaultPhysics.config.maxBackwardSpeed;
-  
+
   if (key === 'z' || key === 'arrowup') {
-    targetSpeed = clamp(targetSpeed + targetSpeedStep, currentMinSpeed, currentMaxSpeed);
+    setTargetSpeed(targetSpeed + targetSpeedStep, currentMinSpeed, currentMaxSpeed);
     changed = true;
   } else if (key === 's' || key === 'arrowdown') {
-    targetSpeed = clamp(targetSpeed - targetSpeedStep, currentMinSpeed, currentMaxSpeed);
+    setTargetSpeed(targetSpeed - targetSpeedStep, currentMinSpeed, currentMaxSpeed);
     changed = true;
-  } else if (key === '0') { // La touche 0 définit le palier cible à 0 (arrêt progressif)
-    targetSpeed = 0;
+  } else if (key === '0') {
+    setTargetSpeed(0, currentMinSpeed, currentMaxSpeed);
     changed = true;
-    // Note: On ne modifie pas directement la vitesse, on laisse la physique gérer le ralentissement
   }
   if (changed) {
-    // Optionally update UI here
-    if (window.elements && window.elements.submarineSpeedLabel) {
-      const knots = targetSpeed * 1.94384;
-      window.elements.submarineSpeedLabel.textContent = `Cible: ${knots.toFixed(1)} kn`;
-    }
-    // For debug
-    // console.log(`[PALIER] Nouvelle cible: ${targetSpeed.toFixed(3)} m/s`);
+    updateSpeedLabel();
   }
 });
 
@@ -141,7 +125,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
   // Core submarine settings
   const verticalSpeed = 0.4;
   const surfaceY = 20;
-  const maxDepth = 200;
+  const maxDepth = 500; // Increased maximum diving depth from 200 to 500
   
   // Process key inputs from the centralized input manager with special brake handling
   const forwardPressed = Boolean(keys['z'] || keys['arrowup']);
@@ -264,7 +248,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
             const collisionMargin = 5; // Margin like before
             const terrainHeight = getTerrainHeightAt(submarineWorldPosition.x, submarineWorldPosition.z);
             if (submarineWorldPosition.y < terrainHeight + collisionMargin) {
-                // console.log(`[TERRAIN COLLISION] Submarine Y: ${submarineWorldPosition.y.toFixed(1)}, Terrain Height: ${terrainHeight.toFixed(1)}`);
+                // console.log(`[TERRAIN COLLISION] Submarine Y: ${submarineWorldPosition.y.toFixed(1)}, Terrain Height: ${terrainHeight.toFixed(1)}`); // Déjà en commentaire
                 playerSubmarine.position.copy(previousPosition); // Revert position
                 
                 // Apply an upward bounce when colliding with terrain
@@ -292,7 +276,7 @@ export function updatePlayerSubmarine(playerSubmarine) {
         } else if (obstacle.isCollidable && obstacle.checkCollision) {
           // --- Keep check for other potential obstacles using the old method ---
           if (obstacle.checkCollision(submarineWorldPosition)) {
-            // console.log('[COLLISION] Collision détectée avec un obstacle:', obstacle.name || 'Unnamed obstacle');
+            // console.log('[COLLISION] Collision détectée avec un obstacle:', obstacle.name || 'Unnamed obstacle'); // Déjà en commentaire
             playerSubmarine.position.copy(previousPosition); // Revenir à la position précédente
             
             // Apply an upward bounce when colliding with obstacle

@@ -193,7 +193,7 @@ function initDepthMeter() {
       function updateDepthMeter() {
         if (depthMeterInstance) {
           // Default max depth is 200 meters
-          const maxDepth = 200;
+          const maxDepth = 500; // Updated to match new maximum diving depth
           
           // Try to get depth from submarine instance
           let depth = 0;

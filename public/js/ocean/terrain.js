@@ -4,8 +4,8 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 const TILE_SIZE = 10000; // Size of each terrain tile
 const GRID_SIZE = 3;     // Number of tiles per side (e.g., 3x3 grid)
 const TILE_SEGMENTS = 50; // Resolution of each tile
-const DEPTH = -120;       // Base depth of the ocean floor
-const MAX_HEIGHT = 100;   // Max terrain elevation variation
+const DEPTH = -320;       // Base depth of the ocean floor (200 units deeper than original -120)
+const MAX_HEIGHT = 220;   // Max terrain elevation variation (+100 for islands above sea level, +120 for deeper ocean variations)
 
 // --- Texture Paths ---
 const COLOR_MAP_PATH = './textures/Ground054_1K-PNG/Ground054_1K-PNG_Color.png';
@@ -39,6 +39,14 @@ function calculateElevation(worldX, worldZ) {
     }
     const random = Math.sin(worldX * 0.02) * Math.cos(worldZ * 0.02) * MAX_HEIGHT * 0.05;
     elevation += random;
+    
+    // Create more pronounced islands by amplifying positive elevations
+    if (elevation > 0) {
+        // Create a bias for islands to rise above water
+        const islandBias = 100; // Height above sea level for islands
+        elevation = elevation * 0.9 + islandBias * Math.pow(elevation / MAX_HEIGHT, 2);
+    }
+    
     return elevation;
 }
 

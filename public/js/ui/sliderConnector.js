@@ -230,23 +230,7 @@ function connectSubmarineSliders() {
       massSlider.dispatchEvent(new Event('input'));
     }
     
-    // Connect collision box checkbox
-    if (collisionBoxCheckbox) {
-      // Import the toggle function from submarine model
-      import('../submarine/model.js').then(({ toggleCollisionBoxVisibility }) => {
-        collisionBoxCheckbox.addEventListener('change', () => {
-          const isVisible = collisionBoxCheckbox.checked;
-          toggleCollisionBoxVisibility(isVisible);
-          // console.log(`[UI:Submarine] Collision box visibility: ${isVisible ? 'visible' : 'hidden'}`);
-        });
-        
-        // Initial state - hidden by default
-        collisionBoxCheckbox.checked = false;
-        toggleCollisionBoxVisibility(false);
-      }).catch(err => {
-        console.error('[UI:Submarine] Error connecting collision box checkbox:', err);
-      });
-    }
+
   }).catch(err => {
     console.error('[UI:Submarine] Error connecting submarine sliders:', err);
   });

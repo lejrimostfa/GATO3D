@@ -16,14 +16,13 @@
   - Submarine now bounces upward upon collision instead of stopping completely
   - Added configurable bounce strength for fine-tuning the physics response
   - Maintains partial forward momentum for more natural movement during collisions
-- **Collision Box Visualization**
-  - Added visual representation of the submarine's collision boundaries
-  - Implemented a semi-transparent wireframe box that shows the actual collision area
-  - Added a toggle checkbox in the submarine settings panel to show/hide the collision box
-  - Box dimensions match the actual collision detection boundaries for accurate debugging
+- **Pressure Warning System**
+  - Added a pressure warning system that triggers when the submarine remains below 400 units depth for more than 10 seconds.
+  - Displays a blinking red alert above the depth meter to warn players of dangerous depths.
+  - Encourages safe navigation and adds realism to deep-sea exploration.
 - **Improved Physics Integration**
-  - Enhanced compatibility between legacy collision system and modern physics API
-  - Better handling of velocity resets and position corrections during collisions
+  - Enhanced compatibility between legacy and modern submarine physics systems
+  - Better handling of velocity resets and position corrections
   - Fixed critical reference errors related to physics object handling
 
 ### [2025-06-XX] Console Log Refactor
@@ -71,6 +70,7 @@
   - Implemented a large-scale ocean floor matching the water surface dimensions
   - Added realistic terrain generation with multiple noise layers
   - Terrain now acts as a solid obstacle for the submarine
+- Increased ocean depth from -120 to -320 units, with the submarine able to dive up to 500 units below sea level
 - **Water Surface Visibility**
   - Fixed water surface visibility from below using THREE.DoubleSide material
   - Added proper collision detection between submarine and terrain
@@ -234,6 +234,7 @@ GATO3D is an interactive 3D submarine game prototype written in JavaScript (Thre
 - Control a submarine in a 3D environment with realistic physics
 - Advanced velocity control system with dive brakes and reverse braking
 - Responsive UI: depth indicator, minimap, clock, speedometer
+- Enhanced depth meter UI with improved visibility for critical alerts and pressure warnings
 - Minimap with dynamic zoom controls that adapt to current zoom level
 - Dynamic day/night cycle with adjustable sun position
 - UI ↔ gameplay synchronization (speed slider, depth, clock, etc.)
@@ -460,19 +461,6 @@ When adding new UI controls:
 ### Problem: Difficulty Visualizing Collision Boundaries
 - **Symptoms:** Developers and testers can't see the actual collision area used for the submarine.
 - **Technical Causes:**
-  - Collision calculations use invisible bounding boxes
-  - No visual feedback for actual collision boundaries
-- **Solution:** Created a toggleable collision box visualization:
-  ```javascript
-  function addCollisionBox(submarine, dimensions) {
-    // Create wireframe geometry matching collision boundaries
-    const boxGeometry = new THREE.BoxGeometry(
-      dimensions.width,  // Match X dimension of collision detection
-      dimensions.height, // Match Y dimension of collision detection
-      dimensions.depth   // Match Z dimension of collision detection
-    );
-    
-    // Create semi-transparent wireframe material
     const boxMaterial = new THREE.MeshBasicMaterial({
       color: 0x00aaff,    // Blue color for visibility
       wireframe: true,     // Show as wireframe
@@ -559,7 +547,7 @@ While AI is not yet fully integrated, the GATO3D project is designed with future
 - Realistic submarine physics and controls
 - Dynamic day/night cycle
 - Responsive and accessible UI
-- Robust collision and terrain system
+- Robust terrain system with realistic submarine depth and pressure limits
 - Node.js server base operational
 
 ### 🚧 In Progress

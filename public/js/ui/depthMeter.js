@@ -1,6 +1,17 @@
 // ui/depthMeter.js
 // Depth meter UI component for GATO3D
 
+// Pressure warning system variables
+let timeBelow400 = 0;           // Time (in seconds) submarine has been below 400 units
+let warningActive = false;      // Is pressure warning currently active
+let blinkState = false;         // Current state of blinking (on/off)
+let blinkInterval = null;       // Interval for blinking effect
+let lastUpdateTime = 0;         // Last time the depth was updated (for time tracking)
+
+// Constants
+const PRESSURE_DEPTH_THRESHOLD = 400;  // Depth at which pressure warnings begin
+const PRESSURE_TIME_THRESHOLD = 10;    // Time (seconds) before warnings activate
+
 /**
  * Initialize the depth meter component
  * @returns {Object} - Interface to update the depth meter
@@ -14,6 +25,9 @@ export function initDepthMeter() {
   
   const depthCtx = depthCanvas.getContext('2d');
   
+  // Initialize time tracking
+  lastUpdateTime = Date.now();
+  
   // Draw initial depth meter with 0 depth and max depth of 200m
   drawDepthMeter(depthCtx, depthCanvas.width / 2, depthCanvas.height / 2, 0, 200);
   
@@ -23,10 +37,71 @@ export function initDepthMeter() {
      * @param {number} depth - Current depth in meters
      * @param {number} maxDepth - Maximum depth in meters (for graduations)
      */
-    update: (depth, maxDepth = 200) => {
+    update: (depth, maxDepth = 500) => {
+      // Update pressure warning system
+      updatePressureWarning(depth);
+      
+      // Draw the depth meter
       drawDepthMeter(depthCtx, depthCanvas.width / 2, depthCanvas.height / 2, depth, maxDepth);
     }
   };
+}
+
+/**
+ * Update the pressure warning system based on current depth
+ * @param {number} depth - Current depth in meters
+ */
+function updatePressureWarning(depth) {
+  const now = Date.now();
+  const deltaTime = (now - lastUpdateTime) / 1000; // Convert to seconds
+  lastUpdateTime = now;
+  
+  // Check if submarine is below the pressure threshold
+  if (depth > PRESSURE_DEPTH_THRESHOLD) {
+    // Accumulate time spent below threshold
+    timeBelow400 += deltaTime;
+    
+    // Activate warning if threshold time exceeded
+    if (timeBelow400 >= PRESSURE_TIME_THRESHOLD && !warningActive) {
+      activatePressureWarning();
+    }
+  } else {
+    // Reset the timer when above the threshold depth
+    timeBelow400 = 0;
+    
+    // Deactivate warning if it was active
+    if (warningActive) {
+      deactivatePressureWarning();
+    }
+  }
+}
+
+/**
+ * Activate the pressure warning system
+ */
+function activatePressureWarning() {
+  warningActive = true;
+  
+  // Start blinking effect if not already active
+  if (!blinkInterval) {
+    blinkInterval = setInterval(() => {
+      blinkState = !blinkState; // Toggle blink state
+    }, 500); // Toggle every 500ms (twice per second)
+  }
+}
+
+/**
+ * Deactivate the pressure warning system
+ */
+function deactivatePressureWarning() {
+  warningActive = false;
+  blinkState = false;
+  
+  // Stop blinking effect
+  if (blinkInterval) {
+    clearInterval(blinkInterval);
+    blinkInterval = null;
+  }
 }
 
 // Global references
@@ -181,4 +256,57 @@ function drawDepthMeter(ctx, centerX, centerY, depth, maxDepthValue) {
   // Draw smaller unit label
   ctx.font = '14px monospace';
   ctx.fillText('DEPTH', centerX, centerY + 55);
+  
+  // Draw pressure warning if active and in 'on' state of blinking
+  if (warningActive && blinkState) {
+    // Create red border around the depth meter
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, radius - 5, 0, Math.PI * 2);
+    ctx.strokeStyle = '#ff0000';
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    
+    // Create a translucent floating panel above the depth meter
+    const warningText = 'PRESSION CRITIQUE';
+    ctx.font = 'bold 16px monospace';
+    const textMetrics = ctx.measureText(warningText);
+    const textWidth = textMetrics.width;
+    const textHeight = 20; // Approximation
+    
+    // Position the panel above the depth meter
+    const panelX = centerX - textWidth/2 - 10;
+    const panelY = centerY - radius - 30; // Au-dessus de la jauge
+    const panelWidth = textWidth + 20;
+    const panelHeight = textHeight + 10;
+    
+    // Draw floating panel with 3D-like effect
+    // Shadow first
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    ctx.fillRect(panelX + 3, panelY + 3, panelWidth, panelHeight);
+    
+    // Main panel
+    ctx.fillStyle = 'rgba(255, 0, 0, 0.9)';
+    ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+    
+    // Panel border
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(panelX, panelY, panelWidth, panelHeight);
+    
+    // Add warning text with glow effect
+    // Text shadow for glow
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(warningText, centerX, panelY + panelHeight/2);
+    
+    // Reset shadow
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
 }

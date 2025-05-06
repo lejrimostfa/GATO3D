@@ -9,12 +9,6 @@ import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.176.0/examples/
  * @param {function(THREE.Object3D):void} onLoaded - callback appelé avec le pivot du sous-marin
  */
 export function loadSubmarine(scene, onLoaded) {
-    // Collision box dimensions - can be adjusted to match the actual collision area
-    const collisionBoxDimensions = {
-        width: 10,  // X-axis (side to side)
-        height: 7,  // Y-axis (top to bottom)
-        depth: 22   // Z-axis (front to back)
-    };
     // Create pivot point for the submarine
     const pivot = new THREE.Object3D();
     pivot.name = 'Pivot';
@@ -167,8 +161,7 @@ export function loadSubmarine(scene, onLoaded) {
     // Execute the loading process with proper error handling
     loadModel()
         .then((submarine) => {
-            // Add collision box to the submarine
-            addCollisionBox(submarine, collisionBoxDimensions);
+
             
             // Success case - model loaded
             if (typeof onLoaded === 'function') {
@@ -182,8 +175,7 @@ export function loadSubmarine(scene, onLoaded) {
             // Create and return fallback model
             const fallbackSubmarine = createFallbackSubmarine();
             
-            // Add collision box to fallback submarine
-            addCollisionBox(fallbackSubmarine, collisionBoxDimensions);
+
             
             if (typeof onLoaded === 'function') {
                 onLoaded(fallbackSubmarine);
@@ -191,53 +183,4 @@ export function loadSubmarine(scene, onLoaded) {
         });
 }
 
-/**
- * Add a visual collision box to the submarine model.
- * @param {THREE.Object3D} submarine - The submarine object
- * @param {Object} dimensions - Dimensions of the collision box
- */
-function addCollisionBox(submarine, dimensions) {
-    // Create a wireframe box to represent the collision area
-    const boxGeometry = new THREE.BoxGeometry(
-        dimensions.width,
-        dimensions.height,
-        dimensions.depth
-    );
-    
-    // Create wireframe material - semi-transparent blue
-    const boxMaterial = new THREE.MeshBasicMaterial({
-        color: 0x00aaff,
-        wireframe: true,
-        transparent: true,
-        opacity: 0.7
-    });
-    
-    // Create the collision box mesh
-    const collisionBox = new THREE.Mesh(boxGeometry, boxMaterial);
-    collisionBox.name = 'submarineCollisionBox';
-    
-    // Center the box on the submarine with a slight y offset for better visualization
-    collisionBox.position.set(0, 0, 0);
-    
-    // Add collision box to submarine
-    submarine.add(collisionBox);
-    
-    // Hide by default - will be toggled via UI checkbox
-    collisionBox.visible = false;
-    
-    // Add to window for easy access
-    if (!window.submarineDebug) window.submarineDebug = {};
-    window.submarineDebug.collisionBox = collisionBox;
-    
-    return collisionBox;
-}
 
-/**
- * Toggle the visibility of the submarine collision box
- * @param {boolean} visible - Whether the collision box should be visible
- */
-export function toggleCollisionBoxVisibility(visible) {
-    if (window.submarineDebug && window.submarineDebug.collisionBox) {
-        window.submarineDebug.collisionBox.visible = visible;
-    }
-}
