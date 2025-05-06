@@ -10,6 +10,21 @@
 
 ## 📝 CHANGELOG RÉCENT / DETAILED CHANGELOG
 
+### [2025-05-06] Terrain Océanique Amélioré
+- **Extension de la Grille de Terrain**
+  - Augmentation de la grille de 3x3 (9 tuiles) à 7x7 (49 tuiles)
+  - Taille des tuiles augmentée à 12000 unités
+  - Terrain couvrant maintenant complètement l'horizon
+- **Optimisation des Performances**
+  - Réduction adaptative de la résolution des tuiles éloignées
+  - Haute résolution (256 segments) pour les tuiles proches
+  - Moins de segments (min 96) pour les tuiles éloignées
+  - Meilleure gestion des ressources tout en maintenant la qualité visuelle
+- **Algorithme de Génération Déterministe**
+  - Suppression des éléments aléatoires dans la génération
+  - Terrain toujours cohérent et prévisible
+  - Meilleure expérience de navigation sans discontinuités visuelles
+
 ### [2025-05-06] Speedometer & Submarine Collision Improvements
 - **Speedometer Target Speed Fix**
   - Fixed issue where target speed needle (palier) was not displaying in the speedometer
