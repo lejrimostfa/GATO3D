@@ -15,7 +15,7 @@ export class SubmarinePhysics {
     this.config = {
       // Maximum speeds - much lower default for more realistic submarine movement
       maxForwardSpeed: options.maxForwardSpeed || 10, // 10 m/s (environ 20 noeuds, ajustable)
-      maxBackwardSpeed: options.maxBackwardSpeed || (options.maxForwardSpeed || 10) * 0.3, // Limité à 30% de la vitesse avant
+      maxBackwardSpeed: options.maxBackwardSpeed || options.maxForwardSpeed || 10, // Égale à la vitesse avant
       
       // Acceleration values (per frame) - much faster now
       forwardAcceleration: options.forwardAcceleration || 0.005,  // 6.25x faster
@@ -52,8 +52,8 @@ export class SubmarinePhysics {
    */
   setMaxSpeeds(forward, backward = null) {
     this.config.maxForwardSpeed = forward;
-    // Limit backward speed to 30% of forward speed
-    this.config.maxBackwardSpeed = forward * 0.3;
+    // Make backward speed equal to forward speed
+    this.config.maxBackwardSpeed = forward;
   }
   
   /**
@@ -155,6 +155,12 @@ export class SubmarinePhysics {
       return;
     }
     
+    // Si la vitesse est très proche de zéro et que la cible est zéro, arrêter complètement
+    if (this.targetVelocity === 0 && Math.abs(this.velocity) < 0.05) {
+      this.velocity = 0;
+      return;
+    }
+    
     // Calculate acceleration based on movement direction and current state
     let acceleration;
     
@@ -165,9 +171,21 @@ export class SubmarinePhysics {
       // Réduction significative du facteur de freinage pour un arrêt plus progressif
       const dragFactor = (0.3 * Math.pow(this.config.waterResistance, 2)) / this.momentumFactor;
       
-      // Réduire encore plus la décélération quand la vitesse est déjà faible
+      // Calculer le ratio de vitesse actuelle par rapport à la vitesse maximale
       const velocityRatio = Math.abs(this.velocity / this.config.maxForwardSpeed);
-      const slowdownFactor = Math.max(0.2, velocityRatio); // Plus lent à basse vitesse
+      
+      // Permettre une décélération complète jusqu'à 0 lorsque le palier est à 0
+      // Utiliser un facteur qui augmente à mesure que la vitesse diminue pour assurer un arrêt complet
+      let slowdownFactor;
+      
+      if (velocityRatio < 0.3) {
+        // Augmenter progressivement le facteur de ralentissement lorsque la vitesse est faible
+        // pour garantir que le sous-marin s'arrête complètement
+        slowdownFactor = 2.0 + (0.3 - velocityRatio) * 5; // Augmente jusqu'à 3.5 à très basse vitesse
+      } else {
+        // Pour les vitesses plus élevées, utiliser le ratio de vitesse comme facteur
+        slowdownFactor = velocityRatio;
+      }
       
       acceleration = (this.config.dragDeceleration * dragFactor * slowdownFactor) * Math.sign(velocityDiff);
     } else if (velocityDiff > 0) {
