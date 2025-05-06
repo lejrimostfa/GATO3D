@@ -10,7 +10,7 @@ import { drawClockFace, drawTime } from '../ui/clock.js';
 import { updateDepthHud } from '../ui/hud.js';
 import { updateSun } from '../water-setup.js';
 import { updateRayleighEffect } from '../effects/skyEffects.js';
-import { updateTerrainGrid } from '../ocean/terrain.js'; // Import terrain update function
+import { updateTerrainWithSubmarine } from '../ocean/terrain.js'; // Import la nouvelle fonction de terrain avec préchargement
 // Import centralized key management
 import { keys } from '../input/inputManager.js';
 
@@ -136,9 +136,10 @@ function animate() {
     updateFollowCamera(camera, playerSubmarine);
   }
   
-  // Update terrain grid based on camera position
-  if (camera) {
-    updateTerrainGrid(camera);
+  // Update terrain grid based on camera position and submarine direction for intelligent preloading
+  if (camera && playerSubmarine) {
+    // Nouvelle fonction qui prend en compte la direction du sous-marin pour précharger les terrains
+    updateTerrainWithSubmarine(camera, playerSubmarine);
   }
   
   // Update underwater effects

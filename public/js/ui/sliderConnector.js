@@ -40,9 +40,26 @@ function connectWaveSliders() {
   const waveAmplitudeSlider = document.getElementById('wave-amplitude-slider');
   const waveDirectionSlider = document.getElementById('wave-direction-slider');
   const waterTransparencySlider = document.getElementById('water-transparency-slider');
+  const waterReflectionsSlider = document.getElementById('water-reflections-slider');
+  const waterRefractionsSlider = document.getElementById('water-refractions-slider');
   
-  // Importer les fonctions de gestion des vagues
-  import('../ocean/waveControls.js').then(({ setWaveAmplitude, setWaveDirection, setWaterTransparency, updateWaterMaterial }) => {
+  // Nouveaux contrôles de brouillard
+  const fogEnabledCheckbox = document.getElementById('fog-enabled-checkbox');
+  const fogDensitySlider = document.getElementById('fog-density-slider');
+  const fogColorPicker = document.getElementById('fog-color-picker');
+  
+  // Importer les fonctions de gestion des vagues et du brouillard
+  import('../ocean/waveControls.js').then(({ 
+    setWaveAmplitude, 
+    setWaveDirection, 
+    setWaterTransparency, 
+    setWaterReflections,
+    setWaterRefractions,
+    setFogEnabled,
+    setFogDensity,
+    setFogColor,
+    updateWaterMaterial 
+  }) => {
     // Fonction de mise à jour pour l'amplitude
     if (waveAmplitudeSlider) {
       waveAmplitudeSlider.addEventListener('input', () => {
@@ -101,6 +118,97 @@ function connectWaveSliders() {
       
       // Déclencher l'événement initialement
       waterTransparencySlider.dispatchEvent(new Event('input'));
+    }
+    
+    // Fonction de mise à jour pour les réflexions de l'eau
+    if (waterReflectionsSlider) {
+      waterReflectionsSlider.addEventListener('input', () => {
+        const reflections = parseFloat(waterReflectionsSlider.value);
+        setWaterReflections(reflections);
+        updateWaterMaterial(window.sceneHandles?.water);
+        
+        // Mettre à jour le texte d'affichage
+        const reflectionsLabel = document.getElementById('water-reflections-label');
+        if (reflectionsLabel) {
+          reflectionsLabel.textContent = `Réflexions: ${reflections.toFixed(1)}`;
+        }
+      });
+      
+      // Déclencher l'événement initialement
+      waterReflectionsSlider.dispatchEvent(new Event('input'));
+    }
+    
+    // Fonction de mise à jour pour les réfractions de l'eau
+    if (waterRefractionsSlider) {
+      waterRefractionsSlider.addEventListener('input', () => {
+        const refractions = parseFloat(waterRefractionsSlider.value);
+        setWaterRefractions(refractions);
+        updateWaterMaterial(window.sceneHandles?.water);
+        
+        // Mettre à jour le texte d'affichage
+        const refractionsLabel = document.getElementById('water-refractions-label');
+        if (refractionsLabel) {
+          refractionsLabel.textContent = `Réfractions: ${refractions.toFixed(1)}`;
+        }
+      });
+      
+      // Déclencher l'événement initialement
+      waterRefractionsSlider.dispatchEvent(new Event('input'));
+    }
+    
+    // Activation/désactivation du brouillard
+    if (fogEnabledCheckbox) {
+      fogEnabledCheckbox.addEventListener('change', () => {
+        const enabled = fogEnabledCheckbox.checked;
+        setFogEnabled(enabled);
+        updateWaterMaterial(window.sceneHandles?.water);
+        
+        // Activer/désactiver visuellement les contrôles de fog
+        const fogControls = document.querySelectorAll('#fog-density-slider, #fog-color-picker');
+        fogControls.forEach(control => {
+          control.disabled = !enabled;
+          control.style.opacity = enabled ? '1' : '0.5';
+        });
+        
+        // console.log(`[UI:Ocean] Fog ${enabled ? 'enabled' : 'disabled'}`);
+      });
+      
+      // Déclencher l'événement initialement
+      fogEnabledCheckbox.dispatchEvent(new Event('change'));
+    }
+    
+    // Densité du brouillard
+    if (fogDensitySlider) {
+      fogDensitySlider.addEventListener('input', () => {
+        const density = parseFloat(fogDensitySlider.value);
+        setFogDensity(density);
+        updateWaterMaterial(window.sceneHandles?.water);
+        
+        // Mettre à jour le texte d'affichage
+        const densityLabel = document.getElementById('fog-density-label');
+        if (densityLabel) {
+          densityLabel.textContent = `Densité: ${density.toFixed(3)}`;
+        }
+        
+        // console.log(`[UI:Ocean] Updated fog density: ${density}`);
+      });
+      
+      // Déclencher l'événement initialement
+      fogDensitySlider.dispatchEvent(new Event('input'));
+    }
+    
+    // Couleur du brouillard
+    if (fogColorPicker) {
+      fogColorPicker.addEventListener('input', () => {
+        const color = fogColorPicker.value;
+        setFogColor(color);
+        updateWaterMaterial(window.sceneHandles?.water);
+        
+        // console.log(`[UI:Ocean] Updated fog color: ${color}`);
+      });
+      
+      // Déclencher l'événement initialement
+      fogColorPicker.dispatchEvent(new Event('input'));
     }
   });
   

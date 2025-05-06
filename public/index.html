@@ -209,10 +209,31 @@
           <div id="water-reflections-label" style="color:#0f0; font-family:monospace;">Réflexions: 0.5</div>
         </label>
         
-        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Réfractions
+        <label style="color:#0f0; font-family:monospace; margin-top:10px;">Réfractions de l'eau
           <input id="water-refractions-slider" type="range" min="0.0" max="1.0" step="0.1" value="0.7" style="width:180px; margin-top:4px;" />
           <div id="water-refractions-label" style="color:#0f0; font-family:monospace;">Réfractions: 0.7</div>
         </label>
+
+        <h3 style="color:#0ff; font-family:monospace; margin-top:20px; margin-bottom:10px; border-top:1px solid #0ff; padding-top:10px;">Brouillard sous-marin</h3>
+        
+        <!-- Contrôle d'activation du brouillard -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <label style="color:#0f0; font-family:monospace;">Activer brouillard</label>
+          <input id="fog-enabled-checkbox" type="checkbox" checked style="width:20px; height:20px;" />
+        </div>
+        
+        <!-- Densité du brouillard -->
+        <label style="color:#0f0; font-family:monospace; margin-top:5px;">
+          Densité du brouillard
+          <input id="fog-density-slider" type="range" min="0.001" max="0.05" step="0.001" value="0.01" style="width:180px; margin-top:4px;" />
+          <div id="fog-density-label" style="color:#0f0; font-family:monospace;">Densité: 0.010</div>
+        </label>
+        
+        <!-- Couleur du brouillard -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+          <label style="color:#0f0; font-family:monospace;">Couleur du brouillard</label>
+          <input id="fog-color-picker" type="color" value="#004566" style="width:40px; height:30px; cursor:pointer; border:none; background:none;" />
+        </div>
       </div>
       <div id="slider-panel" class="menu-panel" style="top:70px; right:0px; width:280px; transform: translateX(-50%);">
         <h3 style="color:#0ff; font-family:monospace; margin-top:0; margin-bottom:15px;">Contrôles Caméra</h3>

@@ -84,18 +84,8 @@ export function setupSkyAndWater(scene, renderer, camera) {
   // S'assurer que le ciel de jour est au-dessus du ciel de nuit
   sky.renderOrder = -1;
   
-  // Ajoute un mesh sphérique pour le soleil visible
-  const sunSphere = new THREE.Mesh(
-    new THREE.SphereGeometry(3500, 16, 8),
-    new THREE.MeshBasicMaterial({ color: 0xffffee })
-  );
-  sunSphere.position.copy(sun.clone().multiplyScalar(1000));
-  
-  // Set the sun sphere to only be visible to the main camera (not the minimap)
-  sunSphere.layers.set(LAYERS.MAIN_CAMERA);
-  
-  // Add to scene
-  scene.add(sunSphere);
+  // Sun sphere removed to improve visual quality
+  const sunSphere = null; // Keeping the variable but setting to null
   
   // Configure main camera to see both default and main camera layers
   if (camera) {
@@ -105,16 +95,9 @@ export function setupSkyAndWater(scene, renderer, camera) {
   const phi = THREE.MathUtils.degToRad(90 - 45); // élévation plus haute
   const theta = THREE.MathUtils.degToRad(180);   // azimuth
   sun.setFromSphericalCoords(1, phi, theta);
-  sky.material.uniforms['sunPosition'].value.copy(sun);
 
-
-  // console.log('[DEBUG] Creating dynamic water surface with 3D waves');
-  
-  // console.log('[WATER] Creating water surface at y=20');
-  
-  // Create a much larger water surface that extends beyond the visible area
-  // Using higher vertex density (250x250) for more detailed waves
-  const waterGeometry = new THREE.PlaneGeometry(50000, 50000, 250, 250);
+  // Water - much larger plane to appear infinite
+  const waterGeometry = new THREE.PlaneGeometry(80000, 80000, 40, 40);
   
   // Initialize wave parameters
   let waveAmplitude = 2.0; // Augmenté pour des vagues plus visibles
@@ -183,7 +166,7 @@ export function setupSkyAndWater(scene, renderer, camera) {
   const cubeCamera = new THREE.CubeCamera(1, 100000, cubeRenderTarget);
   scene.add(cubeCamera);
 
-  // Create water with improved parameters
+  // Create water with improved parameters for infinite water effect
   const water = new Water(waterGeometry, {
     textureWidth: 2048,
     textureHeight: 2048,
@@ -205,6 +188,11 @@ export function setupSkyAndWater(scene, renderer, camera) {
 
   // Fonction pour mettre à jour les réflexions
   function updateReflections() {
+    // Update cube camera position to follow player for accurate reflections
+    if (camera) {
+      cubeCamera.position.set(camera.position.x, 20, camera.position.z);
+    }
+    
     water.visible = false; // Cacher l'eau pendant le rendu de la réflexion
     cubeCamera.update(renderer, scene);
     water.visible = true;
@@ -278,8 +266,26 @@ export function setupSkyAndWater(scene, renderer, camera) {
   // Initial wave update
   water.updateWaves(waveAmplitude, 0, 0);
 
+  // Make the water mesh visible to both main camera and minimap
+  water.layers.enableAll();
   water.rotation.x = -Math.PI / 2;
+  water.material.side = THREE.DoubleSide; // Make water visible from above and below
   scene.add(water);
+  
+  // Function to make water follow camera (infinity effect)
+  function updateWaterPosition() {
+    if (!camera) return;
+    
+    // Only update X and Z, keep Y (height) constant
+    water.position.x = camera.position.x;
+    water.position.z = camera.position.z;
+  }
+  
+  // Add water position update to game loop
+  if (typeof window.gameLoop === 'undefined') {
+    window.gameLoop = [];
+  }
+  window.gameLoop.push(updateWaterPosition);
   water.position.y = 20;
   
   // Créer le terrain avec la nouvelle fonction
@@ -326,8 +332,8 @@ export function setupSkyAndWater(scene, renderer, camera) {
   window.scene = scene;  // CRUCIAL pour que le système de collision fonctionne
   // console.log('[SETUP] Scene attached to window.scene with obstacles:', scene.obstacles.length);
   
-  // Retourne les éléments principaux + terrainGroup
-  return { water, sky, sun, sunLight, renderer, sunSphere, terrainGroup, nightSky, ambientLight };
+  // Return main elements + terrainGroup (sunSphere is now null)
+  return { water, sky, sun, sunLight, renderer, sunSphere: null, terrainGroup, nightSky, ambientLight };
 }
 
 export function updateSun(sceneHandles, hour) {
@@ -392,11 +398,8 @@ export function updateSun(sceneHandles, hour) {
     nightFactor = 0;
   }
   
-  // Mise à jour du disque solaire
-  if (sunSphere) {
-    sunSphere.position.copy(sun.clone().multiplyScalar(1000));
-    sunSphere.visible = hour >= 6 && hour <= 18;
-  }
+  // Sun sphere has been removed, so we skip updating it
+  // This keeps compatibility with existing code
   
   if (sky && nightSky) {
     // Gestion du ciel étoilé et transition

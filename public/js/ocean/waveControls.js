@@ -11,6 +11,13 @@ let waterTransparency = 0.1; // 0.1 (opaque) to 1.0 (transparent)
 let waterReflections = 0.5; // 0.0 (none) to 1.0 (maximum)
 let waterRefractions = 0.7; // 0.0 (none) to 1.0 (maximum)
 
+// Default fog parameters
+let fogEnabled = true;      // Enable/disable fog
+let fogDensity = 0.01;     // 0.001 (light fog) to 0.05 (heavy fog)
+let fogColor = '#004566';  // Underwater fog color
+let fogNear = 100;         // Near clipping distance for fog
+let fogFar = 2000;         // Far clipping distance for fog
+
 /**
  * Set the wave amplitude
  * @param {number} amplitude - Wave amplitude value (0-5)
@@ -57,6 +64,51 @@ export function setWaterRefractions(refractions) {
 }
 
 /**
+ * Toggle fog on/off
+ * @param {boolean} enabled - Whether fog should be enabled
+ */
+export function setFogEnabled(enabled) {
+  fogEnabled = enabled;
+  return fogEnabled;
+}
+
+/**
+ * Set fog density
+ * @param {number} density - Fog density value (0.001-0.05)
+ */
+export function setFogDensity(density) {
+  fogDensity = density;
+  return fogDensity;
+}
+
+/**
+ * Set fog color
+ * @param {string} color - Fog color in hex format
+ */
+export function setFogColor(color) {
+  fogColor = color;
+  return fogColor;
+}
+
+/**
+ * Set fog near distance
+ * @param {number} near - Near clipping distance for fog
+ */
+export function setFogNear(near) {
+  fogNear = near;
+  return fogNear;
+}
+
+/**
+ * Set fog far distance
+ * @param {number} far - Far clipping distance for fog
+ */
+export function setFogFar(far) {
+  fogFar = far;
+  return fogFar;
+}
+
+/**
  * Get the current wave parameters
  * @returns {Object} - Current wave settings
  */
@@ -67,7 +119,13 @@ export function getWaveParameters() {
     directionRadians: waveDirection * (Math.PI / 180),
     transparency: waterTransparency,
     reflections: waterReflections,
-    refractions: waterRefractions
+    refractions: waterRefractions,
+    // Include fog parameters
+    fogEnabled: fogEnabled,
+    fogDensity: fogDensity,
+    fogColor: fogColor,
+    fogNear: fogNear,
+    fogFar: fogFar
   };
 }
 
@@ -164,8 +222,21 @@ export function updateWaterMaterial(water) {
     // console.log('[DEBUG] No updateWaves function found on water object');
   }
   
+  // Update fog if scene is available
+  if (window.scene) {
+    if (fogEnabled) {
+      // Apply fog settings
+      window.scene.fog = new THREE.FogExp2(new THREE.Color(fogColor), fogDensity);
+    } else {
+      // Remove fog if disabled
+      window.scene.fog = null;
+    }
+  }
+  
   return {
     distortionScale,
-    direction: waveDirection
+    direction: waveDirection,
+    fogEnabled,
+    fogDensity
   };
 }
