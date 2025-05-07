@@ -1,8 +1,28 @@
 // submarine/controls.js
 // Contrôles et mouvements du sous-marin pour GATO3D
 
-// Import THREE.js pour la détection de collision
+// Import THREE.js pour la détection de collision et les transformations
 import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.module.js';
+
+// Constantes pour l'inclinaison du sous-marin (en degrés)
+const TILT_ANGLE = 15; // Angle d'inclinaison pour tous les mouvements (en degrés) - réduit à 3°
+const TILT_SPEED = 0.02; // Vitesse réduite pour une transition plus lente (environ 3-4 secondes)
+const TILT_EASING = 0.5; // Coefficient d'atténuation pour effet non linéaire (0.5-0.9)
+const PITCH_AMPLITUDE = 1.0; // Amplitude du tangage (en degrés)
+const PITCH_SPEED = 0.1; // Vitesse du tangage
+
+// Variables pour suivre l'inclinaison actuelle
+let currentPitch = 0; // Inclinaison avant/arrière actuelle pour monter/descendre
+let targetPitch = 0; // Inclinaison avant/arrière cible pour monter/descendre
+let currentAccelPitch = 0; // Inclinaison avant/arrière actuelle pour accélération/freinage
+let targetAccelPitch = 0; // Inclinaison avant/arrière cible pour accélération/freinage
+let currentRoll = 0; // Inclinaison gauche/droite actuelle
+let targetRoll = 0; // Inclinaison gauche/droite cible
+let pitchPhase = 0; // Phase pour le mouvement de tangage
+let lastVelocity = 0; // Vitesse précédente pour calculer l'accélération
+
+// Flag pour suivre si les rotations ont été précompilées
+let rotationsPrecompiled = false;
 
 // Import the modular physics system
 import { defaultPhysics, updatePhysics, currentVelocity, maxSpeed, setMaxSpeed } from './physics.js';
@@ -15,6 +35,39 @@ import { keys } from '../input/inputManager.js';
 
 // --- PALIER SPEED CONTROL ---
 import { targetSpeed, targetSpeedStep, clamp, setTargetSpeed, updateSpeedLabel } from './palierSpeed.js';
+
+/**
+ * Précompile les calculs de rotation pour éviter le freeze au premier changement d'angle
+ * Cette fonction effectue une "rotation à blanc" pour forcer la compilation JIT
+ * des fonctions mathématiques et de THREE.js sans affecter l'expérience utilisateur
+ */
+function precompileRotations() {
+  // Créer des valeurs temporaires non-nulles
+  const tempTargetPitch = 0.0001;
+  const tempTargetRoll = 0.0001;
+  
+  // Force une première exécution de tous les calculs coûteux
+  const dummyPitchDelta = tempTargetPitch - currentPitch;
+  const dummyRollDelta = tempTargetRoll - currentRoll;
+  
+  // Exécute les calculs d'atténuation non linéaire
+  const dummyPitchFactor = Math.pow(Math.min(1, Math.abs(dummyPitchDelta) / THREE.MathUtils.degToRad(5)), TILT_EASING);
+  const dummyRollFactor = Math.pow(Math.min(1, Math.abs(dummyRollDelta) / THREE.MathUtils.degToRad(5)), TILT_EASING);
+  
+  // Applique une rotation de test au modèle fictif
+  const dummyModel = new THREE.Object3D();
+  dummyModel.rotation.set(0, 0, 0);
+  dummyModel.rotateX(tempTargetPitch * dummyPitchFactor);
+  dummyModel.rotateZ(tempTargetRoll * dummyRollFactor);
+  
+  // Réinitialise tout
+  targetPitch = 0;
+  targetAccelPitch = 0;
+  targetRoll = 0;
+  
+  // Log pour confirmer la précompilation
+  console.log('[SUBMARINE] Rotation calculations precompiled successfully');
+}
 
 // Listen for keydown events to increment/decrement palier (ONE per press)
 window.addEventListener('keydown', e => {
@@ -117,6 +170,13 @@ export function updateMaxSpeed(speed) {
  */
 export function updatePlayerSubmarine(playerSubmarine) {
   if (!playerSubmarine) return;
+  
+  // Pré-compilation des rotations lors du premier appel pour éviter le freeze
+  if (!rotationsPrecompiled) {
+    console.log('[SUBMARINE] Pre-compiling rotation calculations on first call...');
+    precompileRotations();
+    rotationsPrecompiled = true;
+  }
   
   // Store the submarine's current position before any updates
   // This will be used for collision detection to revert position if needed
@@ -355,6 +415,111 @@ export function updatePlayerSubmarine(playerSubmarine) {
     combinedVelocity = currentVelocity;
   }
   
+  // Calculer les inclinaisons cibles basées sur le mouvement
+  
+  // 1. Inclinaison avant/arrière (pitch) basée sur le mouvement vertical
+  if (verticalMovement > 0) {
+    // Monter (touche A) - inclinaison vers l'arrière (nez qui monte)
+    targetPitch = THREE.MathUtils.degToRad(TILT_ANGLE*1.5); // Positif = vers l'arrière
+  } else if (verticalMovement < 0) {
+    // Descendre (touche W) - inclinaison vers l'avant (nez qui descend)
+    targetPitch = -THREE.MathUtils.degToRad(TILT_ANGLE*1.5); // Négatif = vers l'avant
+  } else {
+    // Pas de mouvement vertical - retour à l'horizontal
+    targetPitch = 0;
+  }
+  
+  // 2. Inclinaison avant/arrière proportionnelle à la vitesse
+  // Calculer le pourcentage de la vitesse maximale (entre 0 et 1)
+  const velocityPct = Math.abs(combinedVelocity / maxSpeed);
+  
+  // Vérifier les touches pour déterminer la direction
+  if (forwardPressed) {
+    // Marche avant - inclinaison vers l'avant (nez qui descend)
+    // L'angle est proportionnel à la vitesse
+    targetAccelPitch = -THREE.MathUtils.degToRad(TILT_ANGLE*1.5 * velocityPct);
+  } else if (backwardPressed) {
+    // Marche arrière - inclinaison vers l'arrière (nez qui monte)
+    // L'angle est proportionnel à la vitesse
+    targetAccelPitch = THREE.MathUtils.degToRad(TILT_ANGLE * velocityPct);
+  } else {
+    // Pas de mouvement avant/arrière - retour à l'horizontal
+    targetAccelPitch = 0;
+  }
+  
+  // Afficher le pourcentage de vitesse et l'angle d'inclinaison (pour débogage)
+  // if (Math.random() < 0.01) { // Limiter les logs pour ne pas surcharger la console
+  //   console.log(`Vitesse: ${(velocityPct * 100).toFixed(0)}%, Angle: ${(targetAccelPitch * 180 / Math.PI).toFixed(1)}°`);
+  // }
+  
+  // Inclinaison gauche/droite (roll) basée directement sur les touches
+  const leftPressed = Boolean(keys['q'] || keys['arrowleft']);
+  const rightPressed = Boolean(keys['d'] || keys['arrowright']);
+  
+  if (leftPressed) {
+    // Touche gauche pressée - inclinaison vers la droite (inversé)
+    targetRoll = THREE.MathUtils.degToRad(TILT_ANGLE); // Inversé: positif = vers la droite
+  } else if (rightPressed) {
+    // Touche droite pressée - inclinaison vers la gauche (inversé)
+    targetRoll = -THREE.MathUtils.degToRad(TILT_ANGLE); // Inversé: négatif = vers la gauche
+  } else {
+    // Pas de touche gauche/droite - retour à l'horizontal
+    targetRoll = 0;
+  }
+  
+  // Transition non linéaire vers les inclinaisons cibles
+  // Application d'une interpolation non linéaire qui ralentit à l'approche de la cible
+  
+  // Calcul de la distance à la cible pour chaque axe de rotation
+  const pitchDelta = targetPitch - currentPitch;
+  const accelPitchDelta = targetAccelPitch - currentAccelPitch;
+  const rollDelta = targetRoll - currentRoll;
+  
+  // Calcul de l'attenuation non linéaire (ralentit près de la cible)
+  const pitchAttenuationFactor = Math.pow(Math.min(1, Math.abs(pitchDelta) / THREE.MathUtils.degToRad(5)), TILT_EASING);
+  const accelPitchAttenuationFactor = Math.pow(Math.min(1, Math.abs(accelPitchDelta) / THREE.MathUtils.degToRad(5)), TILT_EASING);
+  const rollAttenuationFactor = Math.pow(Math.min(1, Math.abs(rollDelta) / THREE.MathUtils.degToRad(5)), TILT_EASING);
+  
+  // Application de l'interpolation avec facteurs d'atténuation
+  currentPitch += pitchDelta * TILT_SPEED * pitchAttenuationFactor;
+  currentAccelPitch += accelPitchDelta * TILT_SPEED * accelPitchAttenuationFactor;
+  currentRoll += rollDelta * TILT_SPEED * rollAttenuationFactor;
+  
+  // Mise à jour de la phase de tangage
+  pitchPhase += PITCH_SPEED * 0.01;
+  if (pitchPhase > Math.PI * 2) pitchPhase -= Math.PI * 2;
+  
+  // Calculer le tangage (pitch) supplémentaire basé sur une fonction sinusoïdale
+  const pitchOscillation = Math.sin(pitchPhase) * THREE.MathUtils.degToRad(PITCH_AMPLITUDE);
+  
+  // Appliquer toutes les rotations au sous-marin
+  const submarineModel = playerSubmarine.children[0];
+  if (submarineModel) {
+    // Appliquer les rotations au modèle du sous-marin tout en préservant la rotation de base (direction)
+    
+    // 1. Sauvegarder la rotation de direction (yaw) - c'est la rotation principale qui détermine où pointe le sous-marin
+    const submarineYaw = submarineModel.rotation.y;
+    
+    // 2. Réinitialiser les autres rotations (pitch et roll) mais conserver la direction (yaw)
+    submarineModel.rotation.set(0, submarineYaw, 0);
+    
+    // 3. Appliquer l'inclinaison avant/arrière (pitch) combinée:
+    // - inclinaison de mouvement vertical (monter/descendre)
+    // - inclinaison d'accélération/freinage
+    // - tangage naturel
+    submarineModel.rotateX(currentPitch + currentAccelPitch + pitchOscillation);
+    
+    // 4. Appliquer l'inclinaison lors des virages (roll) - c'est l'axe qui vous intéresse particulier
+    // Dans l'orientation typique d'un sous-marin, rotateZ fait pencher le sous-marin vers la gauche/droite
+    // (comme un avion qui penche ses ailes lors d'un virage)
+    submarineModel.rotateZ(currentRoll);
+    
+    // Note: Dans Three.js, les axes sont:
+    // X: de gauche à droite (pitch est la rotation autour de cet axe)
+    // Y: de bas en haut (yaw/direction est la rotation autour de cet axe)
+    // Z: d'avant en arrière (roll est la rotation autour de cet axe)
+  }
+  
   // Return data for external systems like the speedometer
   return {
     velocity: combinedVelocity, // Combined horizontal and vertical velocity
@@ -362,7 +527,14 @@ export function updatePlayerSubmarine(playerSubmarine) {
     // Include full movement data for advanced use
     movement: movement,
     verticalMovement: verticalMovement,
-    targetSpeed: targetSpeed // Expose palier for UI or debug
+    targetSpeed: targetSpeed, // Expose palier for UI or debug
+    // Nouvelles données d'inclinaison pour debugging
+    tiltData: {
+      pitch: currentPitch,           // Inclinaison verticale (monter/descendre)
+      accelPitch: currentAccelPitch, // Inclinaison avant/arrière (accélération/freinage)
+      roll: currentRoll,             // Inclinaison latérale (gauche/droite)
+      oscillation: pitchOscillation  // Tangage naturel
+    }
   };
 }
 

@@ -3,7 +3,7 @@ import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.176.0/build/three.m
 // --- Configuration ---
 const TILE_SIZE = 12000; // Size of each terrain tile (légèrement augmenté pour couvrir plus d'espace)
 const GRID_SIZE = 7;     // Number of tiles per side (e.g., 7x7 grid = 49 tuiles) - MUST BE ODD NUMBER
-const TILE_SEGMENTS = 256; // High resolution for detailed terrain features
+const TILE_SEGMENTS = 512; // Doubled resolution (512 vs 256) for extremely detailed terrain features
 const DEPTH = -400;      // Base depth of the ocean floor (between -200 and -600 as specified)
 const MAX_HEIGHT = 500;  // Max terrain elevation variation (allows for deep canyons and tall islands)
 const OCEAN_SURFACE = 20; // Y-position of ocean surface (consistent with water plane)
@@ -176,18 +176,39 @@ export function createTerrainGrid(scene) {
     const halfGrid = Math.floor(GRID_SIZE / 2);
 
     // Optimisation: Adapter la résolution des tuiles en fonction de leur distance
-    const createTileWithOptimizedResolution = (i, j) => {
-        // Calculer la distance au centre en tuiles
-        const distanceFromCenter = Math.sqrt(Math.pow(i - halfGrid, 2) + Math.pow(j - halfGrid, 2));
+    function createTileWithOptimizedResolution(i, j) {
+        // Calculate distance from center in grid units
+        const distanceFromCenter = Math.sqrt(
+            Math.pow(i - Math.floor(GRID_SIZE/2), 2) + 
+            Math.pow(j - Math.floor(GRID_SIZE/2), 2)
+        );
         
-        // Ajuster la résolution en fonction de la distance
-        let segmentCount = TILE_SEGMENTS;
-        if (distanceFromCenter > 2) {
-            segmentCount = Math.max(96, Math.floor(TILE_SEGMENTS / (distanceFromCenter / 2)));
+        // Improved progressive LOD system with more resolution tiers
+        // Uses quadratic falloff for more gradual quality reduction at distance
+        let segments = TILE_SEGMENTS;
+        
+        if (distanceFromCenter <= 1) {
+            // Full resolution for nearby tiles
+            segments = TILE_SEGMENTS;
+        } else if (distanceFromCenter <= 2) {
+            // 75% resolution for medium distance
+            segments = Math.floor(TILE_SEGMENTS * 0.75);
+        } else if (distanceFromCenter <= 3) {
+            // 50% resolution for farther tiles
+            segments = Math.floor(TILE_SEGMENTS * 0.5);
+        } else {
+            // Minimum 25% resolution for distant tiles
+            segments = Math.max(Math.floor(TILE_SEGMENTS * 0.25), 128);
         }
         
-        // Créer la géométrie avec la résolution adaptée
-        const geometry = new THREE.PlaneGeometry(TILE_SIZE, TILE_SIZE, segmentCount, segmentCount);
+        // Create a terrain tile geometry with optimized resolution
+        const geometry = new THREE.PlaneGeometry(
+            TILE_SIZE, 
+            TILE_SIZE, 
+            segments, 
+            segments
+        );
+        
         geometry.rotateX(-Math.PI / 2); // Orient plane horizontally
         
         // Add uv2 attribute for AO map
