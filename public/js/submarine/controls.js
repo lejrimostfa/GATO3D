@@ -437,11 +437,11 @@ export function updatePlayerSubmarine(playerSubmarine) {
   if (forwardPressed) {
     // Marche avant - inclinaison vers l'avant (nez qui descend)
     // L'angle est proportionnel à la vitesse
-    targetAccelPitch = -THREE.MathUtils.degToRad(TILT_ANGLE*1.5 * velocityPct);
+    targetAccelPitch = -THREE.MathUtils.degToRad(TILT_ANGLE*0.05 * velocityPct);
   } else if (backwardPressed) {
     // Marche arrière - inclinaison vers l'arrière (nez qui monte)
     // L'angle est proportionnel à la vitesse
-    targetAccelPitch = THREE.MathUtils.degToRad(TILT_ANGLE * velocityPct);
+    targetAccelPitch = THREE.MathUtils.degToRad(TILT_ANGLE*0.05 * velocityPct);
   } else {
     // Pas de mouvement avant/arrière - retour à l'horizontal
     targetAccelPitch = 0;
