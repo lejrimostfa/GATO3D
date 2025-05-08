@@ -295,6 +295,36 @@
   <div style="position:relative; display:inline-block; margin-right:20px;">
     <canvas id="depth-meter-canvas" width="200" height="200" style="pointer-events:auto; border-radius:50%; background:rgba(0,0,0,0.6); border:2px solid #0ff;"></canvas>
   </div>
+  
+  <!-- Jauges de statut du sous-marin -->
+  <div style="display:flex; align-items:flex-end; gap:15px; margin-right:20px; pointer-events:auto;">
+    <!-- Jauge de santé (intégrité) -->
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <div id="health-value" style="font-family:monospace; color:#0f0; background:#111a; border-radius:4px; padding:2px 6px; margin-bottom:5px; width:50px; text-align:center;">100%</div>
+      <div style="width:30px; height:150px; background:rgba(0,0,0,0.6); border-radius:4px; border:2px solid #0f0; padding:3px; position:relative;">
+        <div id="health-bar" style="position:absolute; bottom:0; left:0; right:0; height:100%; margin:3px; background:linear-gradient(to top, #f70, #0f0); border-radius:2px; transition:height 0.3s ease, background-color 0.3s ease;"></div>
+      </div>
+      <div style="font-family:monospace; color:#0f0; margin-top:5px; font-size:12px;">INTÉGRITÉ</div>
+    </div>
+    
+    <!-- Jauge d'oxygène -->
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <div id="oxygen-value" style="font-family:monospace; color:#0ff; background:#111a; border-radius:4px; padding:2px 6px; margin-bottom:5px; width:50px; text-align:center;">100%</div>
+      <div style="width:30px; height:150px; background:rgba(0,0,0,0.6); border-radius:4px; border:2px solid #0ff; padding:3px; position:relative;">
+        <div id="oxygen-bar" style="position:absolute; bottom:0; left:0; right:0; height:100%; margin:3px; background:linear-gradient(to top, #0af, #0ff); border-radius:2px; transition:height 0.3s ease, background-color 0.3s ease;"></div>
+      </div>
+      <div style="font-family:monospace; color:#0ff; margin-top:5px; font-size:12px;">OXYGÈNE</div>
+    </div>
+    
+    <!-- Jauge de batterie (horizontale avec segments) -->
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <div id="battery-value" style="font-family:monospace; color:#0f0; background:#111a; border-radius:4px; padding:2px 6px; margin-bottom:5px; width:50px; text-align:center;">100%</div>
+      <div style="display:flex; flex-direction:column; align-items:center; width:150px;">
+        <div id="battery-segments" style="width:100%; height:30px; background:rgba(0,0,0,0.6); border-radius:4px; border:2px solid #0f0; padding:3px; display:flex; gap:2px;"></div>
+        <div style="font-family:monospace; color:#0f0; margin-top:5px; font-size:12px;">BATTERIE</div>
+      </div>
+    </div>
+  </div>
 </div>
 
   </div>

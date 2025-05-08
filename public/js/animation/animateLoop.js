@@ -14,6 +14,8 @@ import { updateTerrainWithSubmarine } from '../ocean/terrain.js'; // Import la n
 import { updateWaterMaterial, getWaveParameters } from '../ocean/waveControls.js'; // Ajout de l'importation
 // Import centralized key management
 import { keys } from '../input/inputManager.js';
+// Import submarine status manager
+import { updateStatus } from '../submarine/statusManager.js';
 
 // Animation state
 let animationState = {
@@ -104,8 +106,27 @@ function animate() {
   
   // Update submarine controls
   if (playerSubmarine) {
-    updatePlayerSubmarine(playerSubmarine);
-    // updateDepthHud(playerSubmarine); // Remplacé par le depth-o-meter
+    // Récupérer les données de mouvement du sous-marin
+    const movementData = updatePlayerSubmarine(playerSubmarine);
+    
+    // Mettre à jour les statuts du sous-marin (santé, oxygène, batterie)
+    // Calculer la profondeur réelle (distance depuis la surface de l'eau à Y=20)
+    const surfaceY = 20;
+    const depth = playerSubmarine.position.y < surfaceY ? surfaceY - playerSubmarine.position.y : 0;
+    
+    // Mettre à jour le statut du sous-marin avec les valeurs actuelles
+    if (movementData) {
+      // Afficher les valeurs pour débogage
+      console.log(`[Status Update] Depth: ${depth.toFixed(2)}m, Velocity: ${movementData.velocity ? movementData.velocity.toFixed(2) : 'N/A'}`);
+      
+      // Utiliser une valeur par défaut si velocity est undefined
+      const velocity = (movementData.velocity !== undefined) ? movementData.velocity : 0;
+      
+      // Mettre à jour explicitement le statut
+      updateStatus(playerSubmarine, depth, velocity);
+    } else {
+      console.warn('[Animation] Données de mouvement non disponibles pour mise à jour du statut');
+    }
     
     // Mettre à jour la position de la lumière d'ombre pour suivre le sous-marin
     if (window.updateShadowLight) {

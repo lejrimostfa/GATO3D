@@ -10,6 +10,7 @@ import { setupOverlayObserver } from './components/overlayObserver.js';
 import { initAllSliders } from './controls/sliders.js';
 import { initMinimap } from './minimap/minimapManager.js';
 import { initHelpOverlay } from './helpOverlay.js';
+import { initSubmarineStatus } from './submarineStatus.js';
 
 // UI state variables
 let speedometerInstance = null;
@@ -48,6 +49,7 @@ export function initUI(onComplete) {
   initSpeedometer();
   initDepthMeter(); // Ajout du depth meter
   initMinimap();
+  initSubmarineStatus(); // Initialiser les jauges de statut (santé, oxygène, batterie)
   
   // Initialiser l'overlay d'aide (bouton "?") - toujours visible
   initHelpOverlay();

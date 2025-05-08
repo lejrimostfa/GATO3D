@@ -68,25 +68,35 @@ export function initSubmarineStatus() {
 }
 
 /**
- * Crée les segments de batterie
+ * Crée les segments de batterie (carrés verts distincts)
  */
 function createBatterySegments() {
   // Vider le conteneur
   batterySegmentsContainer.innerHTML = '';
   batterySegments = [];
   
-  // Créer les segments
+  // Créer les segments (10 carrés représentant 10% chacun)
   for (let i = 0; i < CONFIG.batterySegments; i++) {
     const segment = document.createElement('div');
-    segment.style.flex = '1';
-    segment.style.height = '100%';
+    // Styles pour créer des carrés distincts
+    segment.style.width = '12px';
+    segment.style.height = '18px';
+    segment.style.margin = '1px';
     segment.style.backgroundColor = CONFIG.batteryColors.high;
     segment.style.borderRadius = '2px';
-    segment.style.transition = 'background-color 0.3s ease';
+    segment.style.border = '1px solid rgba(0,255,0,0.3)';
+    segment.style.boxShadow = '0 0 3px rgba(0,255,0,0.3)';
+    segment.style.transition = 'background-color 0.3s ease, opacity 0.3s ease';
     
+    // Ajouter au conteneur et au tableau de références
     batterySegmentsContainer.appendChild(segment);
     batterySegments.push(segment);
   }
+  
+  // Ajuster le style du conteneur pour les segments
+  batterySegmentsContainer.style.display = 'flex';
+  batterySegmentsContainer.style.justifyContent = 'center';
+  batterySegmentsContainer.style.alignItems = 'center';
 }
 
 /**
@@ -179,25 +189,54 @@ export function updateBattery(value) {
   // Mettre à jour l'affichage du texte
   batteryValue.textContent = `${Math.round(value)}%`;
   
+  // Changer la couleur du texte pour indiquer l'état de la batterie
+  if (value < 20) {
+    batteryValue.style.color = CONFIG.batteryColors.low;
+    // Faire clignoter l'affichage si très faible
+    if (value < 5) {
+      batteryValue.style.animation = 'blink 1s infinite';
+    } else {
+      batteryValue.style.animation = 'none';
+    }
+  } else if (value < 50) {
+    batteryValue.style.color = CONFIG.batteryColors.medium;
+    batteryValue.style.animation = 'none';
+  } else {
+    batteryValue.style.color = CONFIG.batteryColors.high;
+    batteryValue.style.animation = 'none';
+  }
+  
   // Calculer combien de segments doivent être actifs
   const segmentsToActivate = Math.ceil((value / 100) * CONFIG.batterySegments);
+  
+  // Déterminer la couleur des segments en fonction du niveau
+  let segmentColor;
+  if (value < 20) {
+    segmentColor = CONFIG.batteryColors.low;
+  } else if (value < 50) {
+    segmentColor = CONFIG.batteryColors.medium;
+  } else {
+    segmentColor = CONFIG.batteryColors.high;
+  }
   
   // Mettre à jour chaque segment
   for (let i = 0; i < batterySegments.length; i++) {
     const segment = batterySegments[i];
     
     if (i < segmentsToActivate) {
-      // Segment actif - choisir la couleur en fonction du niveau
-      if (value < 20) {
-        segment.style.backgroundColor = CONFIG.batteryColors.low;
-      } else if (value < 50) {
-        segment.style.backgroundColor = CONFIG.batteryColors.medium;
-      } else {
-        segment.style.backgroundColor = CONFIG.batteryColors.high;
-      }
+      // Segment actif - visible avec la couleur appropriée
+      segment.style.backgroundColor = segmentColor;
+      segment.style.opacity = '1';
+      // Ajouter une bordure de la même couleur mais plus claire
+      segment.style.border = `1px solid ${segmentColor}80`; // 80 = 50% opacité en hex
+      // Ajouter un effet de glow pour les segments actifs
+      segment.style.boxShadow = `0 0 5px ${segmentColor}80`;
     } else {
-      // Segment inactif
-      segment.style.backgroundColor = 'rgba(0,0,0,0.3)';
+      // Segment inactif - transparence avec bordure visible
+      segment.style.backgroundColor = 'rgba(0,0,0,0.1)';
+      segment.style.opacity = '0.3';
+      segment.style.border = '1px solid rgba(0,50,0,0.2)';
+      segment.style.boxShadow = 'none';
     }
   }
   

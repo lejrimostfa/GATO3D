@@ -16,6 +16,7 @@ import { initFpsCounter } from '../ui/fpsCounter.js';
 import { initLighting } from '../lighting.js';
 import { elements } from '../ui/domElements.js';
 import { initResponsiveUI } from '../ui/responsiveUI.js';
+import { initStatusManager } from '../submarine/statusManager.js';
 
 // Core game state
 export let scene = null;
@@ -39,6 +40,9 @@ export function initGame(onComplete) {
     console.error('[GAME] Game initialization stopped due to renderer initialization failure');
     return;
   }
+  
+  // Initialize submarine status manager (health, oxygen, battery)
+  initStatusManager();
   
   // Initialize submarine speed controls
   initSubmarineSpeedControls();

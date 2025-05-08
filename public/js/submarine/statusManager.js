@@ -122,8 +122,7 @@ function updateOxygenLevel(deltaTime) {
   // Récupérer le niveau d'oxygène actuel
   const { oxygen } = getCurrentValues();
   
-  // Débug pour vérifier l'état du sous-marin
-  console.log(`[DEBUG:Oxygen] Profondeur: ${currentDepth.toFixed(2)}m, Sous l'eau: ${isUnderwater}, Oxygène: ${oxygen.toFixed(1)}%`);
+  // L'oxygène diminue sous l'eau et se recharge en surface
   
   // Vérifier si le sous-marin est sous l'eau (profondeur > 1m)
   if (currentDepth > 1) {
@@ -142,8 +141,7 @@ function updateOxygenLevel(deltaTime) {
     // Calculer le nouveau niveau d'oxygène
     const newOxygen = Math.max(0, oxygen - totalConsumption);
     
-    // Débug pour vérifier la consommation
-    console.log(`[DEBUG:Oxygen] Sous l'eau - Consommation: ${totalConsumption.toFixed(3)}%, Nouveau niveau: ${newOxygen.toFixed(1)}%`);
+
     
     // Mettre à jour l'oxygène
     updateOxygen(newOxygen);
@@ -160,8 +158,7 @@ function updateOxygenLevel(deltaTime) {
     const regenRate = CONFIG.surfaceOxygenRegenRate * deltaTime;
     const newOxygen = Math.min(100, oxygen + regenRate);
     
-    // Débug pour vérifier la régénération
-    console.log(`[DEBUG:Oxygen] En surface - Régénération: ${regenRate.toFixed(3)}%, Nouveau niveau: ${newOxygen.toFixed(1)}%`);
+
     
     // Mettre à jour l'oxygène
     updateOxygen(newOxygen);
@@ -176,8 +173,7 @@ function updateBatteryLevel(deltaTime) {
   // Récupérer le niveau de batterie actuel
   const { battery } = getCurrentValues();
   
-  // Débug pour vérifier l'état du sous-marin
-  console.log(`[DEBUG:Battery] Vitesse: ${Math.abs(currentVelocity).toFixed(2)}, En mouvement: ${isMoving}, Batterie: ${battery.toFixed(1)}%`);
+  // La batterie est directement liée au mouvement et s'épuise avec la vitesse
   
   // Consommation de base (même à l'arrêt)
   let consumptionRate = CONFIG.batteryConsumptionBase * deltaTime;
@@ -206,8 +202,7 @@ function updateBatteryLevel(deltaTime) {
   // Appliquer la consommation
   const newBatteryLevel = Math.max(0, battery - consumptionRate);
   
-  // Débug pour vérifier la consommation
-  console.log(`[DEBUG:Battery] Consommation: ${consumptionRate.toFixed(3)}%, Nouveau niveau: ${newBatteryLevel.toFixed(1)}%`);
+  // Une fois la batterie épuisée, le sous-marin s'immobilisera automatiquement
   
   // Mettre à jour la batterie
   updateBattery(newBatteryLevel);
@@ -258,15 +253,8 @@ export function applyCollisionDamage(impactForce) {
   // Arrondir pour plus de lisibilité
   damage = Math.round(damage);
   
-  // Débug pour vérifier les valeurs
-  console.log(`[Submarine:Status] Collision détectée! Force: ${impactForce.toFixed(2)}, Dommages: ${damage}%, Santé avant: ${health}%`);
-  
   // Appliquer les dommages avec effet visuel (true pour activer le flash)
   updateHealth(health - damage, true);
-  
-  // Vérifier que la mise à jour a bien fonctionné
-  const { health: newHealth } = getCurrentValues();
-  console.log(`[Submarine:Status] Santé après collision: ${newHealth}%`);
 }
 
 /**
